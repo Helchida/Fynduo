@@ -27,6 +27,13 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  buttonRemove: {
+    backgroundColor: '#ee412bff',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
   buttonText: {
     color: '#fff',
     fontSize: 16,

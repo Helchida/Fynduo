@@ -19,6 +19,16 @@ export default function HomeScreen() {
     { id: '2', label: 'Cinéma', category: 'Loisirs', amount: 3.5 },
   ]);
 
+  const handleUpdateExpense = (updated: Expense) => {
+    setExpenses((prev) =>
+      prev.map((exp) => (exp.id === updated.id ? updated : exp))
+    );
+  };
+
+  const handleRemoveExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Mes dépenses</Text>
@@ -30,7 +40,17 @@ export default function HomeScreen() {
         data={expenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ExpenseItem expense={item} />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('UpdateExpense', {
+                expense: item,
+                updateExpense: handleUpdateExpense,
+                removeExpense: handleRemoveExpense,
+              })
+            }
+          >
+            <ExpenseItem expense={item} />
+          </TouchableOpacity>
         )}
         style={styles.list}
       />

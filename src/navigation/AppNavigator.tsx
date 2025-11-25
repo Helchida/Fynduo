@@ -5,6 +5,7 @@ import { RootStackParamList } from './types';
 
 import HomeScreen from '../screens/HomeScreen';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
+import UpdateExpenseScreen from '../screens/UpdateExpenseScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>(); 
 
@@ -21,6 +22,11 @@ export default function AppNavigator() {
           name="AddExpense" 
           component={AddExpenseScreen}
           options={{ title: 'Ajouter une dépense' }}
+        />
+        <Stack.Screen 
+          name="UpdateExpense" 
+          component={UpdateExpenseScreen}
+          options={{ title: 'Modifier/Supprimer une dépense' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
