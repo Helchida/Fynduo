@@ -19,14 +19,19 @@ export default function HomeScreen() {
     { id: '2', label: 'Cinéma', category: 'Loisirs', amount: 3.5 },
   ]);
 
+  const deleteExpense = (id: string) => {
+  setExpenses((prev) => prev.filter((e) => e.id !== id));
+};
+
+
   const handleUpdateExpense = (updated: Expense) => {
     setExpenses((prev) =>
       prev.map((exp) => (exp.id === updated.id ? updated : exp))
     );
   };
 
-  const handleRemoveExpense = (id: string) => {
-    setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+  const handleDeleteExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
   return (
@@ -40,17 +45,21 @@ export default function HomeScreen() {
         data={expenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity
+          <ExpenseItem
+            expense={item}
+            onDelete={handleDeleteExpense}
             onPress={() =>
               navigation.navigate('UpdateExpense', {
                 expense: item,
-                updateExpense: handleUpdateExpense,
-                removeExpense: handleRemoveExpense,
+                updateExpense: (updated) =>
+                  setExpenses((prev) =>
+                    prev.map((exp) => (exp.id === updated.id ? updated : exp))
+                  ),
+                removeExpense: (id) =>
+                  setExpenses((prev) => prev.filter((exp) => exp.id !== id)),
               })
             }
-          >
-            <ExpenseItem expense={item} />
-          </TouchableOpacity>
+          />
         )}
         style={styles.list}
       />

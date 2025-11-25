@@ -37,4 +37,13 @@ export default StyleSheet.create({
     color: '#888',
     marginTop: 2,
   },
+
+  deleteButton: {
+    backgroundColor: '#e11d48',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
 });
