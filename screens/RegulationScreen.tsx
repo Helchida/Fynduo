@@ -14,7 +14,7 @@ import { RootStackNavigationProp, Colocataire, IChargeFixe } from '../types';
 import { IReglementData } from '../context/ComptesContext';
 import { useComptes } from '../hooks/useComptes';
 import { nanoid } from 'nanoid/non-secure';
-import { styles } from '../styles/screens/ReglementScreen.style';
+import { styles } from '../styles/screens/RegulationScreen.style';
 
 
 interface ChargeFixeForm extends IChargeFixe {
@@ -55,7 +55,7 @@ const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({ charge, onUpdate, onDelet
 );
 
 
-const ReglementScreen: React.FC = () => {
+const RegulationScreen: React.FC = () => {
 
     const navigation = useNavigation<RootStackNavigationProp>();
     
@@ -80,7 +80,7 @@ const ReglementScreen: React.FC = () => {
 
     useEffect(() => {
         if (currentMonthData && currentMonthData.statut === 'finalisé') {
-            navigation.replace('Recap');
+            navigation.replace('SummaryRegulation');
         }
     }, [currentMonthData, navigation]);
 
@@ -233,7 +233,7 @@ const ReglementScreen: React.FC = () => {
             Alert.alert(
                 "Clôture réussie", 
                 `Le règlement est finalisé. Solde Final: ${soldeFinal.toFixed(2)}€`, 
-                [{ text: "OK", onPress: () => navigation.navigate('Recap') }] 
+                [{ text: "OK", onPress: () => navigation.navigate('SummaryRegulation') }] 
             ); 
 
         } catch (error) {
@@ -291,7 +291,7 @@ const ReglementScreen: React.FC = () => {
                 
                 <View style={styles.subSection}>
                     <View style={styles.subSectionHeader}>
-                        <Text style={styles.subSectionTitle}>Charges Morgan (Payeur: Morgan)</Text>
+                        <Text style={styles.subSectionTitle}>Charges Morgan</Text>
                         <TouchableOpacity 
                             onPress={() => handleAddCharge('Morgan')}
                             style={styles.addButton}
@@ -312,7 +312,7 @@ const ReglementScreen: React.FC = () => {
 
                 <View style={styles.subSection}>
                     <View style={styles.subSectionHeader}>
-                        <Text style={styles.subSectionTitle}>Charges Juliette (Payeur: Juliette)</Text>
+                        <Text style={styles.subSectionTitle}>Charges Juliette</Text>
                         <TouchableOpacity 
                             onPress={() => handleAddCharge('Juliette')}
                             style={styles.addButton}
@@ -333,7 +333,7 @@ const ReglementScreen: React.FC = () => {
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>💸 Ajustement Trésorerie (Solde Variable Final)</Text>
+                <Text style={styles.sectionTitle}>💸 Ajustement Charges Variables</Text>
                 <Text style={styles.inputLabel}>Saisissez les ajustements variables finaux pour clore la trésorerie ce mois-ci.</Text>
                 
                 <View style={styles.inputGroup}>
@@ -373,4 +373,4 @@ const ReglementScreen: React.FC = () => {
     );
 };
 
-export default ReglementScreen;
+export default RegulationScreen;

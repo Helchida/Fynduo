@@ -4,7 +4,7 @@ import { useComptes } from '../hooks/useComptes';
 import { useAuth } from '../hooks/useAuth';
 import { IChargeVariable } from '../types';
 import dayjs from 'dayjs';
-import { styles } from '../styles/screens/TresorerieScreen.style';
+import { styles } from '../styles/screens/ChargesVariablesScreen.style';
 
 interface DepenseItemProps {
     depense: IChargeVariable;
@@ -26,7 +26,7 @@ const DepenseItem: React.FC<DepenseItemProps> = React.memo(({ depense }) => (
 ));
 
 
-const TresorerieScreen: React.FC = () => {
+const ChargesVariablesScreen: React.FC = () => {
     const { chargesVariables, isLoadingComptes, addChargeVariable } = useComptes(); 
     const { user } = useAuth();
     
@@ -127,4 +127,4 @@ const TresorerieScreen: React.FC = () => {
     );
 };
 
-export default TresorerieScreen;
+export default ChargesVariablesScreen;

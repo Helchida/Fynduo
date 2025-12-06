@@ -3,7 +3,7 @@ import { View, Text, FlatList, TextInput, Button, Alert } from 'react-native';
 import { useComptes } from '../hooks/useComptes';
 import { useAuth } from '../hooks/useAuth';
 import { IChargeFixe } from '../types';
-import { styles } from '../styles/screens/ChargesScreen.style';
+import { styles } from '../styles/screens/ChargesFixesScreen.style';
 
 interface ChargeItemProps {
   charge: IChargeFixe;
@@ -63,7 +63,7 @@ const ChargeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, isEditable })
 };
 
 
-const ChargesScreen: React.FC = () => {
+const ChargesFixesScreen: React.FC = () => {
   const { chargesFixes, isLoadingComptes, updateChargeFixe } = useComptes();
   const { user } = useAuth(); 
   
@@ -107,4 +107,4 @@ const ChargesScreen: React.FC = () => {
   );
 };
 
-export default ChargesScreen;
+export default ChargesFixesScreen;

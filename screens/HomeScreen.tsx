@@ -89,7 +89,7 @@ const HomeScreen: React.FC = () => {
                 <View style={styles.actionsContainer}>
                     <TouchableOpacity 
                         style={[styles.actionButton, { borderLeftColor: '#f39c12' }]}
-                        onPress={() => navigation.navigate('Reglement')}
+                        onPress={() => navigation.navigate('Regulation')}
                     >
                         <Text style={styles.actionText}>Faire les comptes (Clôture)</Text>
                     </TouchableOpacity>
@@ -99,6 +99,13 @@ const HomeScreen: React.FC = () => {
                         onPress={() => navigation.navigate('ChargesVariables')}
                     >
                         <Text style={styles.actionText}>Mois en cours (Dépenses)</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={[styles.actionButton, { borderLeftColor: '#d14127ff' }]}
+                        onPress={() => navigation.navigate('ChargesFixes')}
+                    >
+                        <Text style={styles.actionText}>Modifier les charges fixes</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 

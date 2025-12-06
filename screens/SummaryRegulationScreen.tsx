@@ -3,9 +3,9 @@ import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useComptes } from '../hooks/useComptes';
 import { useAuth } from '../hooks/useAuth';
 import { Colocataire } from '../types';
-import { styles } from '../styles/screens/RecapScreen.style';
+import { styles } from '../styles/screens/SummaryRegulationScreen.style';
 
-const RecapScreen: React.FC = () => {
+const SummaryRegulationScreen: React.FC = () => {
     
     const {
         currentMonthData,
@@ -138,4 +138,4 @@ const RecapScreen: React.FC = () => {
     );
 };
 
-export default RecapScreen;
+export default SummaryRegulationScreen;

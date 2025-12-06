@@ -54,8 +54,8 @@ export type RootStackParamList = {
     Loyer: undefined;
     ChargesFixes: undefined;
     ChargesVariables: undefined;
-    Reglement: undefined;
-    Recap: undefined;
+    Regulation: undefined;
+    SummaryRegulation: undefined;
     Login: undefined;
 };
 

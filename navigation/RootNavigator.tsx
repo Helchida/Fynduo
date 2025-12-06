@@ -6,11 +6,11 @@ import { RootStackParamList } from '../types';
 
 import HomeScreen from '../screens/HomeScreen';
 import LoyerScreen from '../screens/LoyerScreen';
-import ChargesScreen from '../screens/ChargesScreen';
-import TresorerieScreen from '../screens/TresorerieScreen';
+import ChargesFixesScreen from '../screens/ChargesFixesScreen';
+import ChargesVariablesScreen from '../screens/ChargesVariablesScreen';
 import LoginScreen from '../screens/LoginScreen';
-import ReglementScreen from '../screens/ReglementScreen';
-import RecapScreen from '../screens/RecapScreen';
+import Regulation from '../screens/RegulationScreen';
+import SummaryRegulationScreen from '../screens/SummaryRegulationScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -18,13 +18,13 @@ const AppStack = () => (
     <Stack.Navigator>
         <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'FYNDUO Dashboard' }} />
         <Stack.Screen name="Loyer" component={LoyerScreen} options={{ title: 'Gestion du Loyer' }} />
-        <Stack.Screen name="ChargesFixes" component={ChargesScreen} options={{ title: 'Charges Fixes' }} />
-        <Stack.Screen name="ChargesVariables" component={TresorerieScreen} options={{ title: 'Charges Variables' }} />
-        <Stack.Screen name="Reglement" component={ReglementScreen} options={{ title: 'Faire les Comptes' }} />
+        <Stack.Screen name="ChargesFixes" component={ChargesFixesScreen} options={{ title: 'Charges Fixes' }} />
+        <Stack.Screen name="ChargesVariables" component={ChargesVariablesScreen} options={{ title: 'Charges Variables' }} />
+        <Stack.Screen name="Regulation" component={Regulation} options={{ title: 'Faire les Comptes' }} />
         <Stack.Screen 
-                name="Recap" 
-                component={RecapScreen} 
-                options={{ title: 'Récapitulatif Mensuel' }} 
+                name="SummaryRegulation" 
+                component={SummaryRegulationScreen} 
+                options={{ title: 'Résumé du règlement' }} 
             />
     </Stack.Navigator>
 );
