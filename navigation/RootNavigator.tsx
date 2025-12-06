@@ -16,8 +16,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppStack = () => (
     <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'FYNDUO Dashboard' }} />
-        <Stack.Screen name="Loyer" component={LoyerScreen} options={{ title: 'Gestion du Loyer' }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Accueil' }} />
+        <Stack.Screen name="Loyer" component={LoyerScreen} options={{ title: 'Loyer et APL' }} />
         <Stack.Screen name="ChargesFixes" component={ChargesFixesScreen} options={{ title: 'Charges Fixes' }} />
         <Stack.Screen name="ChargesVariables" component={ChargesVariablesScreen} options={{ title: 'Charges Variables' }} />
         <Stack.Screen name="Regulation" component={Regulation} options={{ title: 'Faire les Comptes' }} />

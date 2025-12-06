@@ -3,67 +3,88 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
     container: { 
         flex: 1, 
-        padding: 20, 
-        backgroundColor: '#fff' 
+        backgroundColor: '#f8f8f8'
+    },
+    scrollContent: {
+        padding: 20,
+        paddingBottom: 40,
     },
     header: { 
-        fontSize: 22, 
+        fontSize: 24,
         fontWeight: 'bold', 
-        marginBottom: 20,
-        color: '#2c3e50',
+        marginBottom: 25,
+        color: '#333',
+        textAlign: 'center',
+    },
+    inputGroup: {
+        marginBottom: 15,
     },
     label: { 
         fontSize: 16, 
-        marginTop: 15, 
         marginBottom: 5, 
-        fontWeight: '500' 
+        fontWeight: '600',
+        color: '#555',
     },
     input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      padding: 10,
-      fontSize: 16,
-      borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#bdc3c7',
+        padding: 10,
+        fontSize: 16,
+        borderRadius: 8,
+        backgroundColor: '#fff',
+        color: '#34495e',
     },
-    result: {
-        marginTop: 20,
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#2980b9'
-    },
-    buttonWrapper: {
+    resultContainer: {
         marginTop: 30,
+        padding: 15,
+        backgroundColor: '#ecf0f1',
+        borderRadius: 8,
+        borderLeftWidth: 5,
+        borderLeftColor: '#3498db',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    resultLabel: {
+        fontSize: 16,
+        color: '#34495e',
+        fontWeight: '600',
+    },
+    resultValue: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#2980b9',
     },
     loading: { 
         textAlign: 'center', 
-        marginTop: 50 
-    },
-    permissionWarning: { 
-        marginTop: 30, 
-        color: 'red', 
-        textAlign: 'center' 
+        marginTop: 50,
+        fontSize: 18,
+        color: '#5bc0de',
     },
     validationContainer: {
-        marginTop: 20,
-        marginBottom: 40,
+        marginTop: 30,
     },
-
     validationButton: { 
-        backgroundColor: '#27ae60',
-        padding: 14, 
-        borderRadius: 8, 
-        marginBottom: 15, 
+        backgroundColor: '#2ecc71',
+        padding: 15,
+        borderRadius: 10,
         alignItems: 'center',
-        shadowColor: '#27ae60',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 3,
+        justifyContent: 'center',
+        minHeight: 50,
+        shadowColor: "#2ecc71",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        elevation: 8,
     },
-
     validationButtonText: { 
         color: '#fff', 
         fontWeight: '700',
-        fontSize: 16,
+        fontSize: 18,
     },
-})
+    disabledButton: {
+        backgroundColor: '#bdc3c7',
+        shadowOpacity: 0.1,
+        elevation: 2,
+    },
+});

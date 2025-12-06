@@ -5,26 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { IChargeVariable } from '../types';
 import dayjs from 'dayjs';
 import { styles } from '../styles/screens/ChargesVariablesScreen.style';
-
-interface DepenseItemProps {
-    depense: IChargeVariable;
-}
-
-const DepenseItem: React.FC<DepenseItemProps> = React.memo(({ depense }) => (
-    <View style={styles.depenseItem}>
-        <View style={styles.depenseInfo}>
-            <Text style={styles.depenseDesc}>{depense.description}</Text>
-            <Text style={styles.depenseDate}>{dayjs(depense.date).format('DD MMM à HH:mm')}</Text>
-        </View>
-        <View style={styles.depenseDetails}>
-            <Text style={styles.depenseAmount}>
-                {depense.montantTotal.toFixed(2)} €
-            </Text>
-            <Text style={styles.depensePayer}>Payé par {depense.payeur}</Text>
-        </View>
-    </View>
-));
-
+import ChargeItem from '../components/fynduo/ChargeVariableItem';
 
 const ChargesVariablesScreen: React.FC = () => {
     const { chargesVariables, isLoadingComptes, addChargeVariable } = useComptes(); 
@@ -118,7 +99,7 @@ const ChargesVariablesScreen: React.FC = () => {
                 <FlatList
                     data={chargesVariables.slice().sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <DepenseItem depense={item} />}
+                    renderItem={({ item }) => <ChargeItem charge={item} />}
                     style={styles.list}
                     contentContainerStyle={{ paddingBottom: 10 }}
                 />
