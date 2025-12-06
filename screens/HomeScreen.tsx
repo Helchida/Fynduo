@@ -61,7 +61,7 @@ const HomeScreen: React.FC = () => {
             >
                 
                 <View style={styles.historyCard}>
-                    <Text style={styles.sectionTitle}>Total des Dépenses (3 derniers mois)</Text>
+                    <Text style={styles.sectionTitle}>Total des dépenses</Text>
                     
                     <View style={styles.historyNavigator}>
                         <TouchableOpacity 
@@ -91,21 +91,28 @@ const HomeScreen: React.FC = () => {
                         style={[styles.actionButton, { borderLeftColor: '#f39c12' }]}
                         onPress={() => navigation.navigate('Regulation')}
                     >
-                        <Text style={styles.actionText}>Faire les comptes (Clôture)</Text>
+                        <Text style={styles.actionText}>Faire les comptes</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
                         style={[styles.actionButton, { borderLeftColor: '#2ecc71' }]}
                         onPress={() => navigation.navigate('ChargesVariables')}
                     >
-                        <Text style={styles.actionText}>Mois en cours (Dépenses)</Text>
+                        <Text style={styles.actionText}>Charges variables</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
                         style={[styles.actionButton, { borderLeftColor: '#d14127ff' }]}
                         onPress={() => navigation.navigate('ChargesFixes')}
                     >
-                        <Text style={styles.actionText}>Modifier les charges fixes</Text>
+                        <Text style={styles.actionText}>Charges fixes</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={[styles.actionButton, { borderLeftColor: '#27a1d1ff' }]}
+                        onPress={() => navigation.navigate('Loyer')}
+                    >
+                        <Text style={styles.actionText}>Loyer et APL</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 

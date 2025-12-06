@@ -139,5 +139,24 @@ export const styles = StyleSheet.create({
     validationContainer: {
         marginTop: 20,
         marginBottom: 40,
-    }
+    },
+
+    validationButton: { 
+        backgroundColor: '#27ae60',
+        padding: 14, 
+        borderRadius: 8, 
+        marginBottom: 15, 
+        alignItems: 'center',
+        shadowColor: '#27ae60',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+
+    validationButtonText: { 
+        color: '#fff', 
+        fontWeight: '700',
+        fontSize: 16,
+    },
 });

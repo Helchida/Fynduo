@@ -1,17 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TextInput, Button, Alert } from 'react-native';
 import { useComptes } from '../hooks/useComptes';
-import { useAuth } from '../hooks/useAuth';
 import { IChargeFixe } from '../types';
 import { styles } from '../styles/screens/ChargesFixesScreen.style';
 
 interface ChargeItemProps {
   charge: IChargeFixe;
   onUpdate: (id: string, newAmount: number) => Promise<void>;
-  isEditable: boolean;
 }
 
-const ChargeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, isEditable }) => {
+const ChargeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
   const [isSaving, setIsSaving] = useState(false);
 
@@ -47,16 +45,15 @@ const ChargeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, isEditable })
           value={amount}
           onChangeText={setAmount}
           keyboardType="numeric"
-          editable={isEditable && !isSaving}
-          style={[styles.input, !isEditable && { backgroundColor: '#f5f5f5', color: '#999' }]}
+          editable={!isSaving}
+          style={[styles.input, { backgroundColor: '#f5f5f5', color: '#999' }]}
         />
-        {isEditable && (
-            <Button 
-                title={isSaving ? "En cours..." : "Sauvegarder"}
-                onPress={handleSave} 
-                disabled={isButtonDisabled} 
-            />
-        )}
+        
+        <Button 
+            title={isSaving ? "En cours..." : "Sauvegarder"}
+            onPress={handleSave} 
+            disabled={isButtonDisabled} 
+        />
       </View>
     </View>
   );
@@ -65,14 +62,10 @@ const ChargeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, isEditable })
 
 const ChargesFixesScreen: React.FC = () => {
   const { chargesFixes, isLoadingComptes, updateChargeFixe } = useComptes();
-  const { user } = useAuth(); 
-  
-  const userIsMorgan = user?.nom === 'Morgan';
 
   const handleChargeUpdate = useCallback(async (id: string, newAmount: number) => {
         try {
             await updateChargeFixe(id, newAmount);
-            Alert.alert("Succès", "Montant de la charge mis à jour !");
         } catch (error) {
             Alert.alert("Erreur", "Échec de la mise à jour des charges. Vérifiez les permissions.");
             console.error("Erreur Charges:", error);
@@ -85,11 +78,7 @@ const ChargesFixesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Charges Fixes Mensuelles</Text>
-      {!userIsMorgan && (
-        <Text style={styles.warning}>Seul Morgan est autorisé à modifier ces montants.</Text>
-      )}
-
+      <Text style={styles.header}>Charges fixes</Text>
       <FlatList
         data={chargesFixes}
         keyExtractor={(item) => item.id}
@@ -97,7 +86,6 @@ const ChargesFixesScreen: React.FC = () => {
           <ChargeItem 
             charge={item} 
             onUpdate={handleChargeUpdate} 
-            isEditable={userIsMorgan} 
           />
         )}
         style={styles.list}

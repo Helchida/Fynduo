@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useComptes } from '../hooks/useComptes';
 import { useAuth } from '../hooks/useAuth'; 
 import { styles } from '../styles/screens/LoyerScreen.style';
@@ -24,11 +24,6 @@ const LoyerScreen: React.FC = () => {
     const total = parseFloat(loyerTotal);
     const aplM = parseFloat(aplMorgan);
     const aplJ = parseFloat(aplJuliette);
-
-    if (user?.nom !== 'Morgan') {
-        Alert.alert("Permission Refusée", "Seul Morgan est autorisé à modifier les montants du loyer.");
-        return;
-    }
 
     if (isNaN(total) || isNaN(aplM) || isNaN(aplJ) || total < 0 || aplM < 0 || aplJ < 0) {
       Alert.alert("Erreur", "Veuillez entrer des montants valides.");
@@ -58,49 +53,45 @@ const LoyerScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Détails du Loyer ({currentMonthData?.moisAnnee})</Text>
+      <Text style={styles.header}>Gestion du loyer</Text>
 
-      <Text style={styles.label}>Loyer Total à Payer</Text>
+      <Text style={styles.label}>Loyer total à payer</Text>
       <TextInput
         style={styles.input}
         value={loyerTotal}
         onChangeText={setLoyerTotal}
         keyboardType="numeric"
         placeholder="e.g., 1200.00"
-        editable={user?.nom === 'Morgan'}
       />
 
-      <Text style={styles.label}>APL Reçus (Morgan)</Text>
+      <Text style={styles.label}>APL reçus (Morgan)</Text>
       <TextInput
         style={styles.input}
         value={aplMorgan}
         onChangeText={setAplMorgan}
         keyboardType="numeric"
         placeholder="e.g., 120.00"
-        editable={user?.nom === 'Morgan'}
       />
 
-      <Text style={styles.label}>APL Reçus (Juliette)</Text>
+      <Text style={styles.label}>APL reçus (Juliette)</Text>
       <TextInput
         style={styles.input}
         value={aplJuliette}
         onChangeText={setAplJuliette}
         keyboardType="numeric"
         placeholder="e.g., 80.00"
-        editable={user?.nom === 'Morgan'}
       />
       
       <Text style={styles.result}>
         Loyer Net (Total - APL) : {loyerNet.toFixed(2)} €
       </Text>
-      
-      {user?.nom === 'Morgan' ? (
-        <View style={styles.buttonWrapper}>
-            <Button title="Enregistrer les Montants" onPress={handleSave} />
-        </View>
-      ) : (
-        <Text style={styles.permissionWarning}>Vous ne pouvez pas modifier ces montants.</Text>
-      )}
+
+      <View style={styles.validationContainer}>
+          <TouchableOpacity style={styles.validationButton} onPress={handleSave} disabled={isLoadingComptes}>
+              <Text style={styles.validationButtonText}>{"Enregistrer"}</Text>
+          </TouchableOpacity>
+          {isLoadingComptes && <ActivityIndicator size="small" color="#2ecc71" style={{ marginTop: 10 }} />}
+      </View>
       
     </ScrollView>
   );

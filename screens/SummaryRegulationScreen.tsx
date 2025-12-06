@@ -45,7 +45,7 @@ const SummaryRegulationScreen: React.FC = () => {
     if (!currentMonthData) {
         return (
             <View style={styles.container}>
-                <Text style={styles.errorText}>Aucune donnée de compte mensuel disponible.</Text>
+                <Text style={styles.errorText}>Aucune donnée disponible.</Text>
             </View>
         );
     }
@@ -56,7 +56,7 @@ const SummaryRegulationScreen: React.FC = () => {
     let messagePrincipal = '';
 
     if (montantAbsolu < 0.01) {
-        messagePrincipal = "Équilibre parfait ! Aucun transfert nécessaire entre vous.";
+        messagePrincipal = "Équilibre parfait ! Aucun remboursement nécessaire entre vous.";
     } else if (estCrediteur) {
         messagePrincipal = `${autreColocataire} doit vous payer ${montantAbsolu.toFixed(2)} €`;
     } else {
@@ -76,23 +76,23 @@ const SummaryRegulationScreen: React.FC = () => {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             
-            <Text style={styles.headerTitle}>Résumé du Mois : {currentMonthData.moisAnnee}</Text>
+            <Text style={styles.headerTitle}>Résumé du mois : {currentMonthData.moisAnnee}</Text>
             
             <View style={styles.agenceCard}>
-                <Text style={styles.agenceLabel}>Montant du Virement à l'Agence</Text>
+                <Text style={styles.agenceLabel}>Montant du virement à l'agence</Text>
                 <Text style={styles.agenceMontant}>
                     {montantAVerserAgence.toFixed(2)} €
                 </Text>
                 <Text style={styles.agenceMessage}>
-                    (Loyer Total: {currentMonthData.loyerTotal.toFixed(2)} € - APL Total: {(currentMonthData.aplMorgan + currentMonthData.aplJuliette).toFixed(2)} €)
+                    (Loyer total: {currentMonthData.loyerTotal.toFixed(2)} € - APL total: {(currentMonthData.aplMorgan + currentMonthData.aplJuliette).toFixed(2)} €)
                 </Text>
                 <Text style={styles.agenceNote}>
-                    ⚠️ **Ce virement est effectué par Morgan** à l'agence.
+                    ⚠️ Ce virement est effectué par Morgan à l'agence.
                 </Text>
             </View>
 
             <View style={[styles.card, estCrediteur ? styles.cardCredit : styles.cardDebit]}>
-                <Text style={styles.cardLabel}>SOLDE FINAL Colocataire ({colocataireActuel})</Text>
+                <Text style={styles.cardLabel}>Résultat clôture ({colocataireActuel})</Text>
                 <Text style={styles.mainSolde}>
                     {montantAbsolu.toFixed(2)} €
                 </Text>
@@ -106,7 +106,7 @@ const SummaryRegulationScreen: React.FC = () => {
             </View>
 
             <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>Analyse Détaillée ({colocataireActuel})</Text>
+                <Text style={styles.detailTitle}>Analyse détaillée ({colocataireActuel})</Text>
 
                 <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Loyer Net (APL inclus)</Text>
@@ -119,14 +119,14 @@ const SummaryRegulationScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Trésorerie & Variables (Courses, Ajustements)</Text>
+                    <Text style={styles.detailLabel}>Charges variables (Ajustements)</Text>
                     {formatDette(detteChargesVariables)}
                 </View>
 
                 <View style={styles.detailSeparator} />
                 
                 <View style={styles.detailRow}>
-                    <Text style={styles.detailTotalLabel}>Solde Total à régulariser</Text>
+                    <Text style={styles.detailTotalLabel}>Solde total à régulariser</Text>
                     <Text style={[styles.detteMontant, styles.detailTotalLabel]}>
                         {soldeFinal.toFixed(2)} €
                     </Text>

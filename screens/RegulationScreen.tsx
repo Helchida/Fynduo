@@ -4,8 +4,7 @@ import {
     Text, 
     ScrollView, 
     TextInput, 
-    TouchableOpacity, 
-    Button, 
+    TouchableOpacity,
     Alert,
     ActivityIndicator
 } from 'react-native';
@@ -247,7 +246,7 @@ const RegulationScreen: React.FC = () => {
             
             <View style={styles.statusBadge}>
                 <Text style={styles.statusText}>
-                    Statut du mois ({currentMonthData.moisAnnee}) : **{currentMonthData.statut.toUpperCase()}**
+                    Statut du mois ({currentMonthData.moisAnnee}) : {currentMonthData.statut.toUpperCase()}
                 </Text>
             </View>
 
@@ -255,7 +254,7 @@ const RegulationScreen: React.FC = () => {
                 <Text style={styles.sectionTitle}>💰 Loyer (Mois: {currentMonthData.moisAnnee})</Text>
                 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Loyer Total (€)</Text>
+                    <Text style={styles.inputLabel}>Loyer total (€)</Text>
                     <TextInput
                         style={styles.mainInput}
                         keyboardType="numeric"
@@ -287,7 +286,7 @@ const RegulationScreen: React.FC = () => {
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>⚙️ Charges Fixes (Montants finaux)</Text>
+                <Text style={styles.sectionTitle}>⚙️ Charges Fixes</Text>
                 
                 <View style={styles.subSection}>
                     <View style={styles.subSectionHeader}>
@@ -333,8 +332,8 @@ const RegulationScreen: React.FC = () => {
             </View>
 
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>💸 Ajustement Charges Variables</Text>
-                <Text style={styles.inputLabel}>Saisissez les ajustements variables finaux pour clore la trésorerie ce mois-ci.</Text>
+                <Text style={styles.sectionTitle}>💸 Ajustement charges variables</Text>
+                <Text style={styles.inputLabel}>Saisissez les ajustements des charges variables ce mois-ci.</Text>
                 
                 <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Morgan doit à Juliette (€)</Text>
@@ -360,12 +359,9 @@ const RegulationScreen: React.FC = () => {
             </View>
 
             <View style={styles.validationContainer}>
-                <Button 
-                    title={"Valider les Données & CLÔTURER le Mois"}
-                    onPress={handleValidation}
-                    color={"#2ecc71"}
-                    disabled={isLoadingComptes}
-                />
+                <TouchableOpacity style={styles.validationButton} onPress={handleValidation} disabled={isLoadingComptes}>
+                    <Text style={styles.validationButtonText}>{"Clôturer le mois"}</Text>
+                </TouchableOpacity>
                 {isLoadingComptes && <ActivityIndicator size="small" color="#2ecc71" style={{ marginTop: 10 }} />}
             </View>
 

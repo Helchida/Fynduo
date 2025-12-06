@@ -77,20 +77,20 @@ const ChargesVariablesScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Trésorerie / Dépenses Variables</Text>
+            <Text style={styles.header}>Charges variables</Text>
             <TouchableOpacity 
                 style={styles.addButton} 
                 onPress={() => setShowForm(!showForm)}
                 disabled={isSubmitting}
             >
-                <Text style={styles.addButtonText}>{showForm ? 'Annuler l\'ajout' : '+ Ajouter une Dépense'}</Text>
+                <Text style={styles.addButtonText}>{showForm ? 'Annuler l\'ajout' : '+ Ajouter une dépense'}</Text>
             </TouchableOpacity>
 
             {showForm && (
                 <View style={styles.formContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Description (ex: Courses Leclerc)"
+                        placeholder="Description (ex: Courses)"
                         value={description}
                         onChangeText={setDescription}
                         editable={!isSubmitting}
@@ -103,9 +103,9 @@ const ChargesVariablesScreen: React.FC = () => {
                         keyboardType="numeric"
                         editable={!isSubmitting}
                     />
-                    <Text style={styles.payeurInfo}>Payé par : **{user?.nom}** (partagé 50/50 par défaut)</Text>
+                    <Text style={styles.payeurInfo}>Payé par : {user?.nom} (partagé 50/50)</Text>
                     <Button 
-                        title={isSubmitting ? "Enregistrement..." : "Enregistrer la Dépense"} 
+                        title={isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"} 
                         onPress={handleAddDepense}
                         disabled={isSubmitting}
                     />
@@ -113,7 +113,7 @@ const ChargesVariablesScreen: React.FC = () => {
             )}
 
             {chargesVariables.length === 0 ? (
-                <Text style={styles.loading}>Aucune dépense variable enregistrée pour le moment.</Text>
+                <Text style={styles.loading}>Aucune dépense enregistrée pour le moment.</Text>
             ) : (
                 <FlatList
                     data={chargesVariables.slice().sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())}
