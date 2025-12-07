@@ -63,4 +63,18 @@ chargeItem: {
         backgroundColor: '#bdc3c7',
         opacity: 0.7,
     },
+    deleteButton: {
+        backgroundColor: '#e74c3c',
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 'auto',
+    },
+    deleteButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
 })

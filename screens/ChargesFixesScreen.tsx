@@ -6,7 +6,7 @@ import ChargeFixeItem from '../components/fynduo/ChargeFixeItem';
 
 
 const ChargesFixesScreen: React.FC = () => {
-  const { chargesFixes, isLoadingComptes, updateChargeFixe } = useComptes();
+  const { chargesFixes, isLoadingComptes, updateChargeFixe, deleteChargeFixe } = useComptes();
 
   const handleChargeUpdate = useCallback(async (id: string, newAmount: number) => {
         try {
@@ -32,6 +32,7 @@ const ChargesFixesScreen: React.FC = () => {
           <ChargeFixeItem 
             charge={item} 
             onUpdate={handleChargeUpdate} 
+            onDelete={deleteChargeFixe}
           />
         )}
         style={styles.list}

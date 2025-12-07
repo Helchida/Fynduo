@@ -6,9 +6,10 @@ import { styles } from '../../styles/components/fynduo/ChargeFixeItem.style';
 interface ChargeItemProps {
   charge: IChargeFixe;
   onUpdate: (id: string, newAmount: number) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
-const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate }) => {
+const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
   const [isSaving, setIsSaving] = useState(false);
 
@@ -31,13 +32,45 @@ const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate }) => {
         }
   }, [amount, charge.montantMensuel, charge.id, onUpdate]);
 
+  const handleDeleteCharge = useCallback((chargeFixe: IChargeFixe) => {
+          const confirmDelete = () => Alert.alert(
+              "Confirmer la suppression",
+              `Voulez-vous vraiment supprimer la charge "${chargeFixe.nom}" ?`,
+              [
+                  { text: "Annuler", style: "cancel" },
+                  { 
+                      text: "Supprimer", 
+                      style: "destructive", 
+                      onPress: async () => {
+                          try {
+                            await onDelete(chargeFixe.id); 
+                  
+                            Alert.alert("Succès", `Charge "${chargeFixe.nom}" supprimée.`);
+                          } catch (error) {
+                              Alert.alert("Erreur", "Échec de la suppression de la charge.");
+                          }
+                      }
+                  },
+              ]
+          );
+          
+          confirmDelete();
+      }, [onDelete]);
+
   const isButtonDisabled = parseFloat(amount) === charge.montantMensuel || isSaving;
 
   return (
     <View style={styles.chargeItem}>
+      <View style={styles.inputRow}>
       <Text style={styles.chargeName}>{charge.nom}</Text>
+      <TouchableOpacity 
+                  style={styles.deleteButton} 
+                  onPress={() => handleDeleteCharge(charge)}
+              >
+        <Text style={styles.deleteButtonText}>X</Text>
+      </TouchableOpacity>
+      </View>
       <Text style={styles.chargePayer}>Payé par: {charge.payeur}</Text>
-      
       <View style={styles.inputRow}>
         <TextInput
           value={amount}
