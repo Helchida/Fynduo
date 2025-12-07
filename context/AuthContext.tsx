@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, ReactNode, useMemo } from "react";
-import { auth } from "../services/firebase/config"; 
+import { auth, db } from "../services/firebase/config";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { Colocataire } from "../types";
+import { doc, getDoc } from "firebase/firestore";
 
 export interface IUserContext {
   id: string;
@@ -27,10 +28,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const token = await firebaseUser.getIdToken();
+        const userRef = doc(db, "colocataires", firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+
         let nom: Colocataire;
-        if (firebaseUser.displayName === "Morgan") nom = "Morgan";
-        else if (firebaseUser.displayName === "Juliette") nom = "Juliette";
-        else nom = "Morgan";
+        console.log(userSnap.data());
+        if (userSnap.exists()) {
+          const colocataireData = userSnap.data();
+          nom = colocataireData.nom as Colocataire; 
+        } else {
+          console.error("Document colocataire non trouvé pour l'UID:", firebaseUser.uid);
+          nom = "Morgan";
+        }
 
         setUser({
           id: firebaseUser.uid,
