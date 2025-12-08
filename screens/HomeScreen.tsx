@@ -124,7 +124,7 @@ const HomeScreen: React.FC = () => {
 
                     <TouchableOpacity 
                         style={[styles.actionButton, { borderLeftColor: '#34495e' }]}
-                        onPress={() => Alert.alert("Historique", "Affichage des anciens mois.")}
+                        onPress={() => navigation.navigate('History')}
                     >
                         <Text style={styles.actionText}>Historique</Text>
                     </TouchableOpacity>

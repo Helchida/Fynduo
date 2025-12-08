@@ -5,6 +5,7 @@ export interface IResultatsCalcul {
     detteLoyer: number;
     detteChargesFixes: number;
     detteChargesVariables: number;
+    totalChargesFixes: number;
     soldeFinal: number;
 }
 
@@ -12,6 +13,7 @@ const initialResults: IResultatsCalcul = {
     detteLoyer: 0,
     detteChargesFixes: 0,
     detteChargesVariables: 0,
+    totalChargesFixes: 0,
     soldeFinal: 0,
 };
 
@@ -26,6 +28,7 @@ export const useCalculs = (
         let detteLoyer = 0;
         let detteChargesFixes = 0;
         let detteChargesVariables = 0;
+        let totalChargesFixes = 0;
 
         if (!currentMonthData) {
             return initialResults;
@@ -49,7 +52,7 @@ export const useCalculs = (
         
         chargesFixes.forEach(charge => {
             const partParPersonne = charge.montantMensuel / 2;
-
+            totalChargesFixes += charge.montantMensuel;
             if (charge.payeur === currentUser) {
                 detteChargesFixes += partParPersonne;
             } else {
@@ -100,6 +103,7 @@ export const useCalculs = (
             detteLoyer: detteLoyer,
             detteChargesFixes: detteChargesFixes,
             detteChargesVariables: detteChargesVariables,
+            totalChargesFixes: totalChargesFixes,
             soldeFinal: soldeFinal,
         };
     }, [currentMonthData, chargesFixes, chargesVariables, currentUser]);

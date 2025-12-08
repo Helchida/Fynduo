@@ -11,6 +11,8 @@ import ChargesVariablesScreen from '../screens/ChargesVariablesScreen';
 import LoginScreen from '../screens/LoginScreen';
 import Regulation from '../screens/RegulationScreen';
 import SummaryRegulationScreen from '../screens/SummaryRegulationScreen';
+import HistoryScreen from '../screens/HistoryScreen';
+import HistoryDetailScreen from '../screens/HistoryDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -26,6 +28,10 @@ const AppStack = () => (
                 component={SummaryRegulationScreen} 
                 options={{ title: 'Résumé du règlement' }} 
             />
+        <Stack.Screen name="History" component={HistoryScreen} options={{ title: 'Historique des Comptes' }} />
+        <Stack.Screen name="HistoryDetail" component={HistoryDetailScreen} options={({ route }) => ({ 
+            title: `Détail de ${route.params.moisAnnee}` 
+        })} />
     </Stack.Navigator>
 );
 

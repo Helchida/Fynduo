@@ -18,19 +18,25 @@ interface IComptesContext extends IResultatsCalcul {
   chargesFixes: IChargeFixe[];
   chargesVariables: IChargeVariable[];
   isLoadingComptes: boolean;
-
+  historyMonths: ICompteMensuel[];
   loadData: () => Promise<void>;
   updateChargeFixe: (chargeId: string, newAmount: number) => Promise<void>;
   updateLoyer: (loyerTotal: number, aplMorgan: number, aplJuliette: number) => Promise<void>;
   addChargeVariable: (depense: Omit<IChargeVariable, 'id'>) => Promise<void>;
   addChargeFixe: (charge: Omit<IChargeFixe, 'id'>) => Promise<void>; 
   deleteChargeFixe: (chargeId: string) => Promise<void>; 
-  cloturerMois: (data: IReglementData) => Promise<void>; 
+  cloturerMois: (data: IReglementData) => Promise<void>;
+  loadHistory: () => Promise<void>; 
+  getMonthDataById: (moisAnnee: string) => ICompteMensuel | undefined; 
 }
 
 export const ComptesContext = createContext<IComptesContext | undefined>(undefined);
 
-const CURRENT_MOIS_ANNEE = dayjs().format('YYYY-MM');
+const getTargetMoisAnnee = () => {
+    return dayjs().subtract(1, 'month').format('YYYY-MM');
+};
+
+const TARGET_MOIS_ANNEE = getTargetMoisAnnee();
 
 export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -40,22 +46,25 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [chargesFixes, setChargesFixes] = useState<IChargeFixe[]>([]);
   const [chargesVariables, setChargesVariables] = useState<IChargeVariable[]>([]);
   const [isLoadingComptes, setIsLoadingComptes] = useState(false);
+  const [historyMonths, setHistoryMonths] = useState<ICompteMensuel[]>([]);
+  
 
   const calculs = useCalculs(currentMonthData, chargesFixes, chargesVariables, currentUser);
 
+  
 
   const loadData = useCallback(async () => {
     if (!user) return;
 
     setIsLoadingComptes(true);
     try {
-        let moisData = await DB.getCompteMensuel(CURRENT_MOIS_ANNEE);
+        let moisData = await DB.getCompteMensuel(TARGET_MOIS_ANNEE);
 
         if (!moisData) {
             console.log("Compte mensuel non trouvé pour ce mois. Création du document initial...");
             const nouveauMois: ICompteMensuel = {
-                id: CURRENT_MOIS_ANNEE,
-                moisAnnee: CURRENT_MOIS_ANNEE,
+                id: TARGET_MOIS_ANNEE,
+                moisAnnee: TARGET_MOIS_ANNEE,
                 statut: 'ouvert',
                 loyerTotal: 0, 
                 aplMorgan: 0,
@@ -71,7 +80,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const chargesFixesData = await DB.getChargesFixes();
         setChargesFixes(chargesFixesData);
 
-        const chargesVariablesData = await DB.getChargesVariables(CURRENT_MOIS_ANNEE);
+        const chargesVariablesData = await DB.getChargesVariables(TARGET_MOIS_ANNEE);
         setChargesVariables(chargesVariablesData);
 
     } catch (error) {
@@ -81,6 +90,21 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 }, [user]);
 
+const loadHistory = useCallback(async () => {
+  if (!user) return;
+  try {
+      const historyData = await DB.getHistoryMonths(); 
+      setHistoryMonths(historyData);
+  } catch (error) {
+      console.error("Erreur lors du chargement de l'historique:", error);
+  }
+}, [user]);
+
+
+useEffect(() => {
+    if (user) loadHistory();
+}, [user, loadData, loadHistory]);
+
   useEffect(() => {
     if (user) loadData();
     else {
@@ -89,6 +113,13 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setChargesVariables([]);
     }
   }, [user, loadData]);
+
+  const getMonthDataById = useCallback((moisAnnee: string) => {
+      if (currentMonthData?.moisAnnee === moisAnnee) {
+          return currentMonthData;
+      }
+      return historyMonths.find(m => m.moisAnnee === moisAnnee);
+  }, [historyMonths, currentMonthData]);
 
 
   const updateChargeFixe = useCallback(async (chargeId: string, newAmount: number) => {
@@ -154,13 +185,22 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
       throw new Error("Impossible de clôturer le mois : données manquantes.");
     }
 
+    const detteNetteFinale = calculs.soldeFinal
+
+    const chargesFixesSnapshot = chargesFixes.map(charge => ({
+        nom: charge.nom,
+        montantMensuel: charge.montantMensuel,
+        payeur: charge.payeur,
+    }));
     setIsLoadingComptes(true);
     try {
       await updateLoyer(data.loyerTotal, data.aplMorgan, data.aplJuliette);
       await DB.updateRegularisationDettes(
           currentMonthData.id, 
           data.detteMorganToJuliette, 
-          data.detteJulietteToMorgan
+          data.detteJulietteToMorgan,
+          chargesFixesSnapshot,
+          detteNetteFinale
       );
     
       setCurrentMonthData(prev => prev ? { 
@@ -177,7 +217,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoadingComptes(false);
     }
-  }, [currentMonthData, loadData, updateLoyer]);
+  }, [currentMonthData, loadData, updateLoyer, chargesFixes]);
 
 
   const contextValue = useMemo(() => ({
@@ -185,6 +225,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
     chargesFixes,
     chargesVariables,
     isLoadingComptes,
+    historyMonths,
     loadData,
     updateChargeFixe,
     updateLoyer,
@@ -192,11 +233,13 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addChargeFixe,
     deleteChargeFixe,
     cloturerMois,
-    currentMoisAnnee: CURRENT_MOIS_ANNEE,
+    loadHistory,
+    getMonthDataById,
+    targetMoisAnnee: TARGET_MOIS_ANNEE,
     ...calculs,
   }), [
-    currentMonthData, chargesFixes, chargesVariables, isLoadingComptes,
-    loadData, updateChargeFixe, updateLoyer, addChargeVariable, addChargeFixe, deleteChargeFixe, cloturerMois, calculs
+    currentMonthData, chargesFixes, chargesVariables, isLoadingComptes, historyMonths,
+    loadData, updateChargeFixe, updateLoyer, addChargeVariable, addChargeFixe, deleteChargeFixe, cloturerMois, loadHistory, getMonthDataById, calculs
   ]);
 
   return (

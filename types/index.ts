@@ -23,6 +23,13 @@ export interface IChargeFixe extends FirestoreDocument {
     moisAnnee?: string;
 }
 
+
+export interface IChargeFixeSnapshot {
+    nom: string;
+    montantMensuel: number;
+    payeur: Colocataire;
+}
+
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 export interface IChargeVariable extends FirestoreDocument {
     description: string;
@@ -46,6 +53,8 @@ export interface ICompteMensuel extends FirestoreDocument {
     detteMorganToJuliette?: number;
     detteJulietteToMorgan?: number;
     dateCloture?: string | null;
+    chargesFixesSnapshot?: IChargeFixe[];
+    soldeFinalNetHistorique?: number;
 }
 
 // NAVIGATION TYPES 
@@ -57,6 +66,8 @@ export type RootStackParamList = {
     Regulation: undefined;
     SummaryRegulation: undefined;
     Login: undefined;
+    History: undefined;
+    HistoryDetail: { moisAnnee: string };
 };
 
 export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamList>;

@@ -13,7 +13,7 @@ import {
     DocumentData
 } from 'firebase/firestore';
 import dayjs from 'dayjs';
-import { IChargeFixe, ICompteMensuel, IChargeVariable, Colocataire } from '../../types';
+import { IChargeFixe, ICompteMensuel, IChargeVariable, Colocataire, IChargeFixeSnapshot } from '../../types';
 
 
 const COLLECTIONS = {
@@ -200,18 +200,39 @@ export async function addChargeVariableRegularisation(
 export async function updateRegularisationDettes(
     moisAnnee: string, 
     detteMorganToJuliette: number, 
-    detteJulietteToMorgan: number
+    detteJulietteToMorgan: number,
+    chargesFixesSnapshot: IChargeFixeSnapshot[],
+    soldeFinalNetHistorique: number
 ): Promise<void> {
     try {
         const docRef = doc(db, COLLECTIONS.COMPTES_MENSUELS, moisAnnee); 
         await updateDoc(docRef, {
             detteMorganToJuliette: detteMorganToJuliette,
             detteJulietteToMorgan: detteJulietteToMorgan,
+            chargesFixesSnapshot: chargesFixesSnapshot,
+            soldeFinalNetHistorique: soldeFinalNetHistorique,
         }); 
 
         console.log(`[DB] Dettes de régularisation mises à jour pour le mois : ${moisAnnee}`);
     } catch (error) {
         console.error("Erreur updateRegularisationDettes:", error);
+        throw error;
+    }
+}
+
+/**
+ * Récupère tous les comptes mensuels dont le statut est 'finalisé' (historique).
+ */
+export async function getHistoryMonths(): Promise<ICompteMensuel[]> {
+    const comptesCollection = collection(db, COLLECTIONS.COMPTES_MENSUELS);
+    
+    const q = query(comptesCollection, where('statut', '==', 'finalisé'));
+
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => mapDocToType<ICompteMensuel>(doc));
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'historique des comptes mensuels:", error);
         throw error;
     }
 }
