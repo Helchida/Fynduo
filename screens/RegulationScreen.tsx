@@ -228,12 +228,8 @@ const RegulationScreen: React.FC = () => {
             };
 
             await cloturerMois(dataToSubmit);
+            navigation.navigate('SummaryRegulation')
 
-            Alert.alert(
-                "Clôture réussie", 
-                `Le règlement est finalisé. Solde Final: ${soldeFinal.toFixed(2)}€`, 
-                [{ text: "OK", onPress: () => navigation.navigate('SummaryRegulation') }] 
-            ); 
 
         } catch (error) {
              Alert.alert("Erreur de Clôture", "La clôture a échoué. " + (error as Error).message);

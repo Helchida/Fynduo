@@ -54,7 +54,6 @@ export interface ICompteMensuel extends FirestoreDocument {
     detteJulietteToMorgan?: number;
     dateCloture?: string | null;
     chargesFixesSnapshot?: IChargeFixe[];
-    soldeFinalNetHistorique?: number;
 }
 
 // NAVIGATION TYPES 

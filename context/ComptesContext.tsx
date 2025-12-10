@@ -200,7 +200,6 @@ useEffect(() => {
           data.detteMorganToJuliette, 
           data.detteJulietteToMorgan,
           chargesFixesSnapshot,
-          detteNetteFinale
       );
     
       setCurrentMonthData(prev => prev ? { 

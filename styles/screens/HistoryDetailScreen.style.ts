@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     },
     finalSection: {
         borderLeftWidth: 5,
-        borderLeftColor: '#2ecc71',
+        borderLeftColor: '#34495e',
     },
     finalDetail: {
         fontSize: 16, 
@@ -61,16 +61,16 @@ export const styles = StyleSheet.create({
     },
     soldeNote: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '700',
         marginTop: 10,
         width: '100%', 
         textAlign: 'center',
     },
     soldeNoteDebiteur: {
-        color: '#c0392b', // Rouge pour celui qui doit
+        color: '#e74c3c',
     },
     soldeNoteCrediteur: {
-        color: '#27ae60', // Vert pour celui qui doit recevoir
+        color: '#2ecc71',
     },
     soldeNoteEquilibre: {
         color: '#34495e',

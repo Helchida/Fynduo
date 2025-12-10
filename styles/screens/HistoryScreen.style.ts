@@ -1,10 +1,9 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-    // --- Conteneurs généraux ---
     container: {
         flex: 1,
-        backgroundColor: '#f5f7fa', // Fond légèrement gris
+        backgroundColor: '#f5f7fa',
         paddingHorizontal: 10,
     },
     loadingContainer: {
@@ -24,18 +23,14 @@ export const styles = StyleSheet.create({
         color: '#7f8c8d',
         textAlign: 'center',
     },
-
-    // --- Titre ---
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#2c3e50', // Couleur principale foncée
+        color: '#2c3e50', 
         paddingVertical: 15,
         paddingHorizontal: 10,
         marginBottom: 5,
     },
-
-    // --- Carte de Mois ---
     monthCard: {
         backgroundColor: '#ffffff',
         borderRadius: 10,
@@ -49,20 +44,18 @@ export const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 3,
-        elevation: 3, // Android shadow
+        elevation: 3,
         borderLeftWidth: 5,
-        borderLeftColor: '#3498db', // Bande bleue pour l'historique
+        borderLeftColor: '#34495e',
     },
     monthTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#2c3e50',
-        flex: 2, // Prend plus d'espace
+        flex: 2,
     },
-    
-    // --- Badge de Statut ---
     statusBadge: {
-        backgroundColor: '#2ecc71', // Vert pour 'Clôturé'
+        backgroundColor: '#2ecc71',
         color: '#ffffff',
         paddingHorizontal: 8,
         paddingVertical: 3,
@@ -72,11 +65,9 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
         marginHorizontal: 10,
     },
-
-    // --- Texte de détail (Flèche) ---
     detailText: {
         fontSize: 16,
-        color: '#3498db', // Bleu pour l'action
+        color: '#3498db',
         fontWeight: '500',
     },
 });

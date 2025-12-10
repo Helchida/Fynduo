@@ -50,7 +50,7 @@ const SummaryRegulationScreen: React.FC = () => {
         );
     }
     
-    const estCrediteur = soldeFinal > 0;
+    const estCrediteur = soldeFinal < 0;
     const montantAbsolu = Math.abs(soldeFinal);
     
     let messagePrincipal = '';
@@ -60,15 +60,15 @@ const SummaryRegulationScreen: React.FC = () => {
     } else if (estCrediteur) {
         messagePrincipal = `${autreColocataire} doit vous payer ${montantAbsolu.toFixed(2)} €`;
     } else {
-        messagePrincipal = `Vous devez payer ${autreColocataire} : ${montantAbsolu.toFixed(2)} €`;
+        messagePrincipal = `Vous devez payer ${montantAbsolu.toFixed(2)} € à ${autreColocataire}`;
     }
 
     const formatDette = (montant: number) => {
-        const style = montant > 0 ? styles.detteCredit : styles.detteDebit;
-        const signe = montant > 0 ? '+' : '';
+        const style = montant > 0 ? styles.detteDebit : styles.detteCredit;
+        const signe = montant > 0 ? '-' : '+';
         return (
             <Text style={[styles.detteMontant, style]}>
-                {signe}{montant.toFixed(2)} €
+                {signe}{Math.abs(montant).toFixed(2)} €
             </Text>
         );
     };
@@ -128,7 +128,7 @@ const SummaryRegulationScreen: React.FC = () => {
                 <View style={styles.detailRow}>
                     <Text style={styles.detailTotalLabel}>Solde total à régulariser</Text>
                     <Text style={[styles.detteMontant, styles.detailTotalLabel]}>
-                        {soldeFinal.toFixed(2)} €
+                        {formatDette(soldeFinal)}
                     </Text>
                 </View>
             </View>

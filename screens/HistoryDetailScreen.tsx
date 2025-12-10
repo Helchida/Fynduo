@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { RootStackRouteProp, ICompteMensuel, IChargeVariable } from '../types';
-import { useComptes } from '../hooks/useComptes';
 import { useCalculs, IResultatsCalcul } from '../hooks/useCalculs';
 import * as DB from '../services/firebase/db';
 import dayjs from 'dayjs';
@@ -31,6 +30,7 @@ const HistoryDetailScreen: React.FC = () => {
     }
 
     const currentUser = user.nom; 
+    const autreColocataire = currentUser === 'Morgan' ? 'Juliette' : 'Morgan';
 
     useEffect(() => {
         const loadDetail = async () => {
@@ -103,9 +103,9 @@ const HistoryDetailScreen: React.FC = () => {
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Dette Loyer/APL :</Text>
                     <View style={styles.detteContainer}>
-                        {detteLoyer < 0 ? (
+                        {detteLoyer > 0 ? (
                             <Text style={styles.dettePayer}>Vous devez {detteLoyer.toFixed(2)} € à {currentUser === 'Morgan' ? 'Juliette' : 'Morgan'}.</Text>
-                        ) : detteLoyer > 0 ? (
+                        ) : detteLoyer < 0 ? (
                             <Text style={styles.detteRecevoir}>{currentUser === 'Morgan' ? 'Juliette' : 'Morgan'} vous doit {Math.abs(detteLoyer).toFixed(2)} €.</Text>
                         ) : (
                             <Text style={styles.detteEquilibre}>Équilibré</Text>
@@ -127,9 +127,9 @@ const HistoryDetailScreen: React.FC = () => {
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Dette charges fixes :</Text>
                     <View style={styles.detteContainer}>
-                        {detteChargesFixes < 0 ? (
+                        {detteChargesFixes > 0 ? (
                             <Text style={styles.dettePayer}>Vous devez {detteChargesFixes.toFixed(2)} € à {currentUser === 'Morgan' ? 'Juliette' : 'Morgan'}.</Text>
-                        ) : detteChargesFixes > 0 ? (
+                        ) : detteChargesFixes < 0 ? (
                             <Text style={styles.detteRecevoir}>{currentUser === 'Morgan' ? 'Juliette' : 'Morgan'} vous doit {Math.abs(detteChargesFixes).toFixed(2)} €.</Text>
                         ) : (
                             <Text style={styles.detteEquilibre}>Équilibré</Text>
@@ -170,26 +170,35 @@ const HistoryDetailScreen: React.FC = () => {
                 
             </View>
 
-            {/*BUG TO RESOLVE*/}
-            {/*<View style={[styles.section]}>
-                    <Text style={styles.sectionTitle}>💰 Solde Final Net du Mois :</Text>
-                    
-                    <Text style={styles.soldeFinal}>
-                        {soldeFinal.toFixed(2)} €
-                    </Text>
-                    
-                    {soldeFinal < 0 ? (
-                        <Text style={[styles.soldeNote, styles.soldeNoteDebiteur]}>
-                            Morgan doit {Math.abs(soldeFinal).toFixed(2)} € à Juliette.
-                        </Text>
-                    ) : soldeFinal > 0 ? (
-                        <Text style={[styles.soldeNote, styles.soldeNoteCrediteur]}>
-                            Juliette doit {soldeFinal.toFixed(2)} € à Morgan.
-                        </Text>
-                    ) : (
-                        <Text style={[styles.soldeNote, styles.soldeNoteEquilibre]}>Comptes parfaitement équilibrés.</Text>
-                    )}
-            </View>*/}
+            <View style={[styles.section, styles.finalSection]}>
+                <Text style={styles.sectionTitle}>💰 Solde final net du mois :</Text>
+                {soldeFinal > 0 && (
+                    <Text style={[styles.soldeFinal, styles.soldeNoteDebiteur]}>{'-'+Math.abs(soldeFinal).toFixed(2)} €</Text>
+                )}  
+                {soldeFinal < 0 && (
+                    <Text style={[styles.soldeFinal, styles.soldeNoteCrediteur]}>{Math.abs(soldeFinal).toFixed(2)} €</Text>
+                )}   
+                {soldeFinal == 0 && (
+                    <Text style={[styles.soldeFinal, styles.soldeNoteEquilibre]}>{Math.abs(soldeFinal).toFixed(2)} €</Text>
+                )}                     
+                
+                <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Règlement final net :</Text>
+                    <View style={styles.detteContainer}>
+                        {soldeFinal > 0 ? (
+                            <Text style={[styles.soldeNote, styles.soldeNoteDebiteur]}>
+                                Vous devez {soldeFinal.toFixed(2)} € à {autreColocataire}.
+                            </Text>
+                        ) : soldeFinal < 0 ? (
+                            <Text style={[styles.soldeNote, styles.soldeNoteCrediteur]}>
+                                {autreColocataire} vous doit {Math.abs(soldeFinal).toFixed(2)} €.
+                            </Text>
+                        ) : (
+                            <Text style={[styles.soldeNote, styles.soldeNoteEquilibre]}>Comptes parfaitement équilibrés.</Text>
+                        )}
+                    </View>
+                </View>
+            </View>
         </ScrollView>
     );
 };
