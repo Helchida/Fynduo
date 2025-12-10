@@ -201,8 +201,7 @@ export async function updateRegularisationDettes(
     moisAnnee: string, 
     detteMorganToJuliette: number, 
     detteJulietteToMorgan: number,
-    chargesFixesSnapshot: IChargeFixeSnapshot[],
-    soldeFinalNetHistorique: number
+    chargesFixesSnapshot: IChargeFixeSnapshot[]
 ): Promise<void> {
     try {
         const docRef = doc(db, COLLECTIONS.COMPTES_MENSUELS, moisAnnee); 
@@ -210,8 +209,7 @@ export async function updateRegularisationDettes(
             detteMorganToJuliette: detteMorganToJuliette,
             detteJulietteToMorgan: detteJulietteToMorgan,
             chargesFixesSnapshot: chargesFixesSnapshot,
-            soldeFinalNetHistorique: soldeFinalNetHistorique,
-        }); 
+        });
 
         console.log(`[DB] Dettes de régularisation mises à jour pour le mois : ${moisAnnee}`);
     } catch (error) {
