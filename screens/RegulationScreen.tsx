@@ -14,6 +14,7 @@ import { IReglementData } from '../context/ComptesContext';
 import { useComptes } from '../hooks/useComptes';
 import { nanoid } from 'nanoid/non-secure';
 import { styles } from '../styles/screens/RegulationScreen.style';
+import dayjs from 'dayjs';
 
 
 interface ChargeFixeForm extends IChargeFixe {
@@ -65,8 +66,7 @@ const RegulationScreen: React.FC = () => {
         updateChargeFixe, 
         addChargeFixe, 
         deleteChargeFixe, 
-        isLoadingComptes,
-        soldeFinal 
+        isLoadingComptes, 
     } = useComptes();
 
     const [loyerTotal, setLoyerTotal] = useState(''); 
@@ -76,6 +76,8 @@ const RegulationScreen: React.FC = () => {
     const [chargesJulietteForm, setChargesJulietteForm] = useState<ChargeFixeForm[]>([]);
     const [detteMorganToJuliette, setDetteMorganToJuliette] = useState('0');
     const [detteJulietteToMorgan, setDetteJulietteToMorgan] = useState('0');
+
+    const moisN = dayjs().format('YYYY-MM')
 
     useEffect(() => {
         if (currentMonthData && currentMonthData.statut === 'finalisé') {
@@ -250,7 +252,7 @@ const RegulationScreen: React.FC = () => {
                 <Text style={styles.sectionTitle}>💰 Loyer (Mois: {currentMonthData.moisAnnee})</Text>
                 
                 <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Loyer total (€)</Text>
+                    <Text style={styles.inputLabel}>Loyer total pour le mois {moisN} (€)</Text>
                     <TextInput
                         style={styles.mainInput}
                         keyboardType="numeric"

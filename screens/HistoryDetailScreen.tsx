@@ -21,6 +21,7 @@ const HistoryDetailScreen: React.FC = () => {
     const route = useRoute<HistoryDetailRouteProp>();
     const { user } = useAuth()
     const { moisAnnee } = route.params;
+    const moisAnneeAfter = dayjs(moisAnnee, 'YYYY-MM').add(1, 'month').format('YYYY-MM');
 
     const [loading, setLoading] = useState(true);
     const [historicalData, setHistoricalData] = useState<IHistoricalData | null>(null);
@@ -82,7 +83,11 @@ const HistoryDetailScreen: React.FC = () => {
         detteChargesFixes, 
     } = calculs; 
     
-    const formattedDate = dayjs(compte.moisAnnee, 'YYYY-MM').format('MMMM YYYY').replace(/\b\w/g, l => l.toUpperCase());
+    const formattedDateBuild = dayjs(compte.moisAnnee, 'YYYY-MM')
+    .format('MMMM YYYY'); 
+    
+    const formattedDate = formattedDateBuild.charAt(0).toUpperCase() + formattedDateBuild.slice(1);
+
     let detteChargesVariables = 0
     if (compte.detteJulietteToMorgan) {
         detteChargesVariables += compte.detteJulietteToMorgan;
@@ -95,7 +100,7 @@ const HistoryDetailScreen: React.FC = () => {
             <Text style={styles.title}>Détails du règlement de {formattedDate}</Text>
             
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>🏠 Loyer & APL</Text>
+                <Text style={styles.sectionTitle}>🏠 Loyer & APL ({moisAnneeAfter})</Text>
                 <Text style={styles.detail}>Loyer total: {compte.loyerTotal.toFixed(2)} €</Text>
                 <Text style={styles.detail}>APL Morgan: {compte.aplMorgan.toFixed(2)} €</Text>
                 <Text style={styles.detail}>APL Juliette: {compte.aplJuliette.toFixed(2)} €</Text>
