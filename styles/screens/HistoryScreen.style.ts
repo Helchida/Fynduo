@@ -70,4 +70,44 @@ export const styles = StyleSheet.create({
         color: '#3498db',
         fontWeight: '500',
     },
+    yearSection: {
+        marginBottom: 15,
+        borderRadius: 10,
+        backgroundColor: '#f5f5f5', 
+        overflow: 'hidden', 
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    yearHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 15,
+        backgroundColor: '#2c3e50', 
+    },
+    yearText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+    },
+    arrow: {
+        fontSize: 18,
+        color: '#ffffff',
+    },
+    yearContent: {
+        paddingTop: 5,
+        paddingBottom: 5,
+        paddingHorizontal: 10,
+        backgroundColor: '#ffffff',
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+    },
+    monthSubCard: {
+        backgroundColor: '#ecf0f1', 
+        marginBottom: 8,
+        marginTop: 5,
+        paddingHorizontal: 15,
+        borderRadius: 6,
+        borderWidth: 0, 
+    }
 });
