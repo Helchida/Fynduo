@@ -1,17 +1,20 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { IChargeFixe } from '../../types';
+import { View, Text, TextInput, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
+import { IChargeFixe, IUser } from '../../types';
 import { styles } from '../../styles/components/fynduo/ChargeFixeItem.style';
 
 interface ChargeItemProps {
   charge: IChargeFixe;
   onUpdate: (id: string, newAmount: number) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  householdUsers: IUser[];
+  onUpdatePayeur: (id: string, newPayeurUid: string, newPayeurName: string) => Promise<void>;
 }
 
-const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete }) => {
+const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete, householdUsers, onUpdatePayeur }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
   const [isSaving, setIsSaving] = useState(false);
+  const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
 
   const handleSave = useCallback(async () => {
     const newAmount = parseFloat(amount);
@@ -57,6 +60,27 @@ const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete 
           confirmDelete();
       }, [onDelete]);
 
+      const getPayeurDisplayName = useCallback((payeurNameOrUid: string) => {
+        const userFound = householdUsers.find(u => u.id === payeurNameOrUid);
+        return userFound?.displayName ?? payeurNameOrUid;
+      }, [householdUsers]);
+
+      const selectPayeur = useCallback(async (newPayeur: IUser) => {
+        if (newPayeur.id !== charge.payeur) {
+          setIsSaving(true);
+          try {
+            await onUpdatePayeur(charge.id, newPayeur.id, newPayeur.displayName); 
+          } catch (error) {
+            Alert.alert("Erreur", "Échec de la mise à jour du payeur.");
+          } finally {
+            setIsSaving(false);
+            setIsPayeurModalVisible(false);
+          }
+        } else {
+            setIsPayeurModalVisible(false);
+        }
+      }, [charge.payeur, charge.id, onUpdatePayeur]);
+
   const isButtonDisabled = parseFloat(amount) === charge.montantMensuel || isSaving;
 
   return (
@@ -70,7 +94,14 @@ const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete 
         <Text style={styles.deleteButtonText}>X</Text>
       </TouchableOpacity>
       </View>
-      <Text style={styles.chargePayer}>Payé par: {charge.payeur}</Text>
+      <TouchableOpacity 
+          style={styles.payeurContainer}
+          onPress={() => setIsPayeurModalVisible(true)}
+          disabled={isSaving}
+        >
+          <Text style={styles.payeurLabel}>Payé par: </Text>
+          <Text style={styles.payeurName}>{getPayeurDisplayName(charge.payeur)}</Text>
+      </TouchableOpacity>
       <View style={styles.inputRow}>
         <TextInput
           value={amount}
@@ -88,6 +119,41 @@ const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete 
             <Text style={styles.saveButtonText}>Enregistrer</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={isPayeurModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsPayeurModalVisible(false)}
+      >
+          <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                  <Text style={styles.modalHeader}>Sélectionner le nouveau payeur</Text>
+                  <FlatList
+                      data={householdUsers}
+                      keyExtractor={item => item.id}
+                      renderItem={({ item }) => (
+                          <TouchableOpacity
+                              style={[
+                                  styles.modalItem,
+                                  item.id === charge.payeur && styles.modalItemSelected
+                              ]}
+                              onPress={() => selectPayeur(item)}
+                          >
+                              <Text style={styles.modalItemText}>{item.displayName}</Text>
+                          </TouchableOpacity>
+                      )}
+                      ItemSeparatorComponent={() => <View style={styles.separator} />}
+                  />
+                  <TouchableOpacity 
+                      style={styles.modalCloseButton} 
+                      onPress={() => setIsPayeurModalVisible(false)}
+                  >
+                      <Text style={styles.modalCloseButtonText}>Fermer</Text>
+                  </TouchableOpacity>
+              </View>
+          </View>
+      </Modal>
     </View>
   );
 };

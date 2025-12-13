@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
     container: { 
@@ -20,19 +20,18 @@ export const styles = StyleSheet.create({
         marginBottom: 15,
     },
     label: { 
-        fontSize: 16, 
+        fontSize: 14, 
         marginBottom: 5, 
         fontWeight: '600',
         color: '#555',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#bdc3c7',
+        borderColor: '#ddd',
+        borderRadius: 5,
         padding: 10,
         fontSize: 16,
-        borderRadius: 8,
         backgroundColor: '#fff',
-        color: '#34495e',
     },
     resultContainer: {
         marginTop: 30,
@@ -86,5 +85,88 @@ export const styles = StyleSheet.create({
         backgroundColor: '#bdc3c7',
         shadowOpacity: 0.1,
         elevation: 2,
+    },
+    section: {
+        marginBottom: 20,
+        padding: 15,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#2c3e50',
+        marginBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+        paddingBottom: 5,
+    },
+    dropdownInput: {
+        justifyContent: 'center',
+        minHeight: 44, 
+    },
+    inputText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    placeholderText: {
+        fontSize: 16,
+        color: '#999',
+    },
+    disabledInput: {
+        backgroundColor: '#f0f0f0',
+        borderColor: '#eee',
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        padding: 20,
+        maxHeight: '60%',
+    },
+    modalHeader: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        textAlign: 'center',
+        color: '#333',
+    },
+    modalItem: {
+        paddingVertical: 15,
+        paddingHorizontal: 10,
+    },
+    modalItemSelected: {
+        backgroundColor: '#e6f7ff',
+        borderRadius: 5,
+    },
+    modalItemText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#f0f0f0',
+    },
+    modalCloseButton: {
+        marginTop: 20,
+        backgroundColor: '#bdc3c7',
+        padding: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    modalCloseButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

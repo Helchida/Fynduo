@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { RootStackRouteProp, ICompteMensuel, IChargeVariable } from '../types';
+import { RootStackRouteProp, ICompteMensuel, IChargeVariable, IUser } from '../types';
 import { useCalculs, IResultatsCalcul } from '../hooks/useCalculs';
 import * as DB from '../services/firebase/db';
 import dayjs from 'dayjs';
@@ -25,31 +25,43 @@ const HistoryDetailScreen: React.FC = () => {
 
     const [loading, setLoading] = useState(true);
     const [historicalData, setHistoricalData] = useState<IHistoricalData | null>(null);
+    const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
+
+    
 
     if(!user) {
         return <View style={styles.container}><Text style={styles.errorText}>Utilisateur non authentifié.</Text></View>;
     }
 
-    const currentUser = user.nom; 
-    const autreColocataire = currentUser === 'Morgan' ? 'Juliette' : 'Morgan';
+    const currentUserId = user.id;
+    const currentUserDisplay = user.displayName;
+
+
 
     useEffect(() => {
         const loadDetail = async () => {
             setLoading(true);
             try {
-                const compteMensuel = await DB.getCompteMensuel(moisAnnee);
+
+                const users = await DB.getHouseholdUsers(user.householdId);
+                console.log(users)
+                setHouseholdUsers(users);
+
+                const compteMensuel = await DB.getCompteMensuel(user.householdId, moisAnnee);
 
                 if (!compteMensuel) {
                     setHistoricalData(null);
                     return;
                 }
 
-                const variables = await DB.getChargesVariables(moisAnnee);
+                const variables = await DB.getChargesVariables(user.householdId, moisAnnee);
                 
                 setHistoricalData({
                     compte: compteMensuel,
                     chargesVariables: variables,
                 });
+
+                
             } catch (error) {
                 console.error(`Erreur lors du chargement des détails pour ${moisAnnee}:`, error);
                 setHistoricalData(null);
@@ -58,22 +70,30 @@ const HistoryDetailScreen: React.FC = () => {
             }
         };
         loadDetail();
-    }, [moisAnnee]);
+    }, [moisAnnee, user.householdId]);
 
     const calculs: IResultatsCalcul = useCalculs(
         historicalData?.compte || null,
         historicalData?.compte?.chargesFixesSnapshot || [],
         historicalData?.chargesVariables || [],
-        currentUser 
+        currentUserId 
     ); 
 
-    if (loading) {
+
+    if (loading || householdUsers.length === 0 || !historicalData) {
         return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#3498db" /></View>;
     }
 
-    if (!historicalData) {
-        return <View style={styles.container}><Text style={styles.errorText}>Données de compte non trouvées pour {moisAnnee}.</Text></View>;
-    }
+    const getUserDisplay = (uid: string): string => {
+        const userFound = householdUsers.find(u => u.id === uid);
+        if(!userFound){
+            console.error(`UID ${uid} non trouvé dans householdUsers lors du rendu.`);
+            return '';
+        }
+        return userFound.displayName;
+    };
+
+    const autreColocataireDisplay = householdUsers.find(u => u.id !== currentUserId)?.displayName || currentUserDisplay;
     
     const { compte, chargesVariables } = historicalData;
     const { 
@@ -88,13 +108,16 @@ const HistoryDetailScreen: React.FC = () => {
     
     const formattedDate = formattedDateBuild.charAt(0).toUpperCase() + formattedDateBuild.slice(1);
 
-    let detteChargesVariables = 0
-    if (compte.detteJulietteToMorgan) {
-        detteChargesVariables += compte.detteJulietteToMorgan;
-    }
-    if (compte.detteMorganToJuliette) {
-        detteChargesVariables -= compte.detteMorganToJuliette;
-    }
+    const detteVersAutre = compte.dettes.find(d => 
+        d.debiteurUid === currentUserId && d.creancierUid !== currentUserId
+    )?.montant ?? 0;
+    
+    const detteParAutre = compte.dettes.find(d => 
+        d.debiteurUid !== currentUserId && d.creancierUid === currentUserId
+    )?.montant ?? 0;
+
+    const soldeVariableNet = detteVersAutre - detteParAutre;
+
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.title}>Détails du règlement de {formattedDate}</Text>
@@ -102,16 +125,19 @@ const HistoryDetailScreen: React.FC = () => {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>🏠 Loyer & APL ({moisAnneeAfter})</Text>
                 <Text style={styles.detail}>Loyer total: {compte.loyerTotal.toFixed(2)} €</Text>
-                <Text style={styles.detail}>APL Morgan: {compte.aplMorgan.toFixed(2)} €</Text>
-                <Text style={styles.detail}>APL Juliette: {compte.aplJuliette.toFixed(2)} €</Text>
+                {Object.keys(compte.apportsAPL).map((uid) => (
+                    <Text key={uid} style={styles.detail}>
+                        APL {getUserDisplay(uid)}: {compte.apportsAPL[uid].toFixed(2)} €
+                    </Text>
+                ))}
 
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Dette Loyer/APL :</Text>
                     <View style={styles.detteContainer}>
                         {detteLoyer > 0 ? (
-                            <Text style={styles.dettePayer}>Vous devez {detteLoyer.toFixed(2)} € à {currentUser === 'Morgan' ? 'Juliette' : 'Morgan'}.</Text>
+                            <Text style={styles.dettePayer}>Vous devez {detteLoyer.toFixed(2)} € à {autreColocataireDisplay}.</Text>
                         ) : detteLoyer < 0 ? (
-                            <Text style={styles.detteRecevoir}>{currentUser === 'Morgan' ? 'Juliette' : 'Morgan'} vous doit {Math.abs(detteLoyer).toFixed(2)} €.</Text>
+                            <Text style={styles.detteRecevoir}>{autreColocataireDisplay} vous doit {Math.abs(detteLoyer).toFixed(2)} €.</Text>
                         ) : (
                             <Text style={styles.detteEquilibre}>Équilibré</Text>
                         )}
@@ -125,7 +151,7 @@ const HistoryDetailScreen: React.FC = () => {
                     <View key={index} style={styles.chargeRow}>
                         <Text style={styles.chargeDescription}>• {charge.nom}</Text>
                         <Text style={styles.chargeMontant}>{charge.montantMensuel.toFixed(2)} €</Text>
-                        <Text style={styles.chargePayeur}>{charge.payeur}</Text>
+                        <Text style={styles.chargePayeur}>{getUserDisplay(charge.payeur)}</Text>
                     </View>
                 ))}
 
@@ -133,9 +159,9 @@ const HistoryDetailScreen: React.FC = () => {
                     <Text style={styles.summaryLabel}>Dette charges fixes :</Text>
                     <View style={styles.detteContainer}>
                         {detteChargesFixes > 0 ? (
-                            <Text style={styles.dettePayer}>Vous devez {detteChargesFixes.toFixed(2)} € à {currentUser === 'Morgan' ? 'Juliette' : 'Morgan'}.</Text>
+                            <Text style={styles.dettePayer}>Vous devez {detteChargesFixes.toFixed(2)} € à {autreColocataireDisplay}.</Text>
                         ) : detteChargesFixes < 0 ? (
-                            <Text style={styles.detteRecevoir}>{currentUser === 'Morgan' ? 'Juliette' : 'Morgan'} vous doit {Math.abs(detteChargesFixes).toFixed(2)} €.</Text>
+                            <Text style={styles.detteRecevoir}>{autreColocataireDisplay} vous doit {Math.abs(detteChargesFixes).toFixed(2)} €.</Text>
                         ) : (
                             <Text style={styles.detteEquilibre}>Équilibré</Text>
                         )}
@@ -145,26 +171,22 @@ const HistoryDetailScreen: React.FC = () => {
 
             <View style={[styles.section]}>
                 <Text style={styles.sectionTitle}>🎯 Charges variables</Text>
-                <Text style={styles.finalDetail}>Dette Morgan vers Juliette: {compte.detteMorganToJuliette?.toFixed(2) || '0.00'} €</Text>
-                <Text style={styles.finalDetail}>Dette Juliette vers Morgan: {compte.detteJulietteToMorgan?.toFixed(2) || '0.00'} €</Text>
+                {compte.dettes.map((dette, index) => (
+                    <Text key={index} style={styles.finalDetail}>
+                        Dette {getUserDisplay(dette.debiteurUid)} vers {getUserDisplay(dette.creancierUid)}: {dette.montant.toFixed(2)} €
+                    </Text>
+                ))}
+                
                 <View style={styles.regularisationSummary}>
                     <Text style={styles.summaryLabel}>Dette charges variables :</Text>
                     <View style={styles.detteContainer}>
-                        { (currentUser === 'Morgan' && (compte.detteMorganToJuliette ?? 0) > 0) || (currentUser === 'Juliette' && (compte.detteJulietteToMorgan ?? 0) > 0) ? (
+                        {soldeVariableNet > 0 ? (
                             <Text style={[styles.detteMessageBase, styles.dettePayer]}>
-                                Vous devez {
-                                    (currentUser === 'Morgan' ? (compte.detteMorganToJuliette ?? 0) : (compte.detteJulietteToMorgan ?? 0))
-                                    .toFixed(2)
-                                } € à {currentUser === 'Morgan' ? 'Juliette' : 'Morgan'}.
+                                Vous devez {soldeVariableNet.toFixed(2)} € à {autreColocataireDisplay}.
                             </Text>
-                        ) : 
-                        
-                        (currentUser === 'Morgan' && (compte.detteJulietteToMorgan ?? 0) > 0) || (currentUser === 'Juliette' && (compte.detteMorganToJuliette ?? 0) > 0) ? (
+                        ) : soldeVariableNet < 0 ? (
                             <Text style={[styles.detteMessageBase, styles.detteRecevoir]}>
-                                {currentUser === 'Morgan' ? 'Juliette' : 'Morgan'} vous doit {
-                                    (currentUser === 'Morgan' ? (compte.detteJulietteToMorgan ?? 0) : (compte.detteMorganToJuliette ?? 0))
-                                    .toFixed(2)
-                                } €.
+                                {autreColocataireDisplay} vous doit {Math.abs(soldeVariableNet).toFixed(2)} €.
                             </Text>
                         ) : (
                             <Text style={[styles.detteMessageBase, styles.detteEquilibre]}>Aucun transfert de régularisation enregistré.</Text>
@@ -172,7 +194,7 @@ const HistoryDetailScreen: React.FC = () => {
                     </View>
                 </View>
 
-                
+
             </View>
 
             <View style={[styles.section, styles.finalSection]}>
@@ -192,11 +214,11 @@ const HistoryDetailScreen: React.FC = () => {
                     <View style={styles.detteContainer}>
                         {soldeFinal > 0 ? (
                             <Text style={[styles.soldeNote, styles.soldeNoteDebiteur]}>
-                                Vous devez {soldeFinal.toFixed(2)} € à {autreColocataire}.
+                                Vous devez {soldeFinal.toFixed(2)} € à {autreColocataireDisplay}.
                             </Text>
                         ) : soldeFinal < 0 ? (
                             <Text style={[styles.soldeNote, styles.soldeNoteCrediteur]}>
-                                {autreColocataire} vous doit {Math.abs(soldeFinal).toFixed(2)} €.
+                                {autreColocataireDisplay} vous doit {Math.abs(soldeFinal).toFixed(2)} €.
                             </Text>
                         ) : (
                             <Text style={[styles.soldeNote, styles.soldeNoteEquilibre]}>Comptes parfaitement équilibrés.</Text>

@@ -36,7 +36,7 @@ const HistogramPlaceholder = ({ month, total }: { month: string, total: number }
 const HomeScreen: React.FC = () => {
     const navigation = useNavigation<RootStackNavigationProp>();
     const { user, logout, isLoading } = useAuth();
-
+    console.log(user)
     const { isLoadingComptes } = useComptes();
     
     if (isLoadingComptes || isLoading) {
@@ -46,7 +46,7 @@ const HomeScreen: React.FC = () => {
     return (
         <View style={styles.mainView}>
             <View style={styles.headerContainer}>
-                <Text style={styles.welcomeText}>Bienvenue, {user?.nom} !</Text>
+                <Text style={styles.welcomeText}>Bienvenue, {user?.displayName} !</Text>
                 <TouchableOpacity 
                     style={styles.logoutButtonTop} 
                     onPress={logout}

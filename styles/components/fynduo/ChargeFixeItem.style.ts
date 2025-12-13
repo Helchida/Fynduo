@@ -10,8 +10,8 @@ chargeItem: {
         borderLeftColor: '#d14127ff',
         shadowColor: "#000",
         shadowOffset: {
-            width: 0,
-            height: 1,
+        width: 0,
+        height: 1,
         },
         shadowOpacity: 0.18,
         shadowRadius: 1.00,
@@ -27,6 +27,29 @@ chargeItem: {
         color: '#7f8c8d', 
         marginBottom: 8 
     },
+    payeurContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        marginBottom: 8,
+        marginTop: 8,
+        backgroundColor: '#ecf0f1',
+        borderRadius: 5,
+    },
+    payeurLabel: {
+        fontSize: 14, 
+        color: '#7f8c8d', 
+        fontWeight: 'bold',
+        marginRight: 5,
+    },
+    payeurName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#3498db',
+        textDecorationLine: 'underline',
+    },
+    
     inputRow: { 
         flexDirection: 'row', 
         alignItems: 'center', 
@@ -76,5 +99,52 @@ chargeItem: {
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 14,
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end', 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        padding: 20,
+        maxHeight: '60%', 
+    },
+    modalHeader: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        textAlign: 'center',
+        color: '#333',
+    },
+    modalItem: {
+        paddingVertical: 15,
+        paddingHorizontal: 10,
+    },
+    modalItemSelected: {
+        backgroundColor: '#e6f7ff',
+        borderRadius: 5,
+    },
+    modalItemText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#f0f0f0',
+    },
+    modalCloseButton: {
+        marginTop: 20,
+        backgroundColor: '#bdc3c7',
+        padding: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    modalCloseButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 })

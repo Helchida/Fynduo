@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { ICompteMensuel, IChargeFixe, IChargeVariable } from '../types';
+import { ICompteMensuel, IChargeFixe, IChargeVariable, IDette } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useCalculs, IResultatsCalcul } from '../hooks/useCalculs';
 import * as DB from '../services/firebase/db';
@@ -7,10 +7,9 @@ import dayjs from 'dayjs';
 
 export interface IReglementData {
   loyerTotal: number;
-  aplMorgan: number;
-  aplJuliette: number;
-  detteMorganToJuliette: number;
-  detteJulietteToMorgan: number;
+  apportsAPL: Record<string, number>;
+  dettes: IDette[];
+  loyerPayeurUid: string;
 }
 
 interface IComptesContext extends IResultatsCalcul {
@@ -21,9 +20,10 @@ interface IComptesContext extends IResultatsCalcul {
   historyMonths: ICompteMensuel[];
   loadData: () => Promise<void>;
   updateChargeFixe: (chargeId: string, newAmount: number) => Promise<void>;
-  updateLoyer: (loyerTotal: number, aplMorgan: number, aplJuliette: number) => Promise<void>;
-  addChargeVariable: (depense: Omit<IChargeVariable, 'id'>) => Promise<void>;
-  addChargeFixe: (charge: Omit<IChargeFixe, 'id'>) => Promise<void>; 
+  updateChargeFixePayeur: (chargeId: string, newPayeurId: string) => Promise<void>;
+  updateLoyer: (loyerTotal: number, apportsAPL: Record<string, number>, loyerPayeurUid: string) => Promise<void>;
+  addChargeVariable: (depense: Omit<IChargeVariable, 'id' | 'householdId'>) => Promise<void>;
+  addChargeFixe: (charge: Omit<IChargeFixe, 'id' | 'householdId'>) => Promise<void>;
   deleteChargeFixe: (chargeId: string) => Promise<void>; 
   cloturerMois: (data: IReglementData) => Promise<void>;
   loadHistory: () => Promise<void>; 
@@ -40,7 +40,8 @@ const TARGET_MOIS_ANNEE = getTargetMoisAnnee();
 
 export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const currentUser = user?.nom || 'Juliette';
+  const currentUserUid = user?.id;
+  const householdId = user?.householdId;
 
   const [currentMonthData, setCurrentMonthData] = useState<ICompteMensuel | null>(null);
   const [chargesFixes, setChargesFixes] = useState<IChargeFixe[]>([]);
@@ -49,16 +50,16 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [historyMonths, setHistoryMonths] = useState<ICompteMensuel[]>([]);
   
 
-  const calculs = useCalculs(currentMonthData, chargesFixes, chargesVariables, currentUser);
+  const calculs = useCalculs(currentMonthData, chargesFixes, chargesVariables, currentUserUid);
 
   
 
   const loadData = useCallback(async () => {
-    if (!user) return;
+    if (!householdId || !currentUserUid) return;
 
     setIsLoadingComptes(true);
     try {
-        let moisData = await DB.getCompteMensuel(TARGET_MOIS_ANNEE);
+        let moisData = await DB.getCompteMensuel(householdId, TARGET_MOIS_ANNEE);
 
         if (!moisData) {
             console.log("Compte mensuel non trouvé pour ce mois. Création du document initial...");
@@ -67,20 +68,21 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 moisAnnee: TARGET_MOIS_ANNEE,
                 statut: 'ouvert',
                 loyerTotal: 0, 
-                aplMorgan: 0,
-                aplJuliette: 0,
+                apportsAPL: {},
+                dettes: [],
+                loyerPayeurUid: currentUserUid
             };
             
-            await DB.createCompteMensuel(nouveauMois); 
+            await DB.createCompteMensuel(householdId, nouveauMois); 
             moisData = nouveauMois; 
         }
         
         setCurrentMonthData(moisData);
 
-        const chargesFixesData = await DB.getChargesFixes();
+        const chargesFixesData = await DB.getChargesFixes(householdId);
         setChargesFixes(chargesFixesData);
 
-        const chargesVariablesData = await DB.getChargesVariables(TARGET_MOIS_ANNEE);
+        const chargesVariablesData = await DB.getChargesVariables(householdId, TARGET_MOIS_ANNEE);
         setChargesVariables(chargesVariablesData);
 
     } catch (error) {
@@ -88,17 +90,136 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
         setIsLoadingComptes(false);
     }
-}, [user]);
+}, [householdId]);
 
 const loadHistory = useCallback(async () => {
-  if (!user) return;
+  if (!householdId) return;
   try {
-      const historyData = await DB.getHistoryMonths(); 
+      const historyData = await DB.getHistoryMonths(householdId); 
       setHistoryMonths(historyData);
   } catch (error) {
       console.error("Erreur lors du chargement de l'historique:", error);
   }
-}, [user]);
+}, [householdId]);
+
+const updateChargeFixe = useCallback(async (chargeId: string, newAmount: number) => {
+  if (!householdId) return;  
+  try {
+      await DB.updateChargeFixeAmount(householdId, chargeId, newAmount);
+      setChargesFixes(prev => prev.map(c => c.id === chargeId ? { ...c, montantMensuel: newAmount } : c));
+    } catch (error) {
+      console.error("Erreur updateChargeFixe:", error);
+      throw error;
+    }
+  }, [householdId]);
+
+  const updateChargeFixePayeur = useCallback(async (
+    chargeId: string, 
+    newPayeurId: string
+  ) => {
+      if (!householdId) return;
+      try {
+          await DB.updateChargeFixePayeur(householdId, chargeId, newPayeurId);
+          
+          setChargesFixes(prev => prev.map(c => 
+              c.id === chargeId 
+                  ? { ...c, payeur: newPayeurId} 
+                  : c
+          ));
+      } catch (error) {
+          console.error("Erreur updateChargeFixePayeur:", error);
+          throw error;
+      }
+  }, [householdId]);
+
+  const addChargeFixe = useCallback(async (charge: Omit<IChargeFixe, 'id' | 'householdId'>) => {
+    if (!householdId) return;
+    try {
+      const id = await DB.addChargeFixe(householdId, charge);
+      const newCharge: IChargeFixe = { id, householdId, ...charge };
+      setChargesFixes(prev => [...prev, newCharge]);
+    } catch (error) {
+      console.error("Erreur addChargeFixe:", error);
+      throw error;
+    }
+  }, [householdId]);
+
+  const deleteChargeFixe = useCallback(async (chargeId: string) => {
+    if (!householdId) return;
+    try {
+      await DB.deleteChargeFixe(householdId, chargeId);
+      setChargesFixes(prev => prev.filter(c => c.id !== chargeId));
+    } catch (error) {
+      console.error("Erreur deleteChargeFixe:", error);
+      throw error;
+    }
+  }, [householdId]);
+
+  const updateLoyer = useCallback(async (loyerTotal: number, apportsAPL: Record<string, number>, loyerPayeurUid: string) => {
+    if (!currentMonthData || !householdId) return;
+    try {
+      await DB.updateLoyerApl(householdId, currentMonthData.id, loyerTotal, apportsAPL, loyerPayeurUid);
+      setCurrentMonthData(prev => prev ? { ...prev, loyerTotal, apportsAPL, loyerPayeurUid } : prev);
+    } catch (error) {
+      console.error("Erreur updateLoyer:", error);
+      throw error;
+    }
+  }, [currentMonthData, householdId]);
+
+  const addChargeVariable = useCallback(async (depense: Omit<IChargeVariable, 'id' | 'householdId'>) => {
+    if (!householdId) return;
+    try {
+      const id = await DB.addChargeVariable(householdId, depense);
+      const newVar: IChargeVariable = { id, householdId, ...depense };
+      setChargesVariables(prev => [...prev, newVar]);
+    } catch (error) {
+      console.error("Erreur addChargeVariable:", error);
+      throw error;
+    }
+  }, []);
+
+  const cloturerMois = useCallback(async (data: IReglementData) => {
+    if (!currentMonthData || !currentMonthData.id || !householdId) {
+      throw new Error("Impossible de clôturer le mois : données manquantes.");
+    }
+
+    const chargesFixesSnapshot = chargesFixes.map(charge => ({
+        nom: charge.nom,
+        montantMensuel: charge.montantMensuel,
+        payeur: charge.payeur,
+    }));
+    setIsLoadingComptes(true);
+    try {
+      await updateLoyer(data.loyerTotal, data.apportsAPL, data.loyerPayeurUid);
+      await DB.updateRegularisationDettes(
+        householdId,
+        currentMonthData.id, 
+        data.dettes,
+        chargesFixesSnapshot,
+      );
+
+      await DB.addChargeVariableRegularisation(
+          householdId,
+          currentMonthData.id,
+          data.dettes
+      );
+    
+      setCurrentMonthData(prev => prev ? { 
+          ...prev, 
+          dettes: data.dettes
+      } : prev);
+      
+      await DB.setMoisFinalise(householdId, currentMonthData.id);
+      await loadData();
+    } catch (error) {
+      console.error("Erreur lors de la clôture du mois:", error);
+      throw error;
+    } finally {
+      setIsLoadingComptes(false);
+    }
+  }, [currentMonthData, loadData, updateLoyer, chargesFixes, householdId]);
+
+
 
 
 useEffect(() => {
@@ -121,104 +242,6 @@ useEffect(() => {
       return historyMonths.find(m => m.moisAnnee === moisAnnee);
   }, [historyMonths, currentMonthData]);
 
-
-  const updateChargeFixe = useCallback(async (chargeId: string, newAmount: number) => {
-    try {
-      await DB.updateChargeFixeAmount(chargeId, newAmount);
-      setChargesFixes(prev => prev.map(c => c.id === chargeId ? { ...c, montantMensuel: newAmount } : c));
-    } catch (error) {
-      console.error("Erreur updateChargeFixe:", error);
-      throw error;
-    }
-  }, []);
-
-
-  const addChargeFixe = useCallback(async (charge: Omit<IChargeFixe, 'id'>) => {
-  try {
-    const id = await DB.addChargeFixe(charge);
-    const newCharge: IChargeFixe = { id, ...charge };
-    setChargesFixes(prev => [...prev, newCharge]);
-  } catch (error) {
-    console.error("Erreur addChargeFixe:", error);
-    throw error;
-  }
-}, []);
-
-
-  const deleteChargeFixe = useCallback(async (chargeId: string) => {
-    try {
-      await DB.deleteChargeFixe(chargeId);
-      setChargesFixes(prev => prev.filter(c => c.id !== chargeId));
-    } catch (error) {
-      console.error("Erreur deleteChargeFixe:", error);
-      throw error;
-    }
-  }, []);
-
-
-  const updateLoyer = useCallback(async (loyerTotal: number, aplMorgan: number, aplJuliette: number) => {
-    if (!currentMonthData) return;
-    try {
-      await DB.updateLoyerApl(currentMonthData.id, loyerTotal, aplMorgan, aplJuliette);
-      setCurrentMonthData(prev => prev ? { ...prev, loyerTotal, aplMorgan, aplJuliette } : prev);
-    } catch (error) {
-      console.error("Erreur updateLoyer:", error);
-      throw error;
-    }
-  }, [currentMonthData]);
-
-
-  const addChargeVariable = useCallback(async (depense: Omit<IChargeVariable, 'id'>) => {
-  try {
-    const id = await DB.addChargeVariable(depense);
-    const newVar: IChargeVariable = { id, ...depense };
-    setChargesVariables(prev => [...prev, newVar]);
-  } catch (error) {
-    console.error("Erreur addChargeVariable:", error);
-    throw error;
-  }
-}, []);
-
-
-  const cloturerMois = useCallback(async (data: IReglementData) => {
-    if (!currentMonthData || !currentMonthData.id) {
-      throw new Error("Impossible de clôturer le mois : données manquantes.");
-    }
-
-    const detteNetteFinale = calculs.soldeFinal
-
-    const chargesFixesSnapshot = chargesFixes.map(charge => ({
-        nom: charge.nom,
-        montantMensuel: charge.montantMensuel,
-        payeur: charge.payeur,
-    }));
-    setIsLoadingComptes(true);
-    try {
-      await updateLoyer(data.loyerTotal, data.aplMorgan, data.aplJuliette);
-      await DB.updateRegularisationDettes(
-          currentMonthData.id, 
-          data.detteMorganToJuliette, 
-          data.detteJulietteToMorgan,
-          chargesFixesSnapshot,
-      );
-    
-      setCurrentMonthData(prev => prev ? { 
-          ...prev, 
-          detteMorganToJuliette: data.detteMorganToJuliette,
-          detteJulietteToMorgan: data.detteJulietteToMorgan,
-      } : prev);
-      
-      await DB.setMoisFinalise(currentMonthData.id);
-      await loadData();
-    } catch (error) {
-      console.error("Erreur lors de la clôture du mois:", error);
-      throw error;
-    } finally {
-      setIsLoadingComptes(false);
-    }
-  }, [currentMonthData, loadData, updateLoyer, chargesFixes]);
-
-
   const contextValue = useMemo(() => ({
     currentMonthData,
     chargesFixes,
@@ -227,6 +250,7 @@ useEffect(() => {
     historyMonths,
     loadData,
     updateChargeFixe,
+    updateChargeFixePayeur,
     updateLoyer,
     addChargeVariable,
     addChargeFixe,
@@ -238,7 +262,7 @@ useEffect(() => {
     ...calculs,
   }), [
     currentMonthData, chargesFixes, chargesVariables, isLoadingComptes, historyMonths,
-    loadData, updateChargeFixe, updateLoyer, addChargeVariable, addChargeFixe, deleteChargeFixe, cloturerMois, loadHistory, getMonthDataById, calculs
+    loadData, updateChargeFixe, updateChargeFixePayeur, updateLoyer, addChargeVariable, addChargeFixe, deleteChargeFixe, cloturerMois, loadHistory, getMonthDataById, calculs
   ]);
 
   return (

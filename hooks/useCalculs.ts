@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ICompteMensuel, IChargeFixe, IChargeVariable, Colocataire } from '../types';
+import { ICompteMensuel, IChargeFixe, IChargeVariable } from '../types';
 
 export interface IResultatsCalcul {
   detteLoyer: number; 
@@ -7,7 +7,7 @@ export interface IResultatsCalcul {
   detteChargesVariables: number; 
   totalChargesFixes: number;
   soldeFinal: number; 
-  debiteur: Colocataire | null;
+  debiteur: string | null;
 }
 
 const initialResults: IResultatsCalcul = {
@@ -23,32 +23,43 @@ export const useCalculs = (
   currentMonthData: ICompteMensuel | null, 
   chargesFixes: IChargeFixe[], 
   chargesVariables: IChargeVariable[], 
-  currentUser: Colocataire
+  currentUserUid: string | undefined
 ): IResultatsCalcul => {
 
-    const autreColocataire: Colocataire = currentUser === 'Morgan' ? 'Juliette' : 'Morgan';
 
   return useMemo(() => {
     let detteLoyer = 0;
     let detteChargesFixes = 0;
     let detteChargesVariables = 0;
     let totalChargesFixes = 0;
-    let debiteur: Colocataire | null = null;
+    let debiteur: string | null = null;
 
-    if (!currentMonthData) {
+    if (!currentMonthData || !currentUserUid || !currentMonthData.loyerPayeurUid) {
       return initialResults;
+    }
+
+    const loyerPayeurUid = currentMonthData.loyerPayeurUid;
+
+    const uids = Object.keys(currentMonthData.apportsAPL);
+    const autreUserUid = uids.find(uid => uid !== currentUserUid) || null;
+
+    if (!autreUserUid || uids.length !== 2) {
+        return initialResults; 
     }
 
     // --- 1. CALCUL DU LOYER NET INDIVIDUEL (Loyer - APL) ---
    
     const partLoyerParPersonne = currentMonthData.loyerTotal / 2;
-    const netDuMorgan = partLoyerParPersonne - currentMonthData.aplMorgan;
-    const netDeJuliette = partLoyerParPersonne - currentMonthData.aplJuliette; 
+    const aplCurrentUser = currentMonthData.apportsAPL[currentUserUid] ?? 0;
+    const aplAutreUser = currentMonthData.apportsAPL[autreUserUid] ?? 0;
 
-    if (currentUser === 'Morgan') {
-        detteLoyer = -netDeJuliette;   
-    } else { 
-        detteLoyer = netDeJuliette;
+    const netDuCurrentUser = partLoyerParPersonne - aplCurrentUser;
+    const netDuAutreUser = partLoyerParPersonne - aplAutreUser;
+
+    if (currentUserUid === loyerPayeurUid) {
+      detteLoyer = -netDuAutreUser;
+    } else {
+      detteLoyer = netDuCurrentUser;
     }
 
     // --- 2. CALCUL DES CHARGES FIXES ---
@@ -57,7 +68,7 @@ export const useCalculs = (
       const partParPersonne = charge.montantMensuel / 2;
       totalChargesFixes += charge.montantMensuel;
 
-      if (charge.payeur === currentUser) {
+      if (charge.payeur === currentUserUid) {
         detteChargesFixes -= partParPersonne;
       } else {
         detteChargesFixes += partParPersonne;
@@ -69,18 +80,15 @@ export const useCalculs = (
     
     let ajustementDettesFinales = 0;
    
-    const detteJuliette = currentMonthData.detteJulietteToMorgan ?? 0;
-    const detteMorgan = currentMonthData.detteMorganToJuliette ?? 0;
+    const detteDuCurrentUser = currentMonthData.dettes.find(d => 
+        d.debiteurUid === currentUserUid && d.creancierUid === autreUserUid
+    )?.montant ?? 0;
 
+    const detteDeAutreUser = currentMonthData.dettes.find(d => 
+        d.debiteurUid === autreUserUid && d.creancierUid === currentUserUid
+    )?.montant ?? 0;
 
-    if (currentUser === 'Juliette') {
-      ajustementDettesFinales += detteJuliette;
-      ajustementDettesFinales -= detteMorgan;
-    } else {
-      ajustementDettesFinales -= detteJuliette; 
-      ajustementDettesFinales += detteMorgan;
-    }
-
+    ajustementDettesFinales = detteDuCurrentUser - detteDeAutreUser;
     detteChargesVariables = ajustementDettesFinales;
     
     // --- 4. SOLDE FINAL & DÉBITEUR ---
@@ -90,10 +98,10 @@ export const useCalculs = (
         // Déterminer le débiteur final
         if (soldeFinal > 0) {
             // soldeFinal > 0 signifie que currentUser DOIT
-            debiteur = currentUser;
+            debiteur = currentUserUid;
         } else if (soldeFinal < 0) {
             // soldeFinal < 0 signifie que l'autre DOIT à currentUser
-            debiteur = autreColocataire;
+            debiteur = autreUserUid;
         } else {
             debiteur = null;
         }
@@ -103,8 +111,8 @@ export const useCalculs = (
       detteChargesFixes,
       detteChargesVariables,
       totalChargesFixes,
-      soldeFinal,
-            debiteur: debiteur,
+      soldeFinal: soldeFinal,
+      debiteur: debiteur,
     };
-  }, [currentMonthData, chargesFixes, chargesVariables, currentUser]);
+  }, [currentMonthData, chargesFixes, chargesVariables, currentUserUid]);
 };

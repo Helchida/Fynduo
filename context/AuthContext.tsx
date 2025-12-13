@@ -1,12 +1,14 @@
 import React, { createContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { auth, db } from "../services/firebase/config";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { Colocataire } from "../types";
 import { doc, getDoc } from "firebase/firestore";
+import { IUser } from "../types";
+import * as DB from "../services/firebase/db"
 
 export interface IUserContext {
   id: string;
-  nom: Colocataire;
+  displayName: string;
+  householdId: string;
   token: string | null;
 }
 
@@ -16,6 +18,7 @@ interface IAuthContext {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  householdUsers: IUser[]
 }
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -23,31 +26,51 @@ export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<IUserContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setIsLoading(true);
       if (firebaseUser) {
-        const token = await firebaseUser.getIdToken();
-        const userRef = doc(db, "colocataires", firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
+        try{
+          const token = await firebaseUser.getIdToken();
+          const userRef = doc(db, "users", firebaseUser.uid);
+          const userSnap = await getDoc(userRef);
 
-        let nom: Colocataire;
-        console.log(userSnap.data());
-        if (userSnap.exists()) {
-          const colocataireData = userSnap.data();
-          nom = colocataireData.nom as Colocataire; 
-        } else {
-          console.error("Document colocataire non trouvé pour l'UID:", firebaseUser.uid);
-          nom = "Morgan";
+          if (userSnap.exists()) {
+            const userData = userSnap.data() as IUser;
+            const householdId = userData.householdId as string | undefined;
+            const displayName = userData.displayName as string;
+
+            if (!householdId) {
+              console.error("L'utilisateur n'est associé à aucun foyer:", firebaseUser.uid);
+              await signOut(auth);
+              setUser(null);
+            } else {
+              setUser({
+                id: firebaseUser.uid,
+                displayName,
+                householdId,
+                token,
+              });
+
+              const users = await DB.getHouseholdUsers(householdId)
+              setHouseholdUsers(users);
+            }
+          } else {
+            console.error("Document colocataire non trouvé pour l'UID:", firebaseUser.uid);
+            await signOut(auth);
+            setUser(null);
+          }
+        } catch (error) {
+          console.error("Erreur lors de la récupération des données utilisateur:", error);
+          await signOut(auth);
+          setUser(null);
         }
-
-        setUser({
-          id: firebaseUser.uid,
-          nom,
-          token,
-        });
       } else {
+
         setUser(null);
+        setHouseholdUsers([])
       }
       setIsLoading(false);
     });
@@ -88,7 +111,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     logout,
     isAuthenticated: !!user,
-  }), [user, isLoading]);
+    householdUsers,
+  }), [user, isLoading, householdUsers]);
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

@@ -6,10 +6,11 @@ interface FirestoreDocument {
 }
 
 // UTILISATEURS ET AUTH
-export type Colocataire = 'Morgan' | 'Juliette';
 
 export interface IUser extends FirestoreDocument {
-    nom: Colocataire;
+    displayName: string;
+    householdId: string;
+    email: string;
 }
 
 // DONNÉES FINANCIÈRES
@@ -17,41 +18,48 @@ export interface IUser extends FirestoreDocument {
 export interface IChargeFixe extends FirestoreDocument {
     nom: string;
     montantMensuel: number;
-    payeur: Colocataire;
+    payeur: string;
     dateMiseAJour?: string;
     dateCreation?: string;
     moisAnnee?: string;
+    householdId: string;
 }
 
 
 export interface IChargeFixeSnapshot {
     nom: string;
     montantMensuel: number;
-    payeur: Colocataire;
+    payeur: string;
 }
 
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 export interface IChargeVariable extends FirestoreDocument {
     description: string;
     montantTotal: number;
-    payeur: Colocataire;
-    beneficiaires: Colocataire[];
+    payeur: string;
+    beneficiaires: string[];
     date: string;
     moisAnnee: string;
+    householdId: string;
     
 }
 
 // 3. Données du mois (Loyer et APL + Régularisation)
 export type StatutMois = 'ouvert' | 'finalisé';
 
+export interface IDette {
+    debiteurUid: string;
+    creancierUid: string;
+    montant: number;
+}
+
 export interface ICompteMensuel extends FirestoreDocument {
     moisAnnee: string;
     loyerTotal: number;
-    aplMorgan: number;
-    aplJuliette: number;
+    loyerPayeurUid: string;
+    apportsAPL: Record<string, number>;
     statut: StatutMois;
-    detteMorganToJuliette?: number;
-    detteJulietteToMorgan?: number;
+    dettes: IDette[];
     dateCloture?: string | null;
     chargesFixesSnapshot?: IChargeFixe[];
 }
