@@ -54,7 +54,7 @@ const HistoryDetailScreen: React.FC = () => {
                     return;
                 }
 
-                const variables = await DB.getChargesVariables(user.householdId, moisAnnee);
+                const variables = await DB.getChargesVariables(user.householdId);
                 
                 setHistoricalData({
                     compte: compteMensuel,

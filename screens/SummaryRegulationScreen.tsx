@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useComptes } from '../hooks/useComptes';
 import { useAuth } from '../hooks/useAuth';
-import { Colocataire } from '../types';
+import { useHouseholdUsers } from '../hooks/useHouseholdUsers';
 import { styles } from '../styles/screens/SummaryRegulationScreen.style';
 
 const SummaryRegulationScreen: React.FC = () => {
@@ -17,20 +17,31 @@ const SummaryRegulationScreen: React.FC = () => {
     } = useComptes();
 
     const { user } = useAuth();
-    
-    const colocataireActuel: Colocataire = user?.nom || 'Juliette'; 
-    const autreColocataire: Colocataire = colocataireActuel === 'Morgan' ? 'Juliette' : 'Morgan';
-    
+    const { householdUsers, getDisplayName } = useHouseholdUsers();
+
+    const currentUser = user;
+    const currentUserUid = currentUser?.id || 'UID_ACTUEL_INCONNU';
+    const otherUser = householdUsers.find(u => u.id !== currentUserUid);
+    const otherUserUid = otherUser?.id || 'UID_AUTRE_INCONNU';
+
+    const colocataireActuel = getDisplayName(currentUserUid); 
+    const autreColocataire = getDisplayName(otherUserUid);
+
+    const loyerPayeurUid = currentMonthData?.loyerPayeurUid || otherUserUid; 
+    const loyerPayeurName = getDisplayName(loyerPayeurUid);
+
     
     const { montantAVerserAgence } = useMemo(() => {
-        if (!currentMonthData) return { montantAVerserAgence: 0 };
+        if (!currentMonthData || householdUsers.length === 0) return { montantAVerserAgence: 0 };
+        
         const loyerBrut = currentMonthData.loyerTotal;
-        const aplTotal = currentMonthData.aplMorgan + currentMonthData.aplJuliette;
+        
+        const aplTotal = Object.values(currentMonthData.apportsAPL).reduce((sum, apl) => sum + apl, 0);
 
         const montantAVerserAgence = loyerBrut - aplTotal;
 
         return { montantAVerserAgence };
-    }, [currentMonthData]);
+    }, [currentMonthData, householdUsers]);
 
 
     if (isLoadingComptes) {
@@ -42,10 +53,10 @@ const SummaryRegulationScreen: React.FC = () => {
         );
     }
 
-    if (!currentMonthData) {
+    if (!currentMonthData || householdUsers.length < 2) {
         return (
             <View style={styles.container}>
-                <Text style={styles.errorText}>Aucune donnée disponible.</Text>
+                <Text style={styles.errorText}>Aucune donnée disponible pour la régulation.</Text>
             </View>
         );
     }
@@ -84,10 +95,10 @@ const SummaryRegulationScreen: React.FC = () => {
                     {montantAVerserAgence.toFixed(2)} €
                 </Text>
                 <Text style={styles.agenceMessage}>
-                    (Loyer total: {currentMonthData.loyerTotal.toFixed(2)} € - APL total: {(currentMonthData.aplMorgan + currentMonthData.aplJuliette).toFixed(2)} €)
+                    (Loyer total: {currentMonthData.loyerTotal.toFixed(2)} € - APL total: {Object.values(currentMonthData.apportsAPL).reduce((sum, apl) => sum + apl, 0).toFixed(2)} €)
                 </Text>
                 <Text style={styles.agenceNote}>
-                    ⚠️ Ce virement est effectué par Morgan à l'agence.
+                    ⚠️ Ce virement est effectué par {loyerPayeurName} à l'agence.
                 </Text>
             </View>
 
