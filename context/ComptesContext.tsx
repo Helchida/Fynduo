@@ -82,7 +82,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const chargesFixesData = await DB.getChargesFixes(householdId);
         setChargesFixes(chargesFixesData);
 
-        const chargesVariablesData = await DB.getChargesVariables(householdId, TARGET_MOIS_ANNEE);
+        const chargesVariablesData = await DB.getChargesVariables(householdId);
         setChargesVariables(chargesVariablesData);
 
     } catch (error) {
@@ -176,7 +176,7 @@ const updateChargeFixe = useCallback(async (chargeId: string, newAmount: number)
       console.error("Erreur addChargeVariable:", error);
       throw error;
     }
-  }, []);
+  }, [householdId]);
 
   const cloturerMois = useCallback(async (data: IReglementData) => {
     if (!currentMonthData || !currentMonthData.id || !householdId) {

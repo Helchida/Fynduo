@@ -159,10 +159,9 @@ export async function deleteChargeFixe(householdId: string, chargeId: string) {
 /**
  * Récupère toutes les charges variables (Courses, restaurants, loisirs...) pour un mois donné.
  */
-export async function getChargesVariables(householdId: string, moisAnnee: string): Promise<IChargeVariable[]> {
-    const depensesCollection = getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES);
-    const q = query(depensesCollection, where('moisAnnee', '==', moisAnnee)); 
-    const snapshot = await getDocs(q);
+export async function getChargesVariables(householdId: string): Promise<IChargeVariable[]> {
+    const chargesCollection = getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES); 
+    const snapshot = await getDocs(chargesCollection);
     
     return snapshot.docs.map(doc => mapDocToType<IChargeVariable>(doc));
 }
@@ -173,10 +172,8 @@ export async function getChargesVariables(householdId: string, moisAnnee: string
 export async function addChargeVariable(householdId: string, depense: Omit<IChargeVariable, 'id' | 'householdId'>) {
     const depensesCollection = getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES);
     
-    const docRef = await addDoc(depensesCollection, {
-        ...depense,
-        householdId, 
-    });
+    const docRef = await addDoc(depensesCollection,
+        depense);
     return docRef.id;
 }
 

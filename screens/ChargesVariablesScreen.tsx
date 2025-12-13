@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, Button, Alert, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, FlatList, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
 import { useComptes } from '../hooks/useComptes';
 import { useAuth } from '../hooks/useAuth';
 import { IChargeVariable } from '../types';
@@ -11,45 +11,37 @@ import { useHouseholdUsers } from '../hooks/useHouseholdUsers';
 const ChargesVariablesScreen: React.FC = () => {
     const { chargesVariables, isLoadingComptes, addChargeVariable, currentMonthData } = useComptes(); 
     const { user } = useAuth();
-    
     const { householdUsers, getDisplayName } = useHouseholdUsers();
+    
     const [description, setDescription] = useState('');
     const [montant, setMontant] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [payeurUid, setPayeurUid] = useState<string | null>(user?.id || null);
     const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
 
-    const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-    const [isBeneficiairesModalVisible, setIsBeneficiairesModalVisible] = useState(false);
-
     useEffect(() => {
-        // Initialise les bénéficiaires à tous les utilisateurs par défaut
-        if (householdUsers.length > 0 && beneficiairesUid.length === 0) {
-            setBeneficiairesUid(householdUsers.map(u => u.id));
+        if (householdUsers.length > 0) {
+            if (beneficiairesUid.length === 0) {
+                setBeneficiairesUid(householdUsers.map(u => u.id));
+            }
+            if (user?.id && !payeurUid) {
+                setPayeurUid(user.id);
+            }
         }
-    }, [householdUsers, beneficiairesUid.length]);
-
-
-    // Fonction d'affichage des bénéficiaires
-    const getBeneficiairesDisplayNames = useCallback((uids: string[]) => {
-        if (uids.length === 0) return "Sélectionner les bénéficiaires";
-        if (uids.length === householdUsers.length) return "Tout le foyer";
-        
-        // Nous faisons confiance à getDisplayName pour retourner soit le nom, soit l'UID
-        const names = uids
-            .map(uid => getDisplayName(uid)); 
-            
-        const displayNames = names.slice(0, 2);
-
-        return displayNames.join(', ') + (names.length > 2 ? ` et ${names.length - 2} autres` : '');
-    }, [householdUsers, getDisplayName]);
+    }, [householdUsers, beneficiairesUid.length, user?.id, payeurUid]);
 
     const handleAddDepense = useCallback(async () => {
-        const montantTotal = parseFloat(montant);
+        const montantTotal = parseFloat(montant.replace(',', '.'));
 
-        if (!currentMonthData || !payeurUid || beneficiairesUid.length === 0) {
-            Alert.alert("Erreur de saisie", "Veuillez sélectionner le payeur et au moins un bénéficiaire.");
+        if (!payeurUid || !currentMonthData) {
+            Alert.alert("Erreur", "Le payeur ou les données mensuelles sont manquantes.");
+            return;
+        }
+
+        if (beneficiairesUid.length === 0) {
+            Alert.alert("Erreur de saisie", "Veuillez sélectionner au moins un bénéficiaire.");
             return;
         }
 
@@ -62,13 +54,11 @@ const ChargesVariablesScreen: React.FC = () => {
 
         const depenseToAdd: Omit<IChargeVariable, 'id' | 'householdId'> = {
             description: description.trim(),
-            montantTotal: parseFloat(montantTotal.toFixed(2)),
-            
-            payeur: payeurUid,
+            montantTotal,
+            payeur: payeurUid, 
             beneficiaires: beneficiairesUid,
-            
             date: dayjs().toISOString(),
-            moisAnnee: currentMonthData.moisAnnee,
+            moisAnnee: dayjs().format('YYYY-MM'),
         };
 
         try {
@@ -76,7 +66,7 @@ const ChargesVariablesScreen: React.FC = () => {
             setDescription('');
             setMontant('');
             setPayeurUid(user?.id || null); 
-            setBeneficiairesUid(householdUsers.map(u => u.id)); 
+            setBeneficiairesUid(householdUsers.map(u => u.id));
             setShowForm(false);
             Alert.alert("Succès", "Dépense enregistrée.");
 
@@ -88,27 +78,17 @@ const ChargesVariablesScreen: React.FC = () => {
         }
     }, [description, montant, payeurUid, beneficiairesUid, currentMonthData, addChargeVariable, user?.id, householdUsers]);
 
-    const selectPayeur = (uid: string) => {
-        setPayeurUid(uid);
-        setIsPayeurModalVisible(false);
-    };
-
-    const toggleBeneficiaire = (uid: string) => {
-        setBeneficiairesUid(prev => 
-            prev.includes(uid) 
-                ? prev.filter(id => id !== uid) // Retirer
-                : [...prev, uid] // Ajouter
-        );
-    };
-
     if (isLoadingComptes) {
         return <Text style={styles.loading}>Chargement des dépenses...</Text>;
     }
 
+    const payeurName = getDisplayName(payeurUid ?? "");
+    const benefCount = beneficiairesUid.length;
+    const shareText = benefCount > 0 ? `(partagé sur ${benefCount} personne${benefCount > 1 ? 's' : ''})` : '(Aucun bénéficiaire)';
+
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Charges variables</Text>
-            
             <TouchableOpacity 
                 style={styles.addButton} 
                 onPress={() => setShowForm(!showForm)}
@@ -134,37 +114,11 @@ const ChargesVariablesScreen: React.FC = () => {
                         keyboardType="numeric"
                         editable={!isSubmitting}
                     />
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Payé par</Text>
-                        <TouchableOpacity
-                            style={[styles.input, styles.dropdownInput]}
-                            onPress={() => setIsPayeurModalVisible(true)}
-                            disabled={isSubmitting}
-                        >
-                            <Text style={!payeurUid ? styles.placeholderText : styles.inputText}>
-                                {getDisplayName(payeurUid ?? "")}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Pour qui (Bénéficiaires)</Text>
-                        <TouchableOpacity
-                            style={[styles.input, styles.dropdownInput]}
-                            onPress={() => setIsBeneficiairesModalVisible(true)}
-                            disabled={isSubmitting}
-                        >
-                            <Text style={beneficiairesUid.length === 0 ? styles.placeholderText : styles.inputText}>
-                                {getBeneficiairesDisplayNames(beneficiairesUid)}
-                            </Text>
-                        </TouchableOpacity>
-                        <Text style={styles.payeurInfo}>La dépense sera divisée entre ces bénéficiaires.</Text>
-                    </View>
+                    <Text style={styles.payeurInfo}>Payé par : {payeurName} {shareText}</Text>
                     <Button 
                         title={isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"} 
                         onPress={handleAddDepense}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || benefCount === 0 || !payeurUid}
                     />
                 </View>
             )}
@@ -175,88 +129,11 @@ const ChargesVariablesScreen: React.FC = () => {
                 <FlatList
                     data={chargesVariables.slice().sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <ChargeItem charge={item} householdUsers={householdUsers} />} 
+                    renderItem={({ item }) => <ChargeItem charge={item} householdUsers={householdUsers} />}
                     style={styles.list}
                     contentContainerStyle={{ paddingBottom: 10 }}
                 />
             )}
-
-            <Modal
-                visible={isPayeurModalVisible}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setIsPayeurModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalHeader}>Sélectionner le payeur</Text>
-                        <FlatList
-                            data={householdUsers}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalItem,
-                                        item.id === payeurUid && styles.modalItemSelected
-                                    ]}
-                                    onPress={() => selectPayeur(item.id)}
-                                >
-                                    <Text style={styles.modalItemText}>{item.displayName}</Text>
-                                </TouchableOpacity>
-                            )}
-                            ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        />
-                        <TouchableOpacity 
-                            style={styles.modalCloseButton} 
-                            onPress={() => setIsPayeurModalVisible(false)}
-                        >
-                            <Text style={styles.modalCloseButtonText}>Fermer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* MODAL SÉLECTION BÉNÉFICIAIRES */}
-            <Modal
-                visible={isBeneficiairesModalVisible}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setIsBeneficiairesModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalHeader}>Sélectionner les bénéficiaires</Text>
-                        <FlatList
-                            data={householdUsers}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => {
-                                const isSelected = beneficiairesUid.includes(item.id);
-                                return (
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.modalItem,
-                                            isSelected && styles.modalItemSelected
-                                        ]}
-                                        onPress={() => toggleBeneficiaire(item.id)}
-                                    >
-                                        <Text style={styles.modalItemText}>
-                                            {item.displayName} 
-                                            {isSelected ? ' (Sélectionné)' : ''}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            }}
-                            ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        />
-                        <TouchableOpacity 
-                            style={styles.modalCloseButton} 
-                            onPress={() => setIsBeneficiairesModalVisible(false)}
-                        >
-                            <Text style={styles.modalCloseButtonText}>Fermer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
         </View>
     );
 };

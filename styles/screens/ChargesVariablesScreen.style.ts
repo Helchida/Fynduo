@@ -50,39 +50,14 @@ export const styles = StyleSheet.create({
         shadowRadius: 3,
         elevation: 2,
     },
-    
-    // --- NOUVEAUX STYLES POUR LES SÉLECTEURS ET INPUTS DU FORMULAIRE ---
-    inputGroup: {
-        marginBottom: 15,
-    },
-    label: {
-        fontSize: 14,
-        color: '#2c3e50',
-        fontWeight: '600',
-        marginBottom: 5,
-    },
     input: { 
         borderWidth: 1, 
         borderColor: '#ddd', 
         padding: 12, 
-        marginBottom: 5, // Réduit si suivi par payeurInfo
+        marginBottom: 15, 
         borderRadius: 8,
         backgroundColor: '#f9f9f9',
     },
-    dropdownInput: {
-        justifyContent: 'center',
-        minHeight: 48, // Assurer une hauteur cliquable
-    },
-    inputText: {
-        fontSize: 16,
-        color: '#2c3e50',
-    },
-    placeholderText: {
-        fontSize: 16,
-        color: '#95a5a6',
-    },
-    // --- FIN DES NOUVEAUX STYLES INPUTS ---
-
     payeurInfo: { 
         marginBottom: 15, 
         fontStyle: 'italic', 
@@ -93,59 +68,5 @@ export const styles = StyleSheet.create({
     list: { 
         flex: 1,
         paddingBottom: 20,
-    },
-
-    // --- STYLES DES MODALS (Réutilisés de ChargeFixeItem.style.ts) ---
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'flex-end', 
-        backgroundColor: 'rgba(0, 0, 0, 0.6)', // Légèrement plus sombre pour le modal
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 15,
-        borderTopRightRadius: 15,
-        padding: 20,
-        maxHeight: '70%', 
-    },
-    modalHeader: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        textAlign: 'center',
-        color: '#333',
-    },
-    modalItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-    },
-    modalItemSelected: {
-        backgroundColor: '#e6f7ff', // Bleu très clair pour la sélection
-    },
-    modalItemText: {
-        fontSize: 16,
-        color: '#333',
-        fontWeight: '500',
-    },
-    separator: {
-        height: 1,
-        backgroundColor: '#f0f0f0',
-        marginHorizontal: 10,
-    },
-    modalCloseButton: {
-        marginTop: 20,
-        backgroundColor: '#bdc3c7',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    modalCloseButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
     },
 });
