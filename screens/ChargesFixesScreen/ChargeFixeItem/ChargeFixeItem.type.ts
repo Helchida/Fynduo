@@ -1,4 +1,4 @@
-import { IChargeFixe, IUser } from '@/types';
+import { IChargeFixe, IUser } from "@/types";
 
 export interface ChargeFixeItemProps {
   charge: IChargeFixe;

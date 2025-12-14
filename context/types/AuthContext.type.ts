@@ -13,5 +13,5 @@ export interface IAuthContext {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
-  householdUsers: IUser[]
+  householdUsers: IUser[];
 }

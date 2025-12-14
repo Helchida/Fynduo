@@ -1,80 +1,78 @@
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
 
 interface FirestoreDocument {
-    id: string; // ID du document dans la base de données
+  id: string; // ID du document dans la base de données
 }
 
 // UTILISATEURS ET AUTH
 
 export interface IUser extends FirestoreDocument {
-    displayName: string;
-    householdId: string;
-    email: string;
+  displayName: string;
+  householdId: string;
+  email: string;
 }
 
 // DONNÉES FINANCIÈRES
 // 1. Charges fixes récurrentes (Electricité, Gaz, Internet...)
 export interface IChargeFixe extends FirestoreDocument {
-    nom: string;
-    montantMensuel: number;
-    payeur: string;
-    dateMiseAJour?: string;
-    dateCreation?: string;
-    moisAnnee?: string;
-    householdId: string;
+  nom: string;
+  montantMensuel: number;
+  payeur: string;
+  dateMiseAJour?: string;
+  dateCreation?: string;
+  moisAnnee?: string;
+  householdId: string;
 }
 
 export interface ChargeFixeForm extends IChargeFixe {
-    montantForm: string;
-    isNew?: boolean; 
+  montantForm: string;
+  isNew?: boolean;
 }
 
-
 export interface IChargeFixeSnapshot {
-    nom: string;
-    montantMensuel: number;
-    payeur: string;
+  nom: string;
+  montantMensuel: number;
+  payeur: string;
 }
 
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 export interface IChargeVariable extends FirestoreDocument {
-    description: string;
-    montantTotal: number;
-    payeur: string;
-    beneficiaires: string[];
-    date: string;
-    moisAnnee: string;
-    householdId: string;
-    
+  description: string;
+  montantTotal: number;
+  payeur: string;
+  beneficiaires: string[];
+  date: string;
+  moisAnnee: string;
+  householdId: string;
 }
 
 // 3. Données du mois (Loyer et APL + Régularisation)
-export type StatutMois = 'ouvert' | 'finalisé';
+export type StatutMois = "ouvert" | "finalisé";
 
 export interface IDette {
-    debiteurUid: string;
-    creancierUid: string;
-    montant: number;
+  debiteurUid: string;
+  creancierUid: string;
+  montant: number;
 }
 
 export interface ICompteMensuel extends FirestoreDocument {
-    moisAnnee: string;
-    loyerTotal: number;
-    loyerPayeurUid: string;
-    apportsAPL: Record<string, number>;
-    statut: StatutMois;
-    dettes: IDette[];
-    dateCloture?: string | null;
-    chargesFixesSnapshot?: IChargeFixe[];
+  moisAnnee: string;
+  loyerTotal: number;
+  loyerPayeurUid: string;
+  apportsAPL: Record<string, number>;
+  statut: StatutMois;
+  dettes: IDette[];
+  dateCloture?: string | null;
+  chargesFixesSnapshot?: IChargeFixe[];
 }
 
 export interface IResultatsCalcul {
-  detteLoyer: number; 
-  detteChargesFixes: number; 
-  detteChargesVariables: number; 
+  detteLoyer: number;
+  detteChargesFixes: number;
+  detteChargesVariables: number;
   totalChargesFixes: number;
-  soldeFinal: number; 
+  soldeFinal: number;
   debiteur: string | null;
 }
 
@@ -86,23 +84,24 @@ export interface IReglementData {
 }
 
 export interface IHistoricalData {
-    compte: ICompteMensuel;
-    chargesVariables: IChargeVariable[];
+  compte: ICompteMensuel;
+  chargesVariables: IChargeVariable[];
 }
 
-
-// NAVIGATION TYPES 
+// NAVIGATION TYPES
 export type RootStackParamList = {
-    Home: undefined;
-    Loyer: undefined;
-    ChargesFixes: undefined;
-    ChargesVariables: undefined;
-    Regulation: undefined;
-    SummaryRegulation: undefined;
-    Login: undefined;
-    History: undefined;
-    HistoryDetail: { moisAnnee: string };
+  Home: undefined;
+  Loyer: undefined;
+  ChargesFixes: undefined;
+  ChargesVariables: undefined;
+  Regulation: undefined;
+  SummaryRegulation: undefined;
+  Login: undefined;
+  History: undefined;
+  HistoryDetail: { moisAnnee: string };
 };
 
-export type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamList>;
-export type RootStackRouteProp<RouteName extends keyof RootStackParamList> = RouteProp<RootStackParamList, RouteName>;
+export type RootStackNavigationProp =
+  NativeStackNavigationProp<RootStackParamList>;
+export type RootStackRouteProp<RouteName extends keyof RootStackParamList> =
+  RouteProp<RootStackParamList, RouteName>;

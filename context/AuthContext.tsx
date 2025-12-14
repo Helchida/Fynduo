@@ -1,16 +1,26 @@
-import React, { createContext, useState, useEffect, ReactNode, useMemo } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useMemo,
+} from "react";
 import { auth, db } from "../services/firebase/config";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { IUser } from "@/types";
-import * as DB from "../services/firebase/db"
+import * as DB from "../services/firebase/db";
 import { IAuthContext, IUserContext } from "./types/AuthContext.type";
-
-
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<IUserContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
@@ -19,7 +29,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
       if (firebaseUser) {
-        try{
+        try {
           const token = await firebaseUser.getIdToken();
           const userRef = doc(db, "users", firebaseUser.uid);
           const userSnap = await getDoc(userRef);
@@ -30,7 +40,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const displayName = userData.displayName as string;
 
             if (!householdId) {
-              console.error("L'utilisateur n'est associé à aucun foyer:", firebaseUser.uid);
+              console.error(
+                "L'utilisateur n'est associé à aucun foyer:",
+                firebaseUser.uid
+              );
               await signOut(auth);
               setUser(null);
             } else {
@@ -41,30 +54,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 token,
               });
 
-              const users = await DB.getHouseholdUsers(householdId)
+              const users = await DB.getHouseholdUsers(householdId);
               setHouseholdUsers(users);
             }
           } else {
-            console.error("Document colocataire non trouvé pour l'UID:", firebaseUser.uid);
+            console.error(
+              "Document colocataire non trouvé pour l'UID:",
+              firebaseUser.uid
+            );
             await signOut(auth);
             setUser(null);
           }
         } catch (error) {
-          console.error("Erreur lors de la récupération des données utilisateur:", error);
+          console.error(
+            "Erreur lors de la récupération des données utilisateur:",
+            error
+          );
           await signOut(auth);
           setUser(null);
         }
       } else {
-
         setUser(null);
-        setHouseholdUsers([])
+        setHouseholdUsers([]);
       }
       setIsLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
-
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -77,7 +94,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(false);
     }
   };
-
 
   const logout = async () => {
     setIsLoading(true);
@@ -92,14 +108,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const contextValue = useMemo(() => ({
-    user,
-    isLoading,
-    login,
-    logout,
-    isAuthenticated: !!user,
-    householdUsers,
-  }), [user, isLoading, householdUsers]);
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isLoading,
+      login,
+      logout,
+      isAuthenticated: !!user,
+      householdUsers,
+    }),
+    [user, isLoading, householdUsers]
+  );
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 };
