@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, Modal, FlatList } from 
 import { IChargeFixe, IUser } from '../../../types';
 import { styles } from './ChargeFixeItem.style';
 import { ChargeFixeItemProps } from './ChargeFixeItem.type';
+import { confirmDeleteCharge } from 'utils/confirmDeleteCharge';
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDelete, householdUsers, onUpdatePayeur }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
@@ -27,31 +28,6 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDel
             }
         }
   }, [amount, charge.montantMensuel, charge.id, onUpdate]);
-
-  const handleDeleteCharge = useCallback((chargeFixe: IChargeFixe) => {
-          const confirmDelete = () => Alert.alert(
-              "Confirmer la suppression",
-              `Voulez-vous vraiment supprimer la charge "${chargeFixe.nom}" ?`,
-              [
-                  { text: "Annuler", style: "cancel" },
-                  { 
-                      text: "Supprimer", 
-                      style: "destructive", 
-                      onPress: async () => {
-                          try {
-                            await onDelete(chargeFixe.id); 
-                  
-                            Alert.alert("Succès", `Charge "${chargeFixe.nom}" supprimée.`);
-                          } catch (error) {
-                              Alert.alert("Erreur", "Échec de la suppression de la charge.");
-                          }
-                      }
-                  },
-              ]
-          );
-          
-          confirmDelete();
-      }, [onDelete]);
 
       const getPayeurDisplayName = useCallback((payeurNameOrUid: string) => {
         const userFound = householdUsers.find(u => u.id === payeurNameOrUid);
@@ -82,7 +58,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDel
       <Text style={styles.chargeName}>{charge.nom}</Text>
       <TouchableOpacity 
                   style={styles.deleteButton} 
-                  onPress={() => handleDeleteCharge(charge)}
+                  onPress={() => confirmDeleteCharge(charge.nom, () => onDelete(charge.id))}
               >
         <Text style={styles.deleteButtonText}>X</Text>
       </TouchableOpacity>

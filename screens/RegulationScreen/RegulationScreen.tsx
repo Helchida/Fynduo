@@ -18,6 +18,8 @@ import dayjs from 'dayjs';
 import LoyerSection from './LoyerSection/LoyerSection';
 import ChargesFixesSection from './ChargesFixesSection/ChargesFixesSection';
 import AjustementSection from './AjustementSection/AjustementSection';
+import { confirmDeleteCharge } from '../../utils/confirmDeleteCharge';
+
 
 const RegulationScreen: React.FC = () => {
 
@@ -126,42 +128,24 @@ const RegulationScreen: React.FC = () => {
         }));
     }, []);
 
-    const handleDeleteCharge = useCallback((id: string, targetUid: string) => {
-        const chargesList = chargesFormMap[targetUid] || [];
-        const chargeToDelete = chargesList.find(c => c.id === id);
+    const handleDeleteCharge = useCallback(
+        (id: string, targetUid: string) => {
+            const charge = chargesFormMap[targetUid]?.find(c => c.id === id);
+            if (!charge) return;
 
-        if (!chargeToDelete) return;
+            confirmDeleteCharge(charge.nom, async () => {
+            if (!charge.isNew) {
+                await deleteChargeFixe(id);
+            }
 
-        const confirmDelete = () => Alert.alert(
-            "Confirmer la suppression",
-            `Voulez-vous vraiment supprimer la charge "${chargeToDelete.nom}" ?`,
-            [
-                { text: "Annuler", style: "cancel" },
-                { 
-                    text: "Supprimer", 
-                    style: "destructive", 
-                    onPress: async () => {
-                        try {
-                            if (!chargeToDelete.isNew) {
-                                await deleteChargeFixe(id); 
-                            }
+            setChargesFormMap(prev => ({
+                ...prev,
+                [targetUid]: prev[targetUid].filter(c => c.id !== id),
+            }));
+            });
+        },
+    [chargesFormMap, deleteChargeFixe]);
 
-                            setChargesFormMap(prev => ({
-                                ...prev,
-                                [targetUid]: prev[targetUid].filter(charge => charge.id !== id)
-                            }));
-                            
-                            Alert.alert("Succès", `Charge "${chargeToDelete.nom}" supprimée.`);
-                        } catch (error) {
-                            Alert.alert("Erreur", "Échec de la suppression de la charge.");
-                        }
-                    }
-                },
-            ]
-        );
-        
-        confirmDelete();
-    }, [chargesFormMap, deleteChargeFixe]); 
 
     const updateLoyerTotal = (text: string) => setLoyerTotal(text.replace(',', '.'));
 
