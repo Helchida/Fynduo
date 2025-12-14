@@ -38,7 +38,6 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({ child
         let moisData = await DB.getCompteMensuel(householdId, TARGET_MOIS_ANNEE);
 
         if (!moisData) {
-            console.log("Compte mensuel non trouvé pour ce mois. Création du document initial...");
             const nouveauMois: ICompteMensuel = {
                 id: TARGET_MOIS_ANNEE,
                 moisAnnee: TARGET_MOIS_ANNEE,

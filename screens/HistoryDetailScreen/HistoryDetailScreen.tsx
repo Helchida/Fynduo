@@ -39,7 +39,6 @@ const HistoryDetailScreen: React.FC = () => {
             try {
 
                 const users = await DB.getHouseholdUsers(user.householdId);
-                console.log(users)
                 setHouseholdUsers(users);
 
                 const compteMensuel = await DB.getCompteMensuel(user.householdId, moisAnnee);
