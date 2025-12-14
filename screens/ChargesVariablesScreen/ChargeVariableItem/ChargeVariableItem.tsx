@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import dayjs from 'dayjs';
-import { styles } from '../../../styles/components/fynduo/ChargeVariableItem.style';
+import { styles } from './ChargeVariableItem.style';
 import { ChargeVariableItemProps } from './ChargeVariableItem.type';
 
 

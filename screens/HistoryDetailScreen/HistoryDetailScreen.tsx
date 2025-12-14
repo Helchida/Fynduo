@@ -5,7 +5,7 @@ import { RootStackRouteProp, ICompteMensuel, IChargeVariable, IUser, IResultatsC
 import { useCalculs } from '../../hooks/useCalculs';
 import * as DB from '../../services/firebase/db';
 import dayjs from 'dayjs';
-import { styles } from '../../styles/screens/HistoryDetailScreen.style';
+import { styles } from './HistoryDetailScreen.style';
 import 'dayjs/locale/fr';
 import { useAuth } from '../../hooks/useAuth';
 dayjs.locale('fr');

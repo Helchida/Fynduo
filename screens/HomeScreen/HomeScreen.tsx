@@ -10,7 +10,7 @@ import { useComptes } from '../../hooks/useComptes';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackNavigationProp } from '@/types'; 
 import { useAuth } from '../../hooks/useAuth';
-import { styles } from '../../styles/screens/HomeScreen.style';
+import { styles } from './HomeScreen.style';
 
 
 const MOCK_HISTORY = [

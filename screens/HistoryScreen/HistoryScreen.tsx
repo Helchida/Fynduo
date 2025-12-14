@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useComptes } from '../hooks/useComptes';
-import { RootStackNavigationProp } from '../types';
-import { styles } from '../styles/screens/HistoryScreen.style';
+import { useComptes } from '../../hooks/useComptes';
+import { RootStackNavigationProp } from '@/types';
+import { styles } from './HistoryScreen.style';
 
 type GroupedHistory = {
   [year: number]: any[];

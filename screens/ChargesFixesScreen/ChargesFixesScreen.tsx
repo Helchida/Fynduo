@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, FlatList, Alert, TouchableOpacity, TextInput, Button, Modal } from 'react-native';
 import { useComptes } from '../../hooks/useComptes';
 import { useAuth } from '../../hooks/useAuth';
-import { styles } from '../../styles/screens/ChargesFixesScreen.style';
+import { styles } from './ChargesFixesScreen.style';
 import { IChargeFixe, IUser } from '@/types';
 import * as DB from '../../services/firebase/db';
 import ChargeFixeItem from './ChargeFixeItem/ChargeFixeItem';

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
 import { IChargeFixe, IUser } from '../../../types';
-import { styles } from '../../../styles/components/fynduo/ChargeFixeItem.style';
+import { styles } from './ChargeFixeItem.style';
 import { ChargeFixeItemProps } from './ChargeFixeItem.type';
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDelete, householdUsers, onUpdatePayeur }) => {

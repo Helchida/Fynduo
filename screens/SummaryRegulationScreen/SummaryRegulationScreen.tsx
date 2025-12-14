@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { useComptes } from '../hooks/useComptes';
-import { useAuth } from '../hooks/useAuth';
-import { useHouseholdUsers } from '../hooks/useHouseholdUsers';
-import { styles } from '../styles/screens/SummaryRegulationScreen.style';
+import { useComptes } from '../../hooks/useComptes';
+import { useAuth } from '../../hooks/useAuth';
+import { useHouseholdUsers } from '../../hooks/useHouseholdUsers';
+import { styles } from './SummaryRegulationScreen.style';
 
 const SummaryRegulationScreen: React.FC = () => {
     

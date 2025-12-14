@@ -4,7 +4,7 @@ import { useComptes } from '../../hooks/useComptes';
 import { useAuth } from '../../hooks/useAuth';
 import { IChargeVariable } from '@/types';
 import dayjs from 'dayjs';
-import { styles } from '../../styles/screens/ChargesVariablesScreen.style';
+import { styles } from './ChargesVariablesScreen.style';
 import { useHouseholdUsers } from '../../hooks/useHouseholdUsers';
 import ChargeVariableItem from './ChargeVariableItem/ChargeVariableItem';
 

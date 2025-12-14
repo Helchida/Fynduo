@@ -14,14 +14,9 @@ import { useComptes } from '../../hooks/useComptes';
 import { useAuth } from '../../hooks/useAuth';
 import { useHouseholdUsers } from '../../hooks/useHouseholdUsers';
 import { nanoid } from 'nanoid/non-secure';
-import { styles } from '../../styles/screens/RegulationScreen.style';
+import { styles } from './RegulationScreen.style';
 import dayjs from 'dayjs';
 import ChargeFixeRow from './ChargeFixeRow/ChargeFixeRow';
-
-
-
-
-
 
 const RegulationScreen: React.FC = () => {
 
