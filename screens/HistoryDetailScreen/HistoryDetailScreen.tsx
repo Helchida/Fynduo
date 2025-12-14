@@ -14,6 +14,7 @@ import { styles } from "./HistoryDetailScreen.style";
 import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 dayjs.locale("fr");
 
 type HistoryDetailRouteProp = RootStackRouteProp<"HistoryDetail">;
@@ -33,11 +34,7 @@ const HistoryDetailScreen: React.FC = () => {
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
 
   if (!user) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Utilisateur non authentifié.</Text>
-      </View>
-    );
+    return(<NoAuthenticatedUser/>)
   }
 
   const currentUserId = user.id;

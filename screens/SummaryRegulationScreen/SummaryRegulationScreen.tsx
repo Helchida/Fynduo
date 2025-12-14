@@ -4,6 +4,7 @@ import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import { styles } from "./SummaryRegulationScreen.style";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const SummaryRegulationScreen: React.FC = () => {
   const {
@@ -16,10 +17,15 @@ const SummaryRegulationScreen: React.FC = () => {
   } = useComptes();
 
   const { user } = useAuth();
+
+  if (!user) {
+    return(<NoAuthenticatedUser/>)
+  }
+
   const { householdUsers, getDisplayName } = useHouseholdUsers();
 
   const currentUser = user;
-  const currentUserUid = currentUser?.id || "UID_ACTUEL_INCONNU";
+  const currentUserUid = currentUser.id || "UID_ACTUEL_INCONNU";
   const otherUser = householdUsers.find((u) => u.id !== currentUserUid);
   const otherUserUid = otherUser?.id || "UID_AUTRE_INCONNU";
 

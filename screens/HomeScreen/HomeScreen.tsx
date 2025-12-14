@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "@/types";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./HomeScreen.style";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const MOCK_HISTORY = [
   { month: "Sept", total: 1250.0 },
@@ -35,6 +36,11 @@ const HistogramPlaceholder = ({
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user, logout, isLoading } = useAuth();
+
+  if (!user) {
+    return(<NoAuthenticatedUser/>)
+  }
+  
   const { isLoadingComptes } = useComptes();
 
   if (isLoadingComptes || isLoading) {
@@ -44,7 +50,7 @@ const HomeScreen: React.FC = () => {
   return (
     <View style={styles.mainView}>
       <View style={styles.headerContainer}>
-        <Text style={styles.welcomeText}>Bienvenue, {user?.displayName} !</Text>
+        <Text style={styles.welcomeText}>Bienvenue, {user.displayName} !</Text>
         <TouchableOpacity style={styles.logoutButtonTop} onPress={logout}>
           <Text style={styles.logoutTextTop}>Se déconnecter</Text>
         </TouchableOpacity>

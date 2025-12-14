@@ -25,12 +25,18 @@ import LoyerSection from "./LoyerSection/LoyerSection";
 import ChargesFixesSection from "./ChargesFixesSection/ChargesFixesSection";
 import AjustementSection from "./AjustementSection/AjustementSection";
 import { confirmDeleteCharge } from "../../utils/confirmDeleteCharge";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const RegulationScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
 
   const { user } = useAuth();
-  const householdId = user?.householdId;
+
+  if (!user) {
+    return(<NoAuthenticatedUser/>)
+  }
+  
+  const householdId = user.householdId;
   const { householdUsers, getDisplayName } = useHouseholdUsers();
 
   const {
@@ -248,7 +254,7 @@ const RegulationScreen: React.FC = () => {
         loyerTotal: parseFloat(loyerTotal) || 0,
         apportsAPL: apportsAPL,
         dettes: dettesToSubmit,
-        loyerPayeurUid: currentMonthData.loyerPayeurUid || user?.id || uid1,
+        loyerPayeurUid: currentMonthData.loyerPayeurUid || user.id || uid1,
       };
 
       await cloturerMois(dataToSubmit);

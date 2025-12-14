@@ -16,12 +16,17 @@ import { styles } from "./LoyerScreen.style";
 import { IUser } from "../../types";
 import * as DB from "../../services/firebase/db";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 type ApportsAPLState = { [uid: string]: string };
 
 const LoyerScreen: React.FC = () => {
   const { currentMonthData, updateLoyer, isLoadingComptes } = useComptes();
   const { user } = useAuth();
+
+  if (!user) {
+    return <NoAuthenticatedUser />;
+  }
 
   const [loyerTotal, setLoyerTotal] = useState("");
   const [apportsAPL, setApportsAPL] = useState<ApportsAPLState>({});
@@ -33,7 +38,7 @@ const LoyerScreen: React.FC = () => {
 
   useEffect(() => {
     const loadUsers = async () => {
-      if (user?.householdId) {
+      if (user.householdId) {
         try {
           const users = await DB.getHouseholdUsers(user.householdId);
           setHouseholdUsers(users);
@@ -51,12 +56,12 @@ const LoyerScreen: React.FC = () => {
       }
     };
     loadUsers();
-  }, [user?.householdId]);
+  }, [user.householdId]);
 
   useEffect(() => {
     if (currentMonthData && householdUsers.length > 0) {
       setLoyerTotal(currentMonthData.loyerTotal.toFixed(2));
-      setLoyerPayeurUid(currentMonthData.loyerPayeurUid || user?.id || null);
+      setLoyerPayeurUid(currentMonthData.loyerPayeurUid || user.id || null);
 
       const initialApports: ApportsAPLState = {};
       householdUsers.forEach((u) => {

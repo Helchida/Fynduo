@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import { styles } from "./ChargesVariablesScreen.style";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import ChargeVariableItem from "./ChargeVariableItem/ChargeVariableItem";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const ChargesVariablesScreen: React.FC = () => {
   const {
@@ -24,6 +25,11 @@ const ChargesVariablesScreen: React.FC = () => {
     currentMonthData,
   } = useComptes();
   const { user } = useAuth();
+
+  if (!user) {
+    return(<NoAuthenticatedUser/>)
+  }
+
   const { householdUsers, getDisplayName } = useHouseholdUsers();
 
   const [description, setDescription] = useState("");
@@ -31,7 +37,7 @@ const ChargesVariablesScreen: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [payeurUid, setPayeurUid] = useState<string | null>(user?.id || null);
+  const [payeurUid, setPayeurUid] = useState<string | null>(user.id || null);
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
 
   const handleAddDepense = useCallback(async () => {
@@ -76,7 +82,7 @@ const ChargesVariablesScreen: React.FC = () => {
       await addChargeVariable(depenseToAdd);
       setDescription("");
       setMontant("");
-      setPayeurUid(user?.id || null);
+      setPayeurUid(user.id || null);
       setBeneficiairesUid(householdUsers.map((u) => u.id));
       setShowForm(false);
       Alert.alert("Succès", "Dépense enregistrée.");
@@ -93,7 +99,7 @@ const ChargesVariablesScreen: React.FC = () => {
     beneficiairesUid,
     currentMonthData,
     addChargeVariable,
-    user?.id,
+    user.id,
     householdUsers,
   ]);
 
@@ -102,11 +108,11 @@ const ChargesVariablesScreen: React.FC = () => {
       if (beneficiairesUid.length === 0) {
         setBeneficiairesUid(householdUsers.map((u) => u.id));
       }
-      if (user?.id && !payeurUid) {
+      if (user.id && !payeurUid) {
         setPayeurUid(user.id);
       }
     }
-  }, [householdUsers, beneficiairesUid.length, user?.id, payeurUid]);
+  }, [householdUsers, beneficiairesUid.length, user.id, payeurUid]);
 
   if (isLoadingComptes) {
     return <Text style={styles.loading}>Chargement des dépenses...</Text>;

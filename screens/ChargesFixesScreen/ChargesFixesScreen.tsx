@@ -16,6 +16,7 @@ import { IChargeFixe, IUser } from "@/types";
 import * as DB from "../../services/firebase/db";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -29,7 +30,9 @@ const ChargesFixesScreen: React.FC = () => {
   } = useComptes();
 
   const { user } = useAuth();
-  if(!user) return;
+  if (!user) {
+    return(<NoAuthenticatedUser/>)
+  }
 
   const [nom, setNom] = useState("");
   const [montant, setMontant] = useState("");
