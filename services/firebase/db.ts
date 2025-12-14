@@ -61,8 +61,6 @@ export async function createCompteMensuel(householdId: string, data: ICompteMens
     try {
         const docRef = doc(getCollectionRef(householdId, SUB_COLLECTIONS.COMPTES_MENSUELS), data.id);
         await setDoc(docRef, data); 
-        
-        console.log(`[DB] Document mensuel créé avec succès : ${data.id}`);
     } catch (error) {
         console.error("Erreur lors de la création du compte mensuel:", error);
         throw error;
@@ -219,8 +217,6 @@ export async function updateRegularisationDettes(
             dettes: dettes,
             chargesFixesSnapshot: chargesFixesSnapshot,
         });
-
-        console.log(`[DB] Dettes de régularisation mises à jour pour le mois : ${moisAnnee}`);
     } catch (error) {
         console.error("Erreur updateRegularisationDettes:", error);
         throw error;
