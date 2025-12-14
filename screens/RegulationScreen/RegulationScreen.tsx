@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
     View, 
     Text, 
-    ScrollView, 
-    TextInput, 
+    ScrollView,
     TouchableOpacity,
     Alert,
     ActivityIndicator
@@ -16,7 +15,9 @@ import { useHouseholdUsers } from '../../hooks/useHouseholdUsers';
 import { nanoid } from 'nanoid/non-secure';
 import { styles } from './RegulationScreen.style';
 import dayjs from 'dayjs';
-import ChargeFixeRow from './ChargeFixeRow/ChargeFixeRow';
+import LoyerSection from './LoyerSection/LoyerSection';
+import ChargesFixesSection from './ChargesFixesSection/ChargesFixesSection';
+import AjustementSection from './AjustementSection/AjustementSection';
 
 const RegulationScreen: React.FC = () => {
 
@@ -161,6 +162,22 @@ const RegulationScreen: React.FC = () => {
         
         confirmDelete();
     }, [chargesFormMap, deleteChargeFixe]); 
+
+    const updateLoyerTotal = (text: string) => setLoyerTotal(text.replace(',', '.'));
+
+    const updateApportsAPLForm = (uid: string, text: string) => {
+        setApportsAPLForm(prev => ({
+            ...prev,
+            [uid]: text.replace(',', '.')
+        }));
+    };
+
+    const updateDettesAjustements = (key: string, text: string) => {
+        setDettesAjustements(prev => ({ 
+            ...prev, 
+            [key]: text.replace(',', '.') 
+        }));
+    };
     
     if (isLoadingComptes || !currentMonthData || householdUsers.length < 2) {
         return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#3498db" /></View>;
@@ -249,107 +266,33 @@ const RegulationScreen: React.FC = () => {
                 </Text>
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>💰 Loyer (Mois: {moisDeLoyerAffiche})</Text> 
-                
-                <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Loyer total pour le mois {moisDeLoyerAffiche} (€)</Text> 
-                    <TextInput
-                        style={styles.mainInput}
-                        keyboardType="numeric"
-                        value={loyerTotal}
-                        onChangeText={(text) => setLoyerTotal(text.replace(',', '.'))}
-                    />
-                </View>
-                
-                <View style={styles.inputRow}>
-                    {householdUsers.map(u => {
-                        const aplAmount = apportsAPLForm[u.id];
-                        
-                        const handleChangeApl = (text: string) => {
-                            setApportsAPLForm(prev => ({
-                                ...prev,
-                                [u.id]: text.replace(',', '.')
-                            }));
-                        };
+            
 
-                        return (
-                            <View key={u.id} style={styles.inputGroupHalf}>
-                                <Text style={styles.inputLabel}>APL {getDisplayName(u.id)} (€)</Text>
-                                <TextInput
-                                    style={styles.mainInput}
-                                    keyboardType="numeric"
-                                    value={aplAmount}
-                                    onChangeText={handleChangeApl}
-                                />
-                            </View>
-                        );
-                    })}
-                </View>
-            </View>
+            <LoyerSection moisDeLoyerAffiche={moisDeLoyerAffiche}
+                loyerTotal={loyerTotal}
+                updateLoyerTotal={updateLoyerTotal}
+                householdUsers={householdUsers}
+                apportsAPLForm={apportsAPLForm}
+                updateApportsAPLForm={updateApportsAPLForm}
+                getDisplayName={getDisplayName}
+            />
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>⚙️ Charges Fixes</Text>
-                
-                {householdUsers.map(u => (
-                    <View key={u.id} style={styles.subSection}>
-                        <View style={styles.subSectionHeader}>
-                            <Text style={styles.subSectionTitle}>Charges {getDisplayName(u.id)}</Text>
-                            <TouchableOpacity 
-                                onPress={() => handleAddCharge(u.id)}
-                                style={styles.addButton}
-                            >
-                                <Text style={styles.addButtonText}>+ Ajouter</Text>
-                            </TouchableOpacity>
-                        </View>
-                        {chargesFormMap[u.id] && chargesFormMap[u.id].map(charge => (
-                            <ChargeFixeRow 
-                                key={charge.id} 
-                                charge={charge} 
-                                onUpdate={updateChargeForm(u.id)}
-                                onDelete={(id) => handleDeleteCharge(id, u.id)}
-                            />
-                        ))}
-                    </View>
-                ))}
-            </View>
+            <ChargesFixesSection householdUsers={householdUsers}
+                chargesFormMap={chargesFormMap}
+                getDisplayName={getDisplayName}
+                handleAddCharge={handleAddCharge}
+                updateChargeForm={updateChargeForm}
+                handleDeleteCharge={handleDeleteCharge}
+            />
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>💸 Ajustement charges variables</Text>
-                <Text style={styles.inputLabel}>Saisissez les ajustements des charges variables ce mois-ci.</Text>
-                
-                {householdUsers.length >= 2 && user1 && user2 && (
-                    <>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>{getDisplayName(uid1)} doit à {getDisplayName(uid2)} (€)</Text>
-                            <TextInput
-                                style={styles.mainInput}
-                                keyboardType="numeric"
-                                placeholder="0.00"
-                                value={dettesAjustements[`${uid1}-${uid2}`]}
-                                onChangeText={(text) => setDettesAjustements(prev => ({ 
-                                    ...prev, 
-                                    [`${uid1}-${uid2}`]: text.replace(',', '.') 
-                                }))}
-                            />
-                        </View>
-                        
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>{getDisplayName(uid2)} doit à {getDisplayName(uid1)} (€)</Text>
-                            <TextInput
-                                style={styles.mainInput}
-                                keyboardType="numeric"
-                                placeholder="0.00"
-                                value={dettesAjustements[`${uid2}-${uid1}`]}
-                                onChangeText={(text) => setDettesAjustements(prev => ({ 
-                                    ...prev, 
-                                    [`${uid2}-${uid1}`]: text.replace(',', '.') 
-                                }))}
-                            />
-                        </View>
-                    </>
-                )}
-            </View>
+            <AjustementSection householdUsers={householdUsers}
+                uid1={uid1}
+                uid2={uid2}
+                dettesAjustements={dettesAjustements}
+                updateDettesAjustements={updateDettesAjustements}
+                getDisplayName={getDisplayName}
+            />
+            
 
             <View style={styles.validationContainer}>
                 <TouchableOpacity style={styles.validationButton} onPress={handleValidation} disabled={isLoadingComptes}>
