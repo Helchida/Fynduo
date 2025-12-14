@@ -190,7 +190,7 @@ export async function addChargeVariableRegularisation(
     const dettesPositives = dettes.filter(d => d.montant > 0);
     for (const dette of dettesPositives) {
         await addChargeVariable(householdId, {
-            description: `Régularisation Trésorerie: ${dette.debiteurUid} doit à ${dette.creancierUid}`,
+            description: 'Régularisation Trésorerie',
             montantTotal: dette.montant,
             payeur: dette.creancierUid,
             beneficiaires: [dette.debiteurUid],
