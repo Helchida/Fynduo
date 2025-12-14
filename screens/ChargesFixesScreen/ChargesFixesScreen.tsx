@@ -6,6 +6,7 @@ import { styles } from './ChargesFixesScreen.style';
 import { IChargeFixe, IUser } from '@/types';
 import * as DB from '../../services/firebase/db';
 import ChargeFixeItem from './ChargeFixeItem/ChargeFixeItem';
+import { useGetDisplayNameUserInHousehold } from 'hooks/useGetDisplayNameUserInHousehold';
 
 
 const ChargesFixesScreen: React.FC = () => {
@@ -39,16 +40,6 @@ const ChargesFixesScreen: React.FC = () => {
         };
         loadUsers();
     }, [user?.householdId]);
-
-    const getPayeurDisplayName = useCallback((uid: string | null) => {
-        if (!uid) {
-            return "Sélectionner le payeur"; 
-        }
-
-        const userFound = householdUsers.find(u => u.id === uid);
-        return userFound?.displayName ?? uid; 
-        
-    }, [householdUsers]);
 
   const handleChargeUpdate = useCallback(async (id: string, newAmount: number) => {
         try {
@@ -110,7 +101,7 @@ const ChargesFixesScreen: React.FC = () => {
             } finally {
                 setIsSubmitting(false);
             }
-        }, [nom, montant, user, addChargeFixe, currentMonthData, getPayeurDisplayName]);
+        }, [nom, montant, user, addChargeFixe, currentMonthData]);
 
         const selectPayeur = (uid: string) => {
             setPayeur(uid);
@@ -157,7 +148,7 @@ const ChargesFixesScreen: React.FC = () => {
                         disabled={isSubmitting}
                     >
                         <Text style={!payeur ? styles.placeholderText : styles.inputText}>
-                            {getPayeurDisplayName(payeur)}
+                            {useGetDisplayNameUserInHousehold(payeur, householdUsers)}
                         </Text>
                     </TouchableOpacity>
                 </View>

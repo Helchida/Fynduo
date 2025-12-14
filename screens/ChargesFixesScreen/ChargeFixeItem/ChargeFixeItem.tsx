@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
-import { IChargeFixe, IUser } from '../../../types';
+import { IUser } from '@/types';
 import { styles } from './ChargeFixeItem.style';
 import { ChargeFixeItemProps } from './ChargeFixeItem.type';
 import { confirmDeleteCharge } from 'utils/confirmDeleteCharge';
+import { useGetDisplayNameUserInHousehold } from 'hooks/useGetDisplayNameUserInHousehold';
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDelete, householdUsers, onUpdatePayeur }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
@@ -29,10 +30,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDel
         }
   }, [amount, charge.montantMensuel, charge.id, onUpdate]);
 
-      const getPayeurDisplayName = useCallback((payeurNameOrUid: string) => {
-        const userFound = householdUsers.find(u => u.id === payeurNameOrUid);
-        return userFound?.displayName ?? payeurNameOrUid;
-      }, [householdUsers]);
+      
 
       const selectPayeur = useCallback(async (newPayeur: IUser) => {
         if (newPayeur.id !== charge.payeur) {
@@ -69,7 +67,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDel
           disabled={isSaving}
         >
           <Text style={styles.payeurLabel}>Payé par: </Text>
-          <Text style={styles.payeurName}>{getPayeurDisplayName(charge.payeur)}</Text>
+          <Text style={styles.payeurName}>{useGetDisplayNameUserInHousehold(charge.payeur, householdUsers)}</Text>
       </TouchableOpacity>
       <View style={styles.inputRow}>
         <TextInput

@@ -3,22 +3,19 @@ import { View, Text } from 'react-native';
 import dayjs from 'dayjs';
 import { styles } from './ChargeVariableItem.style';
 import { ChargeVariableItemProps } from './ChargeVariableItem.type';
+import { useGetDisplayNameUserInHousehold } from 'hooks/useGetDisplayNameUserInHousehold';
 
 
 const ChargeVariableItem: React.FC<ChargeVariableItemProps> = React.memo(({ charge, householdUsers }) => {
-    const getPayeurName = (uid: string) => {
-        const user = householdUsers.find(u => u.id === uid);
-        return user?.displayName || 'Utilisateur inconnu';
-    };
 
-    const payeurName = getPayeurName(charge.payeur);
+    const payeurName = useGetDisplayNameUserInHousehold(charge.payeur, householdUsers);
 
     const benefCount = charge.beneficiaires.length;
     let shareText = '';
     if (benefCount === 0) {
         shareText = 'personne';
     } else if (benefCount === 1) {
-        shareText = getPayeurName(charge.beneficiaires[0]);
+        shareText = useGetDisplayNameUserInHousehold(charge.beneficiaires[0], householdUsers);
     } else if (benefCount > 1) {
         shareText = `${benefCount} personnes`;
     }

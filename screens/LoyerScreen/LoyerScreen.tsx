@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { styles } from './LoyerScreen.style';
 import { IUser } from '../../types';
 import * as DB from '../../services/firebase/db'
+import { useGetDisplayNameUserInHousehold } from 'hooks/useGetDisplayNameUserInHousehold';
 
 type ApportsAPLState = { [uid: string]: string };
 
@@ -54,11 +55,6 @@ const LoyerScreen: React.FC = () => {
              setLoyerPayeurUid(user.id);
         }
     }, [currentMonthData, householdUsers, user]);
-
-    const getPayeurDisplayName = () => {
-        if (!loyerPayeurUid) return "Sélectionner le payeur";
-        return householdUsers.find(u => u.id === loyerPayeurUid)?.displayName || "Inconnu";
-    };
 
     const selectPayeur = (uid: string) => {
         setLoyerPayeurUid(uid);
@@ -156,7 +152,7 @@ const LoyerScreen: React.FC = () => {
                     disabled={isDisabled}
                 >
                     <Text style={!loyerPayeurUid ? styles.placeholderText : styles.inputText}>
-                        {getPayeurDisplayName()}
+                        {useGetDisplayNameUserInHousehold(loyerPayeurUid, householdUsers)}
                     </Text>
                 </TouchableOpacity>
             </View>
