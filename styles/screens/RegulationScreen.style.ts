@@ -89,27 +89,6 @@ export const styles = StyleSheet.create({
         fontSize: 15,
         color: '#3498db',
     },
-    chargeRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    descriptionInput: {
-        flex: 2,
-        marginRight: 8,
-        backgroundColor: '#fcfcfc', 
-    },
-    montantInput: {
-        flex: 1,
-        marginRight: 8,
-    },
-    input: {
-        padding: 8,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        fontSize: 14,
-    },
     addButton: {
         backgroundColor: '#2ecc71',
         paddingVertical: 5,
@@ -121,21 +100,6 @@ export const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 14,
     },
-    deleteButton: {
-        backgroundColor: '#e74c3c',
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 5,
-    },
-    deleteButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-
     validationContainer: {
         marginTop: 20,
         marginBottom: 40,

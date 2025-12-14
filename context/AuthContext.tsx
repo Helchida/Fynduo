@@ -2,24 +2,11 @@ import React, { createContext, useState, useEffect, ReactNode, useMemo } from "r
 import { auth, db } from "../services/firebase/config";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { IUser } from "../types";
+import { IUser } from "@/types";
 import * as DB from "../services/firebase/db"
+import { IAuthContext, IUserContext } from "./types/AuthContext.type";
 
-export interface IUserContext {
-  id: string;
-  displayName: string;
-  householdId: string;
-  token: string | null;
-}
 
-interface IAuthContext {
-  user: IUserContext | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  householdUsers: IUser[]
-}
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 

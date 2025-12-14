@@ -1,15 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { IChargeVariable, IUser } from '../../types';
 import dayjs from 'dayjs';
-import { styles } from '../../styles/components/fynduo/ChargeVariableItem.style';
+import { styles } from '../../../styles/components/fynduo/ChargeVariableItem.style';
+import { ChargeVariableItemProps } from './ChargeVariableItem.type';
 
-interface ChargeVariableItemProps {
-    charge: IChargeVariable;
-    householdUsers: IUser[];
-}
 
-const ChargeItem: React.FC<ChargeVariableItemProps> = React.memo(({ charge, householdUsers }) => {
+const ChargeVariableItem: React.FC<ChargeVariableItemProps> = React.memo(({ charge, householdUsers }) => {
     const getPayeurName = (uid: string) => {
         const user = householdUsers.find(u => u.id === uid);
         return user?.displayName || 'Utilisateur inconnu';
@@ -47,4 +43,4 @@ const ChargeItem: React.FC<ChargeVariableItemProps> = React.memo(({ charge, hous
     );
 });
 
-export default ChargeItem
+export default ChargeVariableItem

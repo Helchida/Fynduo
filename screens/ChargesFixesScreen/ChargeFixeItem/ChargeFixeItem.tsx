@@ -1,17 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
-import { IChargeFixe, IUser } from '../../types';
-import { styles } from '../../styles/components/fynduo/ChargeFixeItem.style';
+import { IChargeFixe, IUser } from '../../../types';
+import { styles } from '../../../styles/components/fynduo/ChargeFixeItem.style';
+import { ChargeFixeItemProps } from './ChargeFixeItem.type';
 
-interface ChargeItemProps {
-  charge: IChargeFixe;
-  onUpdate: (id: string, newAmount: number) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  householdUsers: IUser[];
-  onUpdatePayeur: (id: string, newPayeurUid: string, newPayeurName: string) => Promise<void>;
-}
-
-const ChargeFixeItem: React.FC<ChargeItemProps> = ({ charge, onUpdate, onDelete, householdUsers, onUpdatePayeur }) => {
+const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({ charge, onUpdate, onDelete, householdUsers, onUpdatePayeur }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
   const [isSaving, setIsSaving] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);

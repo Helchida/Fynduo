@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { useAuth } from '../hooks/useAuth';
-import { styles } from '../styles/screens/LoginScreen.style';
+import { useAuth } from '../../hooks/useAuth';
+import { styles } from '../../styles/screens/LoginScreen.style';
 
 const LoginScreen: React.FC = () => {
     const { login, isLoading } = useAuth();

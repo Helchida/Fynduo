@@ -1,14 +1,7 @@
 import { useMemo } from 'react';
-import { ICompteMensuel, IChargeFixe, IChargeVariable } from '../types';
+import { ICompteMensuel, IChargeFixe, IChargeVariable, IResultatsCalcul } from '../types';
 
-export interface IResultatsCalcul {
-  detteLoyer: number; 
-  detteChargesFixes: number; 
-  detteChargesVariables: number; 
-  totalChargesFixes: number;
-  soldeFinal: number; 
-  debiteur: string | null;
-}
+
 
 const initialResults: IResultatsCalcul = {
     detteLoyer: 0,

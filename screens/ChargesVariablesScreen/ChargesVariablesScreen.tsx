@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, TextInput, Button, Alert, TouchableOpacity } from 'react-native';
-import { useComptes } from '../hooks/useComptes';
-import { useAuth } from '../hooks/useAuth';
-import { IChargeVariable } from '../types';
+import { useComptes } from '../../hooks/useComptes';
+import { useAuth } from '../../hooks/useAuth';
+import { IChargeVariable } from '@/types';
 import dayjs from 'dayjs';
-import { styles } from '../styles/screens/ChargesVariablesScreen.style';
-import ChargeItem from '../components/fynduo/ChargeVariableItem';
-import { useHouseholdUsers } from '../hooks/useHouseholdUsers';
+import { styles } from '../../styles/screens/ChargesVariablesScreen.style';
+import { useHouseholdUsers } from '../../hooks/useHouseholdUsers';
+import ChargeVariableItem from './ChargeVariableItem/ChargeVariableItem';
 
 const ChargesVariablesScreen: React.FC = () => {
     const { chargesVariables, isLoadingComptes, addChargeVariable, currentMonthData } = useComptes(); 
@@ -129,7 +129,7 @@ const ChargesVariablesScreen: React.FC = () => {
                 <FlatList
                     data={chargesVariables.slice().sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <ChargeItem charge={item} householdUsers={householdUsers} />}
+                    renderItem={({ item }) => <ChargeVariableItem charge={item} householdUsers={householdUsers} />}
                     style={styles.list}
                     contentContainerStyle={{ paddingBottom: 10 }}
                 />

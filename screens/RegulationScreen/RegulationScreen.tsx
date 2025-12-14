@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     View, 
     Text, 
@@ -9,51 +9,18 @@ import {
     ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackNavigationProp, IChargeFixe, IDette } from '../types';
-import { IReglementData } from '../context/ComptesContext';
-import { useComptes } from '../hooks/useComptes';
-import { useAuth } from '../hooks/useAuth';
-import { useHouseholdUsers } from '../hooks/useHouseholdUsers';
+import { RootStackNavigationProp, IChargeFixe, IDette, IReglementData, ChargeFixeForm } from '../../types';
+import { useComptes } from '../../hooks/useComptes';
+import { useAuth } from '../../hooks/useAuth';
+import { useHouseholdUsers } from '../../hooks/useHouseholdUsers';
 import { nanoid } from 'nanoid/non-secure';
-import { styles } from '../styles/screens/RegulationScreen.style';
+import { styles } from '../../styles/screens/RegulationScreen.style';
 import dayjs from 'dayjs';
+import ChargeFixeRow from './ChargeFixeRow/ChargeFixeRow';
 
-interface ChargeFixeForm extends IChargeFixe {
-    montantForm: string;
-    isNew?: boolean; 
-}
 
-interface ChargeFixeRowProps {
-    charge: ChargeFixeForm;
-    onUpdate: (id: string, field: 'nom' | 'montantForm', value: string) => void;
-    onDelete: (id: string) => void;
-    coloc: string;
-}
 
-const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({ charge, onUpdate, onDelete, coloc }) => (
-    <View style={styles.chargeRow}>
-        <TextInput
-            style={[styles.input, styles.descriptionInput]}
-            placeholder="Description (ex: Gaz)"
-            value={charge.nom}
-            editable={charge.isNew} 
-            onChangeText={(text) => onUpdate(charge.id, 'nom', text)}
-        />
-        <TextInput
-            style={[styles.input, styles.montantInput]}
-            placeholder="Montant (€)"
-            keyboardType="numeric"
-            value={charge.montantForm}
-            onChangeText={(text) => onUpdate(charge.id, 'montantForm', text.replace(',', '.'))}
-        />
-        <TouchableOpacity 
-            style={styles.deleteButton} 
-            onPress={() => onDelete(charge.id)}
-        >
-            <Text style={styles.deleteButtonText}>X</Text>
-        </TouchableOpacity>
-    </View>
-);
+
 
 
 const RegulationScreen: React.FC = () => {
@@ -344,7 +311,6 @@ const RegulationScreen: React.FC = () => {
                             <ChargeFixeRow 
                                 key={charge.id} 
                                 charge={charge} 
-                                coloc={u.id} 
                                 onUpdate={updateChargeForm(u.id)}
                                 onDelete={(id) => handleDeleteCharge(id, u.id)}
                             />

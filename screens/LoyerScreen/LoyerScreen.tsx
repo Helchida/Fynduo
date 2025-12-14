@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Alert, ScrollView, TouchableOpacity, ActivityIndicator, Modal, FlatList } from 'react-native';
-import { useComptes } from '../hooks/useComptes';
-import { useAuth } from '../hooks/useAuth'; 
-import { styles } from '../styles/screens/LoyerScreen.style';
-import { IUser } from '../types';
-import * as DB from '../services/firebase/db'
+import { useComptes } from '../../hooks/useComptes';
+import { useAuth } from '../../hooks/useAuth'; 
+import { styles } from '../../styles/screens/LoyerScreen.style';
+import { IUser } from '../../types';
+import * as DB from '../../services/firebase/db'
 
 type ApportsAPLState = { [uid: string]: string };
 

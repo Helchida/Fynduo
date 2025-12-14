@@ -1,21 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { RootStackRouteProp, ICompteMensuel, IChargeVariable, IUser } from '../types';
-import { useCalculs, IResultatsCalcul } from '../hooks/useCalculs';
-import * as DB from '../services/firebase/db';
+import { RootStackRouteProp, ICompteMensuel, IChargeVariable, IUser, IResultatsCalcul, IHistoricalData } from '../../types';
+import { useCalculs } from '../../hooks/useCalculs';
+import * as DB from '../../services/firebase/db';
 import dayjs from 'dayjs';
-import { styles } from '../styles/screens/HistoryDetailScreen.style';
+import { styles } from '../../styles/screens/HistoryDetailScreen.style';
 import 'dayjs/locale/fr';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 dayjs.locale('fr');
 
 type HistoryDetailRouteProp = RootStackRouteProp<'HistoryDetail'>;
-
-interface IHistoricalData {
-    compte: ICompteMensuel;
-    chargesVariables: IChargeVariable[];
-}
 
 const HistoryDetailScreen: React.FC = () => {
     const route = useRoute<HistoryDetailRouteProp>();

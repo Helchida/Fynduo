@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
     formContainer: {
         width: '100%',
         maxWidth: 320,
-        gap: 15, // espace entre les inputs et le bouton
+        gap: 15,
     },
 
     input: {

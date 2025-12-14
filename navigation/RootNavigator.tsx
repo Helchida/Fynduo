@@ -4,15 +4,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
 import { RootStackParamList } from '../types';
 
-import HomeScreen from '../screens/HomeScreen';
-import LoyerScreen from '../screens/LoyerScreen';
-import ChargesFixesScreen from '../screens/ChargesFixesScreen';
-import ChargesVariablesScreen from '../screens/ChargesVariablesScreen';
-import LoginScreen from '../screens/LoginScreen';
-import Regulation from '../screens/RegulationScreen';
-import SummaryRegulationScreen from '../screens/SummaryRegulationScreen';
-import HistoryScreen from '../screens/HistoryScreen';
-import HistoryDetailScreen from '../screens/HistoryDetailScreen';
+import HomeScreen from '../screens/HomeScreen/HomeScreen';
+import LoyerScreen from '../screens/LoyerScreen/LoyerScreen';
+import ChargesFixesScreen from '../screens/ChargesFixesScreen/ChargesFixesScreen';
+import ChargesVariablesScreen from '../screens/ChargesVariablesScreen/ChargesVariablesScreen';
+import LoginScreen from '../screens/LoginScreen/LoginScreen';
+import Regulation from '../screens/RegulationScreen/RegulationScreen';
+import SummaryRegulationScreen from '../screens/SummaryRegulationScreen/SummaryRegulationScreen';
+import HistoryScreen from '../screens/HistoryScreen/HistoryScreen';
+import HistoryDetailScreen from '../screens/HistoryDetailScreen/HistoryDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

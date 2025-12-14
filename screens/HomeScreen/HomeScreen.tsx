@@ -6,11 +6,11 @@ import {
     TouchableOpacity, 
     Alert,
 } from 'react-native';
-import { useComptes } from '../hooks/useComptes';
+import { useComptes } from '../../hooks/useComptes';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackNavigationProp } from '../types'; 
-import { useAuth } from '../hooks/useAuth';
-import { styles } from '../styles/screens/HomeScreen.style';
+import { RootStackNavigationProp } from '@/types'; 
+import { useAuth } from '../../hooks/useAuth';
+import { styles } from '../../styles/screens/HomeScreen.style';
 
 
 const MOCK_HISTORY = [

@@ -25,6 +25,11 @@ export interface IChargeFixe extends FirestoreDocument {
     householdId: string;
 }
 
+export interface ChargeFixeForm extends IChargeFixe {
+    montantForm: string;
+    isNew?: boolean; 
+}
+
 
 export interface IChargeFixeSnapshot {
     nom: string;
@@ -63,6 +68,28 @@ export interface ICompteMensuel extends FirestoreDocument {
     dateCloture?: string | null;
     chargesFixesSnapshot?: IChargeFixe[];
 }
+
+export interface IResultatsCalcul {
+  detteLoyer: number; 
+  detteChargesFixes: number; 
+  detteChargesVariables: number; 
+  totalChargesFixes: number;
+  soldeFinal: number; 
+  debiteur: string | null;
+}
+
+export interface IReglementData {
+  loyerTotal: number;
+  apportsAPL: Record<string, number>;
+  dettes: IDette[];
+  loyerPayeurUid: string;
+}
+
+export interface IHistoricalData {
+    compte: ICompteMensuel;
+    chargesVariables: IChargeVariable[];
+}
+
 
 // NAVIGATION TYPES 
 export type RootStackParamList = {
