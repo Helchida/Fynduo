@@ -219,7 +219,7 @@ export async function deleteChargeFixe(householdId: string, chargeId: string) {
 }
 
 /**
- * Récupère toutes les charges variables (Courses, restaurants, loisirs...) pour un mois donné.
+ * Récupère toutes les charges variables (Courses, restaurants, loisirs...)
  */
 export async function getChargesVariables(
   householdId: string

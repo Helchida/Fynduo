@@ -20,7 +20,6 @@ export const styles = StyleSheet.create({
   depenseInfo: { flex: 3 },
   depenseDetails: { flex: 2, alignItems: "flex-end" },
   depenseDesc: { fontSize: 17, fontWeight: "600", color: "#333" },
-  depenseDate: { fontSize: 12, color: "#95a5a6", marginTop: 3 },
   depenseAmount: { fontSize: 18, fontWeight: "bold", color: "#e67e22" },
   depensePayer: {
     fontSize: 13,

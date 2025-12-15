@@ -69,4 +69,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 20,
   },
+  dateSeparator: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 15,
+    marginBottom: 5,
+    paddingHorizontal: 10,
+    color: "#333",
+    paddingVertical: 5,
+  },
 });

@@ -14,38 +14,19 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
     householdUsers
   );
 
-  const benefCount = charge.beneficiaires.length;
-  let shareText = "";
-  if (benefCount === 0) {
-    shareText = "personne";
-  } else if (benefCount === 1) {
-    shareText = useGetDisplayNameUserInHousehold(
-      charge.beneficiaires[0],
-      householdUsers
-    );
-  } else if (benefCount > 1) {
-    shareText = `${benefCount} personnes`;
-  }
-
-  const partParPersonne =
-    benefCount > 0 ? charge.montantTotal / benefCount : charge.montantTotal;
-
   return (
     <View style={styles.depenseItem}>
       <View style={styles.depenseInfo}>
         <Text style={styles.depenseDesc}>{charge.description}</Text>
-        <Text style={styles.depenseDate}>
-          {dayjs(charge.date).format("DD MMM à HH:mm")}
+        <Text style={styles.depensePayer}>
+          Payé par {payeurName}
         </Text>
       </View>
       <View style={styles.depenseDetails}>
         <Text style={styles.depenseAmount}>
           {charge.montantTotal.toFixed(2)} €
         </Text>
-        <Text style={styles.depensePayer}>
-          Payé par {payeurName} | Part: {partParPersonne.toFixed(2)} € sur{" "}
-          {shareText}
-        </Text>
+        
       </View>
     </View>
   );

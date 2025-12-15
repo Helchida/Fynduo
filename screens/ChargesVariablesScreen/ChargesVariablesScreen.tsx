@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,18 @@ import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
 import { IChargeVariable } from "@/types";
 import dayjs from "dayjs";
+import "dayjs/locale/fr";
 import { styles } from "./ChargesVariablesScreen.style";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import ChargeVariableItem from "./ChargeVariableItem/ChargeVariableItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+
+dayjs.locale("fr");
+
+interface GroupedChargesVariables {
+  date: string;
+  charges: IChargeVariable[];
+}
 
 const ChargesVariablesScreen: React.FC = () => {
   const {
@@ -39,6 +47,35 @@ const ChargesVariablesScreen: React.FC = () => {
 
   const [payeurUid, setPayeurUid] = useState<string | null>(user.id || null);
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
+
+  const groupedCharges = useMemo(() => {
+    const sortedCharges = chargesVariables
+      .slice()
+      .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
+
+    const groupedData = sortedCharges.reduce((acc, charge) => {
+      const dateKey = dayjs(charge.date).format("YYYY-MM-DD");
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(charge);
+      return acc;
+    }, {} as Record<string, IChargeVariable[]>);
+
+    const groupedArray: GroupedChargesVariables[] = [];
+    const sortedDateKeys = Object.keys(groupedData).sort(
+      (a, b) => dayjs(b).valueOf() - dayjs(a).valueOf()
+    );
+
+    sortedDateKeys.forEach((dateKey) => {
+      groupedArray.push({
+        date: dayjs(dateKey).format("DD MMMM YYYY"),
+        charges: groupedData[dateKey],
+      });
+    });
+
+    return groupedArray;
+  }, [chargesVariables]);
 
   const handleAddDepense = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
@@ -125,6 +162,23 @@ const ChargesVariablesScreen: React.FC = () => {
       ? `(partagé sur ${benefCount} personne${benefCount > 1 ? "s" : ""})`
       : "(Aucun bénéficiaire)";
 
+  const renderGroupedCharge = ({
+    item: group,
+  }: {
+    item: GroupedChargesVariables;
+  }) => (
+    <View key={group.date}>
+      <Text style={styles.dateSeparator}>{group.date}</Text> 
+      {group.charges.map((charge) => (
+        <ChargeVariableItem 
+          key={charge.id} 
+          charge={charge} 
+          householdUsers={householdUsers} 
+        />
+      ))}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Charges variables</Text>
@@ -168,19 +222,15 @@ const ChargesVariablesScreen: React.FC = () => {
         </View>
       )}
 
-      {chargesVariables.length === 0 ? (
+      {groupedCharges.length === 0 ? (
         <Text style={styles.loading}>
           Aucune dépense enregistrée pour le moment.
         </Text>
       ) : (
         <FlatList
-          data={chargesVariables
-            .slice()
-            .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ChargeVariableItem charge={item} householdUsers={householdUsers} />
-          )}
+          data={groupedCharges}
+          keyExtractor={(item) => item.date}
+          renderItem={renderGroupedCharge}
           style={styles.list}
           contentContainerStyle={{ paddingBottom: 10 }}
         />
