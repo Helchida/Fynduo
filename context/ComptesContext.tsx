@@ -207,16 +207,17 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
     async (
       chargeId: string,
       updateData: Partial<
-        Omit<IChargeVariable, "id" | "householdId" | "moisAnnee" | "date">
+        Omit<
+          IChargeVariable,
+          "id" | "householdId" | "moisAnnee" | "date" | "categorie"
+        >
       >
     ) => {
       if (!householdId) return;
       try {
         await DB.updateChargeVariable(householdId, chargeId, updateData);
         setChargesVariables((prev) =>
-          prev.map((c) =>
-            c.id === chargeId ? { ...c, ...updateData } : c
-          )
+          prev.map((c) => (c.id === chargeId ? { ...c, ...updateData } : c))
         );
       } catch (error) {
         console.error("Erreur updateChargeVariable:", error);

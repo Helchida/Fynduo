@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
+  CategoryType,
   IChargeVariable,
   RootStackNavigationProp,
   RootStackRouteProp,
@@ -22,6 +23,7 @@ import { useComptes } from "hooks/useComptes";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { UserDisplayCard } from "./UserDisplayCard/UserDisplayCard";
 import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVariableForm";
+import { CATEGORIES_LIST } from "./EditChargeVariableForm/CategoryPickerModal/CategoryPickerModal";
 dayjs.locale("fr");
 
 type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
@@ -70,6 +72,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const [editDate, setEditDate] = useState<Date>(
     charge?.date ? new Date(charge.date) : new Date()
   );
+  const [editCategorie, setEditCategorie] = useState<CategoryType>(
+    charge?.categorie ? charge.categorie : "Autre"
+  );
+  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
@@ -91,6 +97,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditMontant(initialCharge.montantTotal.toFixed(2).replace(".", ","));
       setEditPayeurUid(initialCharge.payeur);
       setEditBeneficiairesUid(initialCharge.beneficiaires);
+      setEditCategorie(initialCharge.categorie);
     } else if (!isLoadingComptes) {
       Alert.alert("Erreur", "Charge non trouvée.");
       navigation.goBack();
@@ -156,6 +163,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
       payeur: editPayeurUid,
       beneficiaires: editBeneficiairesUid,
       date: editDate.toISOString(),
+      categorie: editCategorie,
     };
 
     try {
@@ -175,6 +183,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     editBeneficiairesUid,
     editDate,
     updateChargeVariable,
+    editCategorie,
   ]);
 
   const handleToggleEditBeneficiaire = (userId: string) => {
@@ -219,6 +228,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const dateFormatted = dayjs(charge.date).format("DD MMMM");
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
+  const currentCategoryData = CATEGORIES_LIST.find(
+    (c) => c.id === charge.categorie
+  );
+  const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
 
   return (
     <ScrollView style={styles.detailContainer}>
@@ -245,12 +258,16 @@ const ChargeVariableDetailScreen: React.FC = () => {
           isSubmitting={isSubmitting}
           handleUpdateCharge={handleUpdateCharge}
           setIsEditing={setIsEditing}
+          editCategorie={editCategorie}
+          setEditCategorie={setEditCategorie}
+          isCategoryModalVisible={isCategoryModalVisible}
+          setIsCategoryModalVisible={setIsCategoryModalVisible}
         />
       ) : (
         <>
           <View style={styles.detailHeaderContainer}>
             <View style={styles.iconPlaceholder}>
-              <Text style={styles.iconText}>🛒</Text>
+              <Text style={styles.iconText}>{categoryIcon}</Text>
             </View>
             <Text style={styles.detailTitle}>{charge.description}</Text>
             <Text style={styles.detailDateText}>Ajouté le {dateFormatted}</Text>

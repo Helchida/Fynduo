@@ -1,3 +1,5 @@
+import { CategoryType } from "@/types";
+
 export interface EditChargeVariableFormProps {
   editDescription: string;
   setEditDescription: (val: string) => void;
@@ -20,4 +22,8 @@ export interface EditChargeVariableFormProps {
   isSubmitting: boolean;
   handleUpdateCharge: () => void;
   setIsEditing: (val: boolean) => void;
+  editCategorie: string;
+  setEditCategorie: (id: CategoryType) => void;
+  setIsCategoryModalVisible: (visible: boolean) => void;
+  isCategoryModalVisible: boolean;
 }

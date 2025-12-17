@@ -1,24 +1,46 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { XCircle, ChevronsUpDown } from 'lucide-react-native';
-import dayjs from 'dayjs';
+import React from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { XCircle, ChevronsUpDown } from "lucide-react-native";
+import dayjs from "dayjs";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { PayeurPickerModal } from './PayeurPickerModal/PayeurPickerModal';
-import { BeneficiariesSelector } from './BeneficiariesSelector/BeneficiariesSelector';
-import { styles } from './EditChargeVariableForm.style';
-import { EditChargeVariableFormProps } from './EditChargeVariableForm.type';
-
-
+import { PayeurPickerModal } from "./PayeurPickerModal/PayeurPickerModal";
+import { BeneficiariesSelector } from "./BeneficiariesSelector/BeneficiariesSelector";
+import { styles } from "./EditChargeVariableForm.style";
+import { EditChargeVariableFormProps } from "./EditChargeVariableForm.type";
+import {
+  CATEGORIES_LIST,
+  CategoryPickerModal,
+} from "./CategoryPickerModal/CategoryPickerModal";
+import { CategoryType } from "@/types";
 
 export const EditChargeVariableForm = ({
-  editDescription, setEditDescription,
-  editMontant, setEditMontant,
-  editPayeurUid, setIsPayeurModalVisible, isPayeurModalVisible,
-  householdUsers, getDisplayName, setEditPayeurUid,
-  editDate, showDatePicker, isDatePickerVisible, handleConfirmDate, hideDatePicker,
-  editBeneficiairesUid, handleToggleEditBeneficiaire, currentUserId,
-  isSubmitting, handleUpdateCharge, setIsEditing
+  editDescription,
+  setEditDescription,
+  editMontant,
+  setEditMontant,
+  editPayeurUid,
+  setIsPayeurModalVisible,
+  isPayeurModalVisible,
+  householdUsers,
+  getDisplayName,
+  setEditPayeurUid,
+  editDate,
+  showDatePicker,
+  isDatePickerVisible,
+  handleConfirmDate,
+  hideDatePicker,
+  editBeneficiairesUid,
+  handleToggleEditBeneficiaire,
+  currentUserId,
+  isSubmitting,
+  handleUpdateCharge,
+  setIsEditing,
+  editCategorie,
+  setEditCategorie,
+  setIsCategoryModalVisible,
+  isCategoryModalVisible,
 }: EditChargeVariableFormProps) => {
+  const currentCategory = CATEGORIES_LIST.find((c) => c.id === editCategorie);
   return (
     <View style={styles.editFormContainer}>
       <View style={[styles.userCard, styles.payorCard, { marginBottom: 12 }]}>
@@ -40,7 +62,6 @@ export const EditChargeVariableForm = ({
         </View>
       </View>
 
-
       <View style={[styles.userCard, styles.payorCard, { marginBottom: 16 }]}>
         <View style={{ flex: 1 }}>
           <Text style={styles.editLabel}>Montant Total</Text>
@@ -57,10 +78,26 @@ export const EditChargeVariableForm = ({
         </View>
       </View>
 
+      <TouchableOpacity
+        style={[styles.editSectionCard, styles.payorCard]}
+        onPress={() => setIsCategoryModalVisible(true)}
+      >
+        <Text style={styles.editLabel}>Catégorie</Text>
+        <View style={styles.selectorContainer}>
+          <Text style={styles.miniUserText}>
+            {currentCategory?.icon} {editCategorie}
+          </Text>
+          <ChevronsUpDown size={16} color="#8E8E93" />
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.editRow}>
         <TouchableOpacity
-          style={[styles.editSectionCard, styles.payorCard, { flex: 1, marginRight: 8 }]}
+          style={[
+            styles.editSectionCard,
+            styles.payorCard,
+            { flex: 1, marginRight: 8 },
+          ]}
           onPress={() => setIsPayeurModalVisible(true)}
         >
           <Text style={styles.editLabel}>Payé par</Text>
@@ -73,7 +110,11 @@ export const EditChargeVariableForm = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.editSectionCard, styles.payorCard, { flex: 1, marginLeft: 8 }]}
+          style={[
+            styles.editSectionCard,
+            styles.payorCard,
+            { flex: 1, marginLeft: 8 },
+          ]}
           onPress={showDatePicker}
         >
           <Text style={styles.editLabel}>Quand</Text>
@@ -85,6 +126,16 @@ export const EditChargeVariableForm = ({
           </View>
         </TouchableOpacity>
       </View>
+
+      <CategoryPickerModal
+        isVisible={isCategoryModalVisible}
+        onClose={() => setIsCategoryModalVisible(false)}
+        selectedId={editCategorie}
+        onSelect={(id: CategoryType) => {
+          setEditCategorie(id);
+          setIsCategoryModalVisible(false);
+        }}
+      />
 
       <PayeurPickerModal
         isVisible={isPayeurModalVisible}
@@ -110,7 +161,9 @@ export const EditChargeVariableForm = ({
       <TouchableOpacity
         style={[
           styles.saveButton,
-          (isSubmitting || editBeneficiairesUid.length === 0) && { opacity: 0.5 },
+          (isSubmitting || editBeneficiairesUid.length === 0) && {
+            opacity: 0.5,
+          },
         ]}
         onPress={handleUpdateCharge}
         disabled={isSubmitting || editBeneficiairesUid.length === 0}

@@ -36,6 +36,8 @@ export interface IChargeFixeSnapshot {
   payeur: string;
 }
 
+export type CategoryType = 'Alimentation' | 'Logement' | 'Transport' | 'Santé' | 'Loisirs' | 'Autre';
+
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 export interface IChargeVariable extends FirestoreDocument {
   description: string;
@@ -44,6 +46,7 @@ export interface IChargeVariable extends FirestoreDocument {
   beneficiaires: string[];
   date: string;
   moisAnnee: string;
+  categorie: CategoryType;
   householdId: string;
 }
 
