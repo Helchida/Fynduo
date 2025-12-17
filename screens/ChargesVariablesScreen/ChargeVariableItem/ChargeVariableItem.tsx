@@ -1,6 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
-import dayjs from "dayjs";
+import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "./ChargeVariableItem.style";
 import { ChargeVariableItemProps } from "./ChargeVariableItem.type";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
@@ -8,6 +7,7 @@ import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInH
 const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
   charge,
   householdUsers,
+  onPress,
 }) => {
   const payeurName = useGetDisplayNameUserInHousehold(
     charge.payeur,
@@ -15,7 +15,7 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
   );
 
   return (
-    <View style={styles.depenseItem}>
+    <TouchableOpacity style={styles.depenseItem} onPress={() => onPress(charge)}>
       <View style={styles.depenseInfo}>
         <Text style={styles.depenseDesc}>{charge.description}</Text>
         <Text style={styles.depensePayer}>
@@ -28,7 +28,7 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
         </Text>
         
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

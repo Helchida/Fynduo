@@ -13,6 +13,7 @@ import Regulation from "../screens/RegulationScreen/RegulationScreen";
 import SummaryRegulationScreen from "../screens/SummaryRegulationScreen/SummaryRegulationScreen";
 import HistoryScreen from "../screens/HistoryScreen/HistoryScreen";
 import HistoryDetailScreen from "../screens/HistoryDetailScreen/HistoryDetailScreen";
+import ChargeVariableDetailScreen from "screens/ChargeVariableDetail/ChargeVariableDetailScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,6 +38,13 @@ const AppStack = () => (
       name="ChargesVariables"
       component={ChargesVariablesScreen}
       options={{ title: "Charges Variables" }}
+    />
+    <Stack.Screen
+      name="ChargeVariableDetail"
+      component={ChargeVariableDetailScreen}
+      options={({ route }) => ({
+        title: `Détail de ${route.params.description}`,
+      })}
     />
     <Stack.Screen
       name="Regulation"

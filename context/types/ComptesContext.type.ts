@@ -26,6 +26,13 @@ export interface IComptesContext extends IResultatsCalcul {
   addChargeVariable: (
     depense: Omit<IChargeVariable, "id" | "householdId">
   ) => Promise<void>;
+  updateChargeVariable: (
+    chargeId: string,
+    updateData: Partial<
+      Omit<IChargeVariable, "id" | "householdId" | "moisAnnee" | "date">
+    >
+  ) => Promise<void>;
+  deleteChargeVariable: (chargeId: string) => Promise<void>;
   addChargeFixe: (
     charge: Omit<IChargeFixe, "id" | "householdId">
   ) => Promise<void>;

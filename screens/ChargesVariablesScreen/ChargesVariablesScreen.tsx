@@ -10,13 +10,14 @@ import {
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
-import { IChargeVariable } from "@/types";
+import { IChargeVariable, RootStackNavigationProp } from "@/types";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { styles } from "./ChargesVariablesScreen.style";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import ChargeVariableItem from "./ChargeVariableItem/ChargeVariableItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { useNavigation } from "@react-navigation/native";
 
 dayjs.locale("fr");
 
@@ -26,6 +27,8 @@ interface GroupedChargesVariables {
 }
 
 const ChargesVariablesScreen: React.FC = () => {
+  const navigation = useNavigation<RootStackNavigationProp>();
+
   const {
     chargesVariables,
     isLoadingComptes,
@@ -35,7 +38,7 @@ const ChargesVariablesScreen: React.FC = () => {
   const { user } = useAuth();
 
   if (!user) {
-    return(<NoAuthenticatedUser/>)
+    return <NoAuthenticatedUser />;
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
@@ -44,9 +47,18 @@ const ChargesVariablesScreen: React.FC = () => {
   const [montant, setMontant] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [payeurUid, setPayeurUid] = useState<string | null>(user.id || null);
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
+
+  const handleOpenDetail = useCallback(
+    (charge: IChargeVariable) => {
+      navigation.navigate("ChargeVariableDetail", {
+        chargeId: charge.id,
+        description: charge.description,
+      });
+    },
+    [navigation]
+  );
 
   const groupedCharges = useMemo(() => {
     const sortedCharges = chargesVariables
@@ -168,12 +180,13 @@ const ChargesVariablesScreen: React.FC = () => {
     item: GroupedChargesVariables;
   }) => (
     <View key={group.date}>
-      <Text style={styles.dateSeparator}>{group.date}</Text> 
+      <Text style={styles.dateSeparator}>{group.date}</Text>
       {group.charges.map((charge) => (
-        <ChargeVariableItem 
-          key={charge.id} 
-          charge={charge} 
-          householdUsers={householdUsers} 
+        <ChargeVariableItem
+          key={charge.id}
+          charge={charge}
+          householdUsers={householdUsers}
+          onPress={handleOpenDetail}
         />
       ))}
     </View>

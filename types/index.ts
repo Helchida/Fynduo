@@ -99,6 +99,7 @@ export type RootStackParamList = {
   Login: undefined;
   History: undefined;
   HistoryDetail: { moisAnnee: string };
+  ChargeVariableDetail: { chargeId: string, description: string };
 };
 
 export type RootStackNavigationProp =

@@ -250,6 +250,50 @@ export async function addChargeVariable(
 }
 
 /**
+ * Met à jour une charge variable via son ID.
+ */
+export async function updateChargeVariable(
+  householdId: string,
+  chargeId: string,
+  updateData: Partial<
+    Omit<IChargeVariable, "id" | "householdId" | "moisAnnee" | "date">
+  >
+) {
+  try {
+    const chargeRef = doc(
+      getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES),
+      chargeId
+    );
+    await updateDoc(chargeRef, {
+      ...updateData,
+      dateMiseAJour: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Erreur updateChargeVariable:", error);
+    throw error;
+  }
+}
+
+/**
+ * Supprime une charge variable via son ID.
+ */
+export async function deleteChargeVariable(
+  householdId: string,
+  chargeId: string
+) {
+  try {
+    const chargeRef = doc(
+      getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES),
+      chargeId
+    );
+    await deleteDoc(chargeRef);
+  } catch (error) {
+    console.error("Erreur deleteChargeVariable:", error);
+    throw error;
+  }
+}
+
+/**
  * Ajoute une charge variable de regularisation pour le solde variable du mois.
  */
 export async function addChargeVariableRegularisation(

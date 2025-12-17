@@ -9,7 +9,6 @@ import {
   ICompteMensuel,
   IChargeFixe,
   IChargeVariable,
-  IDette,
   IReglementData,
 } from "../types";
 import { useAuth } from "../hooks/useAuth";
@@ -204,6 +203,43 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
     [householdId]
   );
 
+  const updateChargeVariable = useCallback(
+    async (
+      chargeId: string,
+      updateData: Partial<
+        Omit<IChargeVariable, "id" | "householdId" | "moisAnnee" | "date">
+      >
+    ) => {
+      if (!householdId) return;
+      try {
+        await DB.updateChargeVariable(householdId, chargeId, updateData);
+        setChargesVariables((prev) =>
+          prev.map((c) =>
+            c.id === chargeId ? { ...c, ...updateData } : c
+          )
+        );
+      } catch (error) {
+        console.error("Erreur updateChargeVariable:", error);
+        throw error;
+      }
+    },
+    [householdId]
+  );
+
+  const deleteChargeVariable = useCallback(
+    async (chargeId: string) => {
+      if (!householdId) return;
+      try {
+        await DB.deleteChargeVariable(householdId, chargeId);
+        setChargesVariables((prev) => prev.filter((c) => c.id !== chargeId));
+      } catch (error) {
+        console.error("Erreur deleteChargeVariable:", error);
+        throw error;
+      }
+    },
+    [householdId]
+  );
+
   const cloturerMois = useCallback(
     async (data: IReglementData) => {
       if (!currentMonthData || !currentMonthData.id || !householdId) {
@@ -291,6 +327,8 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       updateChargeFixePayeur,
       updateLoyer,
       addChargeVariable,
+      updateChargeVariable,
+      deleteChargeVariable,
       addChargeFixe,
       deleteChargeFixe,
       cloturerMois,
@@ -310,6 +348,8 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       updateChargeFixePayeur,
       updateLoyer,
       addChargeVariable,
+      updateChargeVariable,
+      deleteChargeVariable,
       addChargeFixe,
       deleteChargeFixe,
       cloturerMois,
