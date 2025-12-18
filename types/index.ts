@@ -36,7 +36,14 @@ export interface IChargeFixeSnapshot {
   payeur: string;
 }
 
-export type CategoryType = 'Alimentation' | 'Logement' | 'Transport' | 'Santé' | 'Loisirs' | 'Autre';
+export type CategoryType =
+  | "Alimentation"
+  | "Logement"
+  | "Transport"
+  | "Santé"
+  | "Loisirs"
+  | "Remboursement"
+  | "Autre";
 
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 export interface IChargeVariable extends FirestoreDocument {
@@ -91,6 +98,12 @@ export interface IHistoricalData {
   chargesVariables: IChargeVariable[];
 }
 
+export interface ICategorie extends FirestoreDocument {
+  label: string;
+  icon: string;
+  isDefault: boolean;
+}
+
 // NAVIGATION TYPES
 export type RootStackParamList = {
   Home: undefined;
@@ -102,7 +115,7 @@ export type RootStackParamList = {
   Login: undefined;
   History: undefined;
   HistoryDetail: { moisAnnee: string };
-  ChargeVariableDetail: { chargeId: string, description: string };
+  ChargeVariableDetail: { chargeId: string; description: string };
 };
 
 export type RootStackNavigationProp =

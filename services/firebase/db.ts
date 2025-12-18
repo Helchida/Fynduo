@@ -22,12 +22,14 @@ import {
   IChargeFixeSnapshot,
   IDette,
   IUser,
+  ICategorie,
 } from "../../types";
 
 const SUB_COLLECTIONS = {
   COMPTES_MENSUELS: "comptes_mensuels",
   CHARGES_FIXES: "charges_fixes",
   CHARGES_VARIABLES: "charges_variables",
+  CATEGORIES: "categories",
 };
 
 // Fonction pour obtenir la référence de la sous-collection d'un foyer
@@ -255,9 +257,7 @@ export async function addChargeVariable(
 export async function updateChargeVariable(
   householdId: string,
   chargeId: string,
-  updateData: Partial<
-    Omit<IChargeVariable, "id" | "householdId" | "moisAnnee" | "date">
-  >
+  updateData: Partial<Omit<IChargeVariable, "id" | "householdId" | "moisAnnee">>
 ) {
   try {
     const chargeRef = doc(
@@ -311,6 +311,7 @@ export async function addChargeVariableRegularisation(
       beneficiaires: [dette.debiteurUid],
       date: dateRegul,
       moisAnnee: moisAnnee,
+      categorie: "Remboursement",
     });
   }
 
@@ -362,6 +363,26 @@ export async function getHistoryMonths(
       "Erreur lors de la récupération de l'historique des comptes mensuels:",
       error
     );
+    throw error;
+  }
+}
+
+/**
+ * Récupère toutes les catégories personnalisées d'un foyer.
+ */
+export async function getHouseholdCategories(
+  householdId: string
+): Promise<ICategorie[]> {
+  const categoriesCollection = getCollectionRef(
+    householdId,
+    SUB_COLLECTIONS.CATEGORIES
+  );
+
+  try {
+    const snapshot = await getDocs(categoriesCollection);
+    return snapshot.docs.map((doc) => mapDocToType<ICategorie>(doc));
+  } catch (error) {
+    console.error("Erreur lors de la récupération des catégories:", error);
     throw error;
   }
 }

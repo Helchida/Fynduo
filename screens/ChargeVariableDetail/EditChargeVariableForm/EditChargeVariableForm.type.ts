@@ -1,4 +1,4 @@
-import { CategoryType } from "@/types";
+import { CategoryType, ICategorie } from "@/types";
 
 export interface EditChargeVariableFormProps {
   editDescription: string;
@@ -26,4 +26,5 @@ export interface EditChargeVariableFormProps {
   setEditCategorie: (id: CategoryType) => void;
   setIsCategoryModalVisible: (visible: boolean) => void;
   isCategoryModalVisible: boolean;
+  categories: ICategorie[];
 }

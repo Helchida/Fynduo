@@ -4,20 +4,12 @@ import { styles } from "./CategoryPickerModal.style";
 import { CategoryPickerModalProps } from "./CategoryPickerModal.type";
 import { CategoryType } from "@/types";
 
-export const CATEGORIES_LIST = [
-  { id: "Alimentation", label: "Alimentation", icon: "🛒" },
-  { id: "Transport", label: "Transport", icon: "🚗" },
-  { id: "Loisirs", label: "Loisirs", icon: "🎉" },
-  { id: "Santé", label: "Santé", icon: "💊" },
-  { id: "Logement", label: "Logement", icon: "🏠" },
-  { id: "Autre", label: "Autre", icon: "📦" },
-];
-
 export const CategoryPickerModal = ({
   isVisible,
   onClose,
   selectedId,
   onSelect,
+  categories,
 }: CategoryPickerModalProps) => (
   <Modal visible={isVisible} transparent animationType="slide">
     <View style={styles.modalOverlay}>
@@ -25,7 +17,7 @@ export const CategoryPickerModal = ({
         <Text style={styles.modalHeader}>Choisir une catégorie</Text>
 
         <ScrollView>
-          {CATEGORIES_LIST.map((cat) => (
+          {categories.map((cat) => (
             <TouchableOpacity
               key={cat.id}
               style={[

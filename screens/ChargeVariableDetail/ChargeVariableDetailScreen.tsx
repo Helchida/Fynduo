@@ -23,7 +23,7 @@ import { useComptes } from "hooks/useComptes";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { UserDisplayCard } from "./UserDisplayCard/UserDisplayCard";
 import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVariableForm";
-import { CATEGORIES_LIST } from "./EditChargeVariableForm/CategoryPickerModal/CategoryPickerModal";
+import { useCategories } from "hooks/useCategories";
 dayjs.locale("fr");
 
 type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
@@ -46,6 +46,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     deleteChargeVariable,
   } = useComptes();
   const { householdUsers } = useHouseholdUsers();
+  const { categories } = useCategories(user.householdId);
 
   const initialCharge = chargesVariables.find((c) => c.id === chargeId);
 
@@ -228,9 +229,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const dateFormatted = dayjs(charge.date).format("DD MMMM");
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
-  const currentCategoryData = CATEGORIES_LIST.find(
-    (c) => c.id === charge.categorie
-  );
+  const currentCategoryData = categories.find((c) => c.id === charge.categorie);
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
 
   return (
@@ -262,6 +261,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
           setEditCategorie={setEditCategorie}
           isCategoryModalVisible={isCategoryModalVisible}
           setIsCategoryModalVisible={setIsCategoryModalVisible}
+          categories={categories}
         />
       ) : (
         <>

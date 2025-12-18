@@ -7,10 +7,7 @@ import { PayeurPickerModal } from "./PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "./BeneficiariesSelector/BeneficiariesSelector";
 import { styles } from "./EditChargeVariableForm.style";
 import { EditChargeVariableFormProps } from "./EditChargeVariableForm.type";
-import {
-  CATEGORIES_LIST,
-  CategoryPickerModal,
-} from "./CategoryPickerModal/CategoryPickerModal";
+import { CategoryPickerModal } from "./CategoryPickerModal/CategoryPickerModal";
 import { CategoryType } from "@/types";
 
 export const EditChargeVariableForm = ({
@@ -39,8 +36,9 @@ export const EditChargeVariableForm = ({
   setEditCategorie,
   setIsCategoryModalVisible,
   isCategoryModalVisible,
+  categories,
 }: EditChargeVariableFormProps) => {
-  const currentCategory = CATEGORIES_LIST.find((c) => c.id === editCategorie);
+  const currentCategory = categories.find((c) => c.id === editCategorie);
   return (
     <View style={styles.editFormContainer}>
       <View style={[styles.userCard, styles.payorCard, { marginBottom: 12 }]}>
@@ -85,7 +83,7 @@ export const EditChargeVariableForm = ({
         <Text style={styles.editLabel}>Catégorie</Text>
         <View style={styles.selectorContainer}>
           <Text style={styles.miniUserText}>
-            {currentCategory?.icon} {editCategorie}
+            {currentCategory?.icon} {currentCategory?.label}
           </Text>
           <ChevronsUpDown size={16} color="#8E8E93" />
         </View>
@@ -135,6 +133,7 @@ export const EditChargeVariableForm = ({
           setEditCategorie(id);
           setIsCategoryModalVisible(false);
         }}
+        categories={categories}
       />
 
       <PayeurPickerModal
