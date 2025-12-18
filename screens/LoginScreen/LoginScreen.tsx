@@ -9,9 +9,12 @@ import {
 } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./LoginScreen.style";
+import { RootStackNavigationProp } from "@/types";
+import { useNavigation } from "@react-navigation/native";
 
 const LoginScreen: React.FC = () => {
   const { login, isLoading } = useAuth();
+  const navigation = useNavigation<RootStackNavigationProp>();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,6 +69,18 @@ const LoginScreen: React.FC = () => {
         >
           <Text style={styles.buttonText}>
             {isLoading ? "Connexion..." : "Se connecter"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Register")}
+          style={{ marginTop: 20, alignItems: "center" }}
+        >
+          <Text style={{ color: "#2c3e50", fontSize: 14 }}>
+            Pas encore de compte ?{" "}
+            <Text style={{ color: "#3498db", fontWeight: "bold" }}>
+              Créer un compte
+            </Text>
           </Text>
         </TouchableOpacity>
       </View>

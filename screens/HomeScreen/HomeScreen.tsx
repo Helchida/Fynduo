@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useNavigation } from "@react-navigation/native";
-import { RootStackNavigationProp } from "@/types";
+import { IUser, RootStackNavigationProp } from "@/types";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./HomeScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { getHouseholdUsers } from "services/firebase/db";
+import { LogOut } from "lucide-react-native";
 
 const MOCK_HISTORY = [
   { month: "Sept", total: 1250.0 },
@@ -38,21 +40,52 @@ const HomeScreen: React.FC = () => {
   const { user, logout, isLoading } = useAuth();
 
   if (!user) {
-    return(<NoAuthenticatedUser/>)
+    return <NoAuthenticatedUser />;
   }
-  
+  const [householdMembers, setHouseholdMembers] = useState<IUser[]>([]);
+
+  useEffect(() => {
+    if (user?.householdId) {
+      getHouseholdUsers(user.householdId)
+        .then(setHouseholdMembers)
+        .catch((err) => console.error("Erreur membres foyer:", err));
+    }
+  }, [user?.householdId]);
+
   const { isLoadingComptes } = useComptes();
 
   if (isLoadingComptes || isLoading) {
     return <Text style={styles.loading}>Chargement...</Text>;
   }
 
+  const isSolo = householdMembers.length <= 1;
+
   return (
     <View style={styles.mainView}>
       <View style={styles.headerContainer}>
-        <Text style={styles.welcomeText}>Bienvenue, {user.displayName} !</Text>
-        <TouchableOpacity style={styles.logoutButtonTop} onPress={logout}>
-          <Text style={styles.logoutTextTop}>Se déconnecter</Text>
+        <View style={styles.userInfo}>
+          <Text style={styles.welcomeText}>Bonjour, {user.displayName} 👋</Text>
+          <View
+            style={[
+              styles.badge,
+              isSolo ? styles.badgeSolo : styles.badgeShared,
+            ]}
+          >
+            <Text
+              style={[
+                styles.badgeText,
+                isSolo ? styles.badgeTextSolo : styles.badgeTextShared,
+              ]}
+            >
+              {isSolo
+                ? "Mode Solo"
+                : `Foyer Partagé (${householdMembers.length})`}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.logoutIconButton} onPress={logout}>
+          <LogOut color="#e74c3c" size={20} />
         </TouchableOpacity>
       </View>
 
@@ -87,51 +120,73 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={[styles.actionButton, { borderLeftColor: "#f39c12" }]}
-            onPress={() => navigation.navigate("Regulation")}
-          >
-            <Text style={styles.actionText}>Faire les comptes</Text>
-          </TouchableOpacity>
+        {isSolo ? (
+          <View style={styles.soloInfoCard}>
+            <Text style={styles.soloTitle}>Mode Solo actif</Text>
+            <Text style={styles.soloDescription}>
+              Les fonctionnalités de gestion de foyer (partage des charges,
+              régularisation) seront disponibles dès que vous rejoindrez ou
+              créerez un foyer partagé.
+            </Text>
+            <TouchableOpacity
+              style={styles.inviteButton}
+              onPress={() =>
+                Alert.alert(
+                  "Prochainement",
+                  "Vous pourrez bientôt inviter un partenaire !"
+                )
+              }
+            >
+              <Text style={styles.inviteButtonText}>Inviter un partenaire</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderLeftColor: "#f39c12" }]}
+              onPress={() => navigation.navigate("Regulation")}
+            >
+              <Text style={styles.actionText}>Faire les comptes</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
-            onPress={() => navigation.navigate("ChargesVariables")}
-          >
-            <Text style={styles.actionText}>Charges variables</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
+              onPress={() => navigation.navigate("ChargesVariables")}
+            >
+              <Text style={styles.actionText}>Charges variables</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { borderLeftColor: "#d14127ff" }]}
-            onPress={() => navigation.navigate("ChargesFixes")}
-          >
-            <Text style={styles.actionText}>Charges fixes</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderLeftColor: "#d14127ff" }]}
+              onPress={() => navigation.navigate("ChargesFixes")}
+            >
+              <Text style={styles.actionText}>Charges fixes</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { borderLeftColor: "#27a1d1ff" }]}
-            onPress={() => navigation.navigate("Loyer")}
-          >
-            <Text style={styles.actionText}>Loyer et APL</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderLeftColor: "#27a1d1ff" }]}
+              onPress={() => navigation.navigate("Loyer")}
+            >
+              <Text style={styles.actionText}>Loyer et APL</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
-            onPress={() =>
-              Alert.alert("Statistiques", "Fonctionnalité de stats à venir.")
-            }
-          >
-            <Text style={styles.actionText}>Statistiques</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
+              onPress={() =>
+                Alert.alert("Statistiques", "Fonctionnalité de stats à venir.")
+              }
+            >
+              <Text style={styles.actionText}>Statistiques</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { borderLeftColor: "#34495e" }]}
-            onPress={() => navigation.navigate("History")}
-          >
-            <Text style={styles.actionText}>Historique</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderLeftColor: "#34495e" }]}
+              onPress={() => navigation.navigate("History")}
+            >
+              <Text style={styles.actionText}>Historique</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

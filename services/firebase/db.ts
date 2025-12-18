@@ -49,6 +49,25 @@ const mapDocToType = <T>(doc: QueryDocumentSnapshot<DocumentData>): T => {
 };
 
 /**
+ * Crée un profil utilisateur dans Firestore après l'inscription
+ */
+export async function createUserProfile(
+  uid: string,
+  data: { email: string; displayName: string; householdId: string }
+) {
+  try {
+    const userRef = doc(db, "users", uid);
+    await setDoc(userRef, {
+      ...data,
+      id: uid,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la création du profil utilisateur:", error);
+    throw error;
+  }
+}
+
+/**
  * Récupère tous les utilisateurs appartenant à un HouseholdId donné.
  */
 export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {

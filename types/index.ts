@@ -113,6 +113,7 @@ export type RootStackParamList = {
   Regulation: undefined;
   SummaryRegulation: undefined;
   Login: undefined;
+  Register: undefined;
   History: undefined;
   HistoryDetail: { moisAnnee: string };
   ChargeVariableDetail: { chargeId: string; description: string };
