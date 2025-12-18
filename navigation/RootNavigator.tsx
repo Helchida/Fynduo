@@ -14,11 +14,23 @@ import SummaryRegulationScreen from "../screens/SummaryRegulationScreen/SummaryR
 import HistoryScreen from "../screens/HistoryScreen/HistoryScreen";
 import HistoryDetailScreen from "../screens/HistoryDetailScreen/HistoryDetailScreen";
 import ChargeVariableDetailScreen from "screens/ChargeVariableDetail/ChargeVariableDetailScreen";
+import { ChevronLeft } from 'lucide-react-native';
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppStack = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={({ navigation }) => ({
+    headerShown: true,
+    headerLeft: () => (
+      <TouchableOpacity 
+        onPress={() => navigation.goBack()}
+        style={{ marginLeft: 10 }}
+      >
+        <ChevronLeft color="#007AFF" size={24} />
+      </TouchableOpacity>
+    ),
+  })}>
     <Stack.Screen
       name="Home"
       component={HomeScreen}
