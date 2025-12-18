@@ -7,7 +7,6 @@ import RootNavigator from "./navigation/RootNavigator";
 import { useAuth } from "./hooks/useAuth";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
@@ -27,13 +26,11 @@ const App: React.FC = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" backgroundColor="#f4f7f9" translucent={false} />
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#f4f7f9" }}>
-        <AuthProvider>
-          <ComptesProvider>
-            <AppContent />
-          </ComptesProvider>
-        </AuthProvider>
-      </SafeAreaView>
+      <AuthProvider>
+        <ComptesProvider>
+          <AppContent />
+        </ComptesProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 };
