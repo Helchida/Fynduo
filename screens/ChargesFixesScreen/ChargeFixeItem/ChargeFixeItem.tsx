@@ -13,6 +13,7 @@ import { styles } from "./ChargeFixeItem.style";
 import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
 import { confirmDeleteCharge } from "utils/confirmDeleteCharge";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
+import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -24,6 +25,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
   const [isSaving, setIsSaving] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const handleSave = useCallback(async () => {
     const newAmount = parseFloat(amount);
@@ -72,9 +74,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         <Text style={styles.chargeName}>{charge.nom}</Text>
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() =>
-            confirmDeleteCharge(charge.nom, () => onDelete(charge.id))
-          }
+          onPress={() => setIsDeleteModalVisible(true)}
         >
           <Text style={styles.deleteButtonText}>X</Text>
         </TouchableOpacity>
@@ -143,6 +143,19 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           </View>
         </View>
       </Modal>
+
+      <ConfirmModal
+        visible={isDeleteModalVisible}
+        title="Supprimer la charge"
+        message={`Voulez-vous vraiment supprimer "${charge.nom}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        isDestructive={true}
+        onConfirm={async () => {
+          setIsDeleteModalVisible(false);
+          await onDelete(charge.id);
+        }}
+        onCancel={() => setIsDeleteModalVisible(false)}
+      />
     </View>
   );
 };
