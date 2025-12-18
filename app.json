@@ -24,7 +24,19 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "basePath": "/",
+      "config": {
+        "pwa": {
+          "display": "standalone",
+          "orientation": "portrait",
+          "name": "Fynduo",
+          "shortName": "Fynduo",
+          "themeColor": "#ffffff",
+          "backgroundColor": "#ffffff"
+        }
+      }
     }
   }
 }
