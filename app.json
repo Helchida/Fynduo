@@ -7,21 +7,22 @@
     "icon": "./public/apple-touch-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "backgroundColor": "#ffffff", 
     "splash": {
       "image": "./public/apple-touch-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "statusBarStyle": "dark" 
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./public/apple-touch-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./public/favicon-96x96.png",
@@ -34,7 +35,11 @@
           "name": "Fynduo",
           "shortName": "Fynduo",
           "themeColor": "#ffffff",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "apple": {
+            "mobileWebAppCapable": "yes",
+            "barStyle": "default" 
+          }
         }
       }
     }
