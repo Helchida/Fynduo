@@ -6,6 +6,7 @@ import { ComptesProvider } from "./context/ComptesContext";
 import RootNavigator from "./navigation/RootNavigator";
 import { useAuth } from "./hooks/useAuth";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StatusBar } from "expo-status-bar";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
@@ -24,6 +25,7 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="dark" backgroundColor="#f4f7f9" translucent={false} />
       <AuthProvider>
         <ComptesProvider>
           <AppContent />

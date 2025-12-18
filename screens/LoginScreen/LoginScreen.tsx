@@ -33,7 +33,7 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, styles.innerContainer]}>
       <View style={styles.headerContainer}>
         <Image
           source={require("../../public/logo-with-text.png")}
