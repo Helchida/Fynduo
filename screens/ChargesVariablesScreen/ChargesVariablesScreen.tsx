@@ -18,6 +18,12 @@ import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import ChargeVariableItem from "./ChargeVariableItem/ChargeVariableItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useNavigation } from "@react-navigation/native";
+import { useCategories } from "../../hooks/useCategories";
+import { CategoryPickerModal } from "../ChargeVariableDetail/EditChargeVariableForm/CategoryPickerModal/CategoryPickerModal";
+import { PayeurPickerModal } from "../ChargeVariableDetail/EditChargeVariableForm/PayeurPickerModal/PayeurPickerModal";
+import { BeneficiariesSelector } from "../ChargeVariableDetail/EditChargeVariableForm/BeneficiariesSelector/BeneficiariesSelector";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { ChevronsUpDown } from "lucide-react-native";
 
 dayjs.locale("fr");
 
@@ -42,6 +48,7 @@ const ChargesVariablesScreen: React.FC = () => {
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
+  const { categories, isLoadingCategories } = useCategories(user.householdId);
 
   const [description, setDescription] = useState("");
   const [montant, setMontant] = useState("");
@@ -49,6 +56,11 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [payeurUid, setPayeurUid] = useState<string | null>(user.id || null);
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
+  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+  const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedCategorie, setSelectedCategorie] = useState("Autre");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const handleOpenDetail = useCallback(
     (charge: IChargeVariable) => {
@@ -118,19 +130,22 @@ const ChargesVariablesScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const depenseToAdd: Omit<IChargeVariable, "id" | "householdId"> = {
+    const chargeVariableToAdd: Omit<IChargeVariable, "id" | "householdId"> = {
       description: description.trim(),
       montantTotal,
       payeur: payeurUid,
       beneficiaires: beneficiairesUid,
-      date: dayjs().toISOString(),
-      moisAnnee: dayjs().format("YYYY-MM"),
+      date: selectedDate.toISOString(),
+      moisAnnee: dayjs(selectedDate).format("YYYY-MM"),
+      categorie: selectedCategorie,
     };
 
     try {
-      await addChargeVariable(depenseToAdd);
+      await addChargeVariable(chargeVariableToAdd);
       setDescription("");
       setMontant("");
+      setSelectedDate(new Date());
+      setSelectedCategorie("Autre");
       setPayeurUid(user.id || null);
       setBeneficiairesUid(householdUsers.map((u) => u.id));
       setShowForm(false);
@@ -146,6 +161,8 @@ const ChargesVariablesScreen: React.FC = () => {
     montant,
     payeurUid,
     beneficiairesUid,
+    selectedDate,
+    selectedCategorie,
     currentMonthData,
     addChargeVariable,
     user.id,
@@ -167,12 +184,10 @@ const ChargesVariablesScreen: React.FC = () => {
     return <Text style={styles.loading}>Chargement des dépenses...</Text>;
   }
 
-  const payeurName = getDisplayName(payeurUid ?? "");
   const benefCount = beneficiairesUid.length;
-  const shareText =
-    benefCount > 0
-      ? `(partagé sur ${benefCount} personne${benefCount > 1 ? "s" : ""})`
-      : "(Aucun bénéficiaire)";
+  const currentCategoryData = categories.find(
+    (c) => c.id === selectedCategorie
+  );
 
   const renderGroupedCharge = ({
     item: group,
@@ -222,9 +237,80 @@ const ChargesVariablesScreen: React.FC = () => {
             keyboardType="numeric"
             editable={!isSubmitting}
           />
-          <Text style={styles.payeurInfo}>
-            Payé par : {payeurName} {shareText}
-          </Text>
+          <View style={{ flexDirection: "row", marginBottom: 12 }}>
+            <TouchableOpacity
+              style={[styles.selectorButton, { flex: 1, marginRight: 5 }]}
+              onPress={() => setIsCategoryModalVisible(true)}
+            >
+              <Text style={styles.selectorLabel}>Catégorie</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text style={{ fontSize: 16, marginRight: 6 }}>
+                    {currentCategoryData?.icon || "📦"}
+                  </Text>
+                  <Text numberOfLines={1} style={{ flexShrink: 1 }}>
+                    {currentCategoryData?.label || selectedCategorie}
+                  </Text>
+                </View>
+                <ChevronsUpDown size={14} color="#8E8E93" />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.selectorButton, { flex: 1, marginLeft: 5 }]}
+              onPress={() => setDatePickerVisibility(true)}
+            >
+              <Text style={styles.selectorLabel}>Date</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>{dayjs(selectedDate).format("DD/MM/YYYY")}</Text>
+                <ChevronsUpDown size={14} color="#8E8E93" />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.selectorButton}
+            onPress={() => setIsPayeurModalVisible(true)}
+          >
+            <Text style={styles.selectorLabel}>Payé par</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text>{getDisplayName(payeurUid || "")}</Text>
+              <ChevronsUpDown size={14} color="#8E8E93" />
+            </View>
+          </TouchableOpacity>
+
+          <BeneficiariesSelector
+            users={householdUsers}
+            selectedUids={beneficiairesUid}
+            totalAmount={montant}
+            onToggle={(uid) =>
+              setBeneficiairesUid((prev) =>
+                prev.includes(uid)
+                  ? prev.filter((i) => i !== uid)
+                  : [...prev, uid]
+              )
+            }
+            getDisplayName={getDisplayName}
+            currentUserId={user.id}
+          />
           <Button
             title={
               isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"
@@ -248,6 +334,46 @@ const ChargesVariablesScreen: React.FC = () => {
           contentContainerStyle={{ paddingBottom: 10 }}
         />
       )}
+
+      <CategoryPickerModal
+        isVisible={isCategoryModalVisible}
+        onClose={() => setIsCategoryModalVisible(false)}
+        selectedId={selectedCategorie}
+        categories={categories}
+        onSelect={(id) => {
+          setSelectedCategorie(id);
+          setIsCategoryModalVisible(false);
+        }}
+      />
+
+      <PayeurPickerModal
+        isVisible={isPayeurModalVisible}
+        onClose={() => setIsPayeurModalVisible(false)}
+        users={householdUsers}
+        selectedUid={payeurUid || ""}
+        onSelect={(uid) => {
+          setPayeurUid(uid);
+          setIsPayeurModalVisible(false);
+        }}
+        getDisplayName={getDisplayName}
+      />
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        date={selectedDate}
+        onConfirm={(date) => {
+          setSelectedDate(date);
+          setDatePickerVisibility(false);
+        }}
+        onCancel={() => setDatePickerVisibility(false)}
+        confirmTextIOS="Valider"
+        cancelTextIOS="Annuler"
+        locale="fr_FR"
+        isDarkModeEnabled={false}
+        textColor="black"
+        {...({ themeVariant: "light" } as any)}
+      />
     </View>
   );
 };

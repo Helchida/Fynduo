@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   CategoryType,
+  ICategorie,
   IChargeVariable,
   RootStackNavigationProp,
   RootStackRouteProp,
@@ -73,7 +74,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const [editDate, setEditDate] = useState<Date>(
     charge?.date ? new Date(charge.date) : new Date()
   );
-  const [editCategorie, setEditCategorie] = useState<CategoryType>(
+  const [editCategorie, setEditCategorie] = useState<string>(
     charge?.categorie ? charge.categorie : "Autre"
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
