@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from "react-native";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./LoginScreen.style";
 
@@ -28,10 +35,11 @@ const LoginScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>Bienvenue sur FYNDUO</Text>
-        <Text style={styles.subHeader}>
-          L'appli pour gérer les comptes de la coloc
-        </Text>
+        <Image
+          source={require("../../public/logo-with-text.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.formContainer}>

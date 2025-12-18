@@ -15,19 +15,10 @@ export const styles = StyleSheet.create({
     marginBottom: 40,
   },
 
-  header: {
-    fontSize: 34,
-    fontWeight: "900",
-    color: "#2c3e50",
-    marginBottom: 10,
-    textAlign: "center",
+  logo: {
+    width: 400,
+    height: 200,
   },
-  subHeader: {
-    fontSize: 18,
-    color: "#7f8c8d",
-    textAlign: "center",
-  },
-
   formContainer: {
     width: "100%",
     maxWidth: 320,
