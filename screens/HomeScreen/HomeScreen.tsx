@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  TouchableWithoutFeedback,
+  Modal,
+} from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useNavigation } from "@react-navigation/native";
 import { IUser, RootStackNavigationProp } from "@/types";
@@ -7,7 +15,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./HomeScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getHouseholdUsers } from "services/firebase/db";
-import { LogOut } from "lucide-react-native";
+import { LogOut, User, Settings } from "lucide-react-native";
 
 const MOCK_HISTORY = [
   { month: "Sept", total: 1250.0 },
@@ -38,6 +46,7 @@ const HistogramPlaceholder = ({
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user, logout, isLoading } = useAuth();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -83,11 +92,51 @@ const HomeScreen: React.FC = () => {
             </Text>
           </View>
         </View>
-
-        <TouchableOpacity style={styles.logoutIconButton} onPress={logout}>
-          <LogOut color="#e74c3c" size={20} />
+        <TouchableOpacity
+          style={styles.userIconButton}
+          onPress={() => setMenuVisible(true)}
+        >
+          <User color="#2c3e50" size={22} />
         </TouchableOpacity>
       </View>
+      <Modal
+        visible={menuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.menuDropdown}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  Alert.alert("Paramètres", "Bientôt disponible !");
+                }}
+              >
+                <Settings color="#2c3e50" size={18} />
+                <Text style={styles.menuItemText}>Paramètres</Text>
+              </TouchableOpacity>
+
+              <View style={styles.menuDivider} />
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  logout!();
+                }}
+              >
+                <LogOut color="#e74c3c" size={18} />
+                <Text style={[styles.menuItemText, { color: "#e74c3c" }]}>
+                  Déconnexion
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.historyCard}>
