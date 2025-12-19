@@ -25,25 +25,48 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   useEffect(() => {
     if (Platform.OS === "web") {
-      const lockOrientation = async () => {
-        try {
-          if (screen.orientation && (screen.orientation as any).lock) {
-            await (screen.orientation as any).lock("portrait");
-          }
-        } catch (error) {
-          console.log(
-            "Le verrouillage d'orientation n'est pas supporté sur ce navigateur"
-          );
-        }
-      };
-
-      lockOrientation();
       const meta = document.createElement("meta");
       meta.name = "viewport";
-      meta.content =
-        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover";
+      meta.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover";
       document.getElementsByTagName("head")[0].appendChild(meta);
+      const style = document.createElement("style");
+      style.textContent = `
+        /* --- BLOC ROTATION FORCÉE (STYLE JEU) --- */
+        @media screen and (orientation: portrait) {
+          #root {
+            transform: rotate(90deg);
+            transform-origin: bottom left;
+            width: 100vh;
+            height: 100vw;
+            position: absolute;
+            top: -100vw;
+            left: 0;
+            overflow: hidden;
+          }
+        }
 
+        /* --- BLOC COMPORTEMENT APPLI --- */
+        html, body {
+          overflow: hidden;
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          overscroll-behavior-y: contain;
+          touch-action: pan-x pan-y; 
+          -webkit-text-size-adjust: 100%;
+        }
+
+        /* --- FIXES INPUTS ET BOUTONS --- */
+        input, textarea, select {
+          font-size: 16px !important;
+        }
+
+        button, [role="button"] {
+          touch-action: manipulation;
+        }
+      `;
+      document.head.append(style);
       const preventZoom = (e: TouchEvent) => {
         if (e.touches.length > 1) {
           e.preventDefault();
@@ -60,27 +83,7 @@ const App: React.FC = () => {
       };
 
       document.addEventListener("touchstart", preventZoom, { passive: false });
-      document.addEventListener("touchend", preventDoubleTap, {
-        passive: false,
-      });
-
-      const style = document.createElement("style");
-      style.textContent = `
-      body {
-        overscroll-behavior-y: contain;
-        /* pan-x pan-y autorise le scroll mais interdit le zoom tactile */
-        touch-action: pan-x pan-y; 
-        -webkit-text-size-adjust: 100%;
-      }
-      input, textarea, select {
-        font-size: 16px !important;
-      }
-      /* Supprime le délai de clic sur les boutons pour une sensation plus fluide */
-      button, [role="button"] {
-        touch-action: manipulation;
-      }
-    `;
-      document.head.append(style);
+      document.addEventListener("touchend", preventDoubleTap, { passive: false });
 
       return () => {
         document.removeEventListener("touchstart", preventZoom);
