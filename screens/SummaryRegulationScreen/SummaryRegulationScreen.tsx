@@ -19,7 +19,7 @@ const SummaryRegulationScreen: React.FC = () => {
   const { user } = useAuth();
 
   if (!user) {
-    return(<NoAuthenticatedUser/>)
+    return <NoAuthenticatedUser />;
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
@@ -99,14 +99,29 @@ const SummaryRegulationScreen: React.FC = () => {
     );
   };
 
+  const formatMoisAnnee = (dateStr: string) => {
+    try {
+      const date = new Date(`${dateStr}-01`);
+
+      return (
+        new Intl.DateTimeFormat("fr-FR", {
+          month: "long",
+          year: "numeric",
+        })
+          .format(date)
+          .replace(/^\w/, (c) => c.toUpperCase())
+      );
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      <Text style={styles.headerTitle}>
-        Résumé du mois : {currentMonthData.moisAnnee}
-      </Text>
+      <Text style={styles.headerTitle}>{formatMoisAnnee(currentMonthData.moisAnnee)}</Text>
 
       <View style={styles.agenceCard}>
         <Text style={styles.agenceLabel}>Montant du virement à l'agence</Text>
