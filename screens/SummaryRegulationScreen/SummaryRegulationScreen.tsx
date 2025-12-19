@@ -103,64 +103,60 @@ const SummaryRegulationScreen: React.FC = () => {
     try {
       const date = new Date(`${dateStr}-01`);
 
-      return (
-        new Intl.DateTimeFormat("fr-FR", {
-          month: "long",
-          year: "numeric",
-        })
-          .format(date)
-          .replace(/^\w/, (c) => c.toUpperCase())
-      );
+      return new Intl.DateTimeFormat("fr-FR", {
+        month: "long",
+        year: "numeric",
+      })
+        .format(date)
+        .replace(/^\w/, (c) => c.toUpperCase());
     } catch (e) {
       return dateStr;
     }
   };
+
+  const aplSomme = Object.values(currentMonthData.apportsAPL).reduce(
+    (sum, apl) => sum + apl,
+    0
+  );
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      <Text style={styles.headerTitle}>{formatMoisAnnee(currentMonthData.moisAnnee)}</Text>
+      <Text style={styles.headerTitle}>
+        {formatMoisAnnee(currentMonthData.moisAnnee)}
+      </Text>
 
       <View style={styles.agenceCard}>
         <Text style={styles.agenceLabel}>Montant du virement à l'agence</Text>
-        <Text style={styles.agenceMontant}>
-          {montantAVerserAgence.toFixed(2)} €
-        </Text>
-        <Text style={styles.agenceMessage}>
-          (Loyer total: {currentMonthData.loyerTotal.toFixed(2)} € - APL total:{" "}
-          {Object.values(currentMonthData.apportsAPL)
-            .reduce((sum, apl) => sum + apl, 0)
-            .toFixed(2)}{" "}
-          €)
-        </Text>
-        <Text style={styles.agenceNote}>
-          ⚠️ Ce virement est effectué par {loyerPayeurName} à l'agence.
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Loyer total</Text>
+          {formatDette(currentMonthData.loyerTotal)}
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>APL total</Text>
+          {formatDette(-aplSomme)}
+        </View>
+        <View style={styles.detailSeparator} />
+        <View style={styles.detailRow}>
+          <Text style={styles.detailTotalLabel}>Solde total à régulariser</Text>
+          <Text style={[styles.detteMontant, styles.detailTotalLabel]}>
+            {formatDette(montantAVerserAgence)}
+          </Text>
+        </View>
+        <Text style={styles.cardMessage}>
+          {loyerPayeurName} doit faire un virement de{" "}
+          {montantAVerserAgence.toFixed(2)} € à l'agence.
         </Text>
       </View>
 
       <View
         style={[
-          styles.card,
+          styles.detailSection,
           estCrediteur ? styles.cardCredit : styles.cardDebit,
         ]}
       >
-        <Text style={styles.cardLabel}>
-          Résultat clôture ({colocataireActuel})
-        </Text>
-        <Text style={styles.mainSolde}>{montantAbsolu.toFixed(2)} €</Text>
-        <Text style={styles.cardMessage}>{messagePrincipal}</Text>
-      </View>
-
-      <View style={styles.statusBadge}>
-        <Text style={styles.statusText}>
-          Statut :{" "}
-          {currentMonthData.statut === "finalisé" ? "✅ CLÔTURÉ" : "⚠️ OUVERT"}
-        </Text>
-      </View>
-
-      <View style={styles.detailSection}>
         <Text style={styles.detailTitle}>
           Analyse détaillée ({colocataireActuel})
         </Text>
@@ -190,6 +186,14 @@ const SummaryRegulationScreen: React.FC = () => {
             {formatDette(soldeFinal)}
           </Text>
         </View>
+        <Text style={styles.cardMessage}>{messagePrincipal}</Text>
+      </View>
+
+      <View style={styles.statusBadge}>
+        <Text style={styles.statusText}>
+          Statut :{" "}
+          {currentMonthData.statut === "finalisé" ? "✅ CLÔTURÉ" : "⚠️ OUVERT"}
+        </Text>
       </View>
 
       <View style={{ height: 30 }} />
