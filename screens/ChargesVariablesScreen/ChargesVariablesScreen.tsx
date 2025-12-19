@@ -24,6 +24,7 @@ import { PayeurPickerModal } from "../ChargeVariableDetail/EditChargeVariableFor
 import { BeneficiariesSelector } from "../ChargeVariableDetail/EditChargeVariableForm/BeneficiariesSelector/BeneficiariesSelector";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { ChevronsUpDown } from "lucide-react-native";
+import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 
 dayjs.locale("fr");
 
@@ -222,21 +223,35 @@ const ChargesVariablesScreen: React.FC = () => {
 
       {showForm && (
         <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Description (ex: Courses)"
-            value={description}
-            onChangeText={setDescription}
-            editable={!isSubmitting}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Montant total (ex: 80.50)"
-            value={montant}
-            onChangeText={setMontant}
-            keyboardType="numeric"
-            editable={!isSubmitting}
-          />
+          <View style={styles.editSectionCard}>
+            <Text style={styles.editLabel}>Titre</Text>
+            <View style={styles.inputFieldContainer}>
+              <TextInput
+                style={styles.editInputActive}
+                placeholder="Description (ex: Courses)"
+                value={description}
+                onChangeText={setDescription}
+                editable={!isSubmitting}
+              />
+            </View>
+          </View>
+
+          <View style={styles.editSectionCard}>
+            <Text style={styles.editLabel}>Montant Total</Text>
+            <View style={styles.inputFieldContainer}>
+              <TextInput
+                style={styles.editInputActive}
+                placeholder="0.00"
+                value={montant}
+                onChangeText={setMontant}
+                keyboardType="numeric"
+                editable={!isSubmitting}
+              />
+              <Text style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}>
+                €
+              </Text>
+            </View>
+          </View>
           <View style={{ flexDirection: "row", marginBottom: 12 }}>
             <TouchableOpacity
               style={[styles.selectorButton, { flex: 1, marginRight: 5 }]}
@@ -262,22 +277,26 @@ const ChargesVariablesScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.selectorButton, { flex: 1, marginLeft: 5 }]}
-              onPress={() => setDatePickerVisibility(true)}
-            >
-              <Text style={styles.selectorLabel}>Date</Text>
-              <View
-                style={{
+            <UniversalDatePicker
+              date={selectedDate}
+              isVisible={isDatePickerVisible}
+              onConfirm={(date: Date) => {
+                setSelectedDate(date);
+                setDatePickerVisibility(false);
+              }}
+              onCancel={() => setDatePickerVisibility(false)}
+              onOpen={() => setDatePickerVisibility(true)}
+              styles={{
+                ...styles,
+                editSectionCard: { ...styles.selectorButton },
+                editLabel: styles.selectorLabel,
+                selectorContainer: {
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
-                }}
-              >
-                <Text>{dayjs(selectedDate).format("DD/MM/YYYY")}</Text>
-                <ChevronsUpDown size={14} color="#8E8E93" />
-              </View>
-            </TouchableOpacity>
+                },
+              }}
+            />
           </View>
 
           <TouchableOpacity
@@ -311,13 +330,19 @@ const ChargesVariablesScreen: React.FC = () => {
             getDisplayName={getDisplayName}
             currentUserId={user.id}
           />
-          <Button
-            title={
-              isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"
-            }
+          <TouchableOpacity
+            style={[
+              styles.saveButton,
+              (isSubmitting || benefCount === 0 || !payeurUid) &&
+                styles.disabledButton,
+            ]}
             onPress={handleAddDepense}
             disabled={isSubmitting || benefCount === 0 || !payeurUid}
-          />
+          >
+            <Text style={styles.saveButtonText}>
+              {isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 

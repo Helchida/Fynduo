@@ -1,14 +1,13 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { XCircle, ChevronsUpDown } from "lucide-react-native";
-import dayjs from "dayjs";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { PayeurPickerModal } from "./PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "./BeneficiariesSelector/BeneficiariesSelector";
 import { styles } from "./EditChargeVariableForm.style";
 import { EditChargeVariableFormProps } from "./EditChargeVariableForm.type";
 import { CategoryPickerModal } from "./CategoryPickerModal/CategoryPickerModal";
 import { CategoryType } from "@/types";
+import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 
 export const EditChargeVariableForm = ({
   editDescription,
@@ -107,22 +106,14 @@ export const EditChargeVariableForm = ({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.editSectionCard,
-            styles.payorCard,
-            { flex: 1, marginLeft: 8 },
-          ]}
-          onPress={showDatePicker}
-        >
-          <Text style={styles.editLabel}>Quand</Text>
-          <View style={styles.selectorContainer}>
-            <Text style={styles.miniUserText}>
-              {dayjs(editDate).format("D MMM")}
-            </Text>
-            <ChevronsUpDown size={16} color="#8E8E93" />
-          </View>
-        </TouchableOpacity>
+        <UniversalDatePicker
+          date={editDate}
+          isVisible={isDatePickerVisible}
+          onConfirm={handleConfirmDate}
+          onCancel={hideDatePicker}
+          onOpen={showDatePicker}
+          styles={styles}
+        />
       </View>
 
       <CategoryPickerModal
@@ -178,20 +169,6 @@ export const EditChargeVariableForm = ({
       >
         <Text style={{ color: "#E74C3C", fontWeight: "600" }}>Annuler</Text>
       </TouchableOpacity>
-
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        date={editDate}
-        onConfirm={handleConfirmDate}
-        onCancel={hideDatePicker}
-        confirmTextIOS="Valider"
-        cancelTextIOS="Annuler"
-        locale="fr_FR"
-        isDarkModeEnabled={false}
-        textColor="black"
-        {...({ themeVariant: "light" } as any)}
-      />
     </View>
   );
 };
