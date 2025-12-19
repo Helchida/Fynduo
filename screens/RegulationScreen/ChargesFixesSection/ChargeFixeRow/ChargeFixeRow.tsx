@@ -18,7 +18,8 @@ const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({
     <TextInput
       style={[styles.input, styles.montantInput]}
       placeholder="Montant (€)"
-      keyboardType="numeric"
+      keyboardType="decimal-pad"
+      {...({ inputMode: "decimal" } as any)}
       value={charge.montantForm}
       onChangeText={(text) =>
         onUpdate(charge.id, "montantForm", text.replace(",", "."))

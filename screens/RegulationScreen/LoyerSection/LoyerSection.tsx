@@ -23,7 +23,8 @@ const LoyerSection: React.FC<LoyerSectionProps> = ({
         </Text>
         <TextInput
           style={styles.mainInput}
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
+          {...({ inputMode: "decimal" } as any)}
           value={loyerTotal}
           onChangeText={updateLoyerTotal}
         />
@@ -44,7 +45,8 @@ const LoyerSection: React.FC<LoyerSectionProps> = ({
               </Text>
               <TextInput
                 style={styles.mainInput}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                {...({ inputMode: "decimal" } as any)}
                 value={aplAmount}
                 onChangeText={handleChangeApl}
               />

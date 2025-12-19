@@ -244,7 +244,8 @@ const ChargesVariablesScreen: React.FC = () => {
                 placeholder="0.00"
                 value={montant}
                 onChangeText={setMontant}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                {...({ inputMode: "decimal" } as any)}
                 editable={!isSubmitting}
               />
               <Text style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}>

@@ -67,7 +67,8 @@ export const EditChargeVariableForm = ({
               style={[styles.editInputActive]}
               value={editMontant}
               onChangeText={setEditMontant}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
+              {...({ inputMode: "decimal" } as any)}
               placeholder="0,00"
             />
             <Text style={[styles.cardAmount, { marginLeft: 4 }]}>€</Text>

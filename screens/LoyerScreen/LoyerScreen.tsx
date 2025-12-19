@@ -173,7 +173,8 @@ const LoyerScreen: React.FC = () => {
           style={styles.input}
           value={loyerTotal}
           onChangeText={setLoyerTotal}
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
+          {...({ inputMode: "decimal" } as any)}
           placeholder="e.g., 1200.00"
           editable={!isDisabled}
         />
@@ -207,7 +208,8 @@ const LoyerScreen: React.FC = () => {
               style={styles.input}
               value={apportsAPL[u.id] || ""}
               onChangeText={(text) => handleAplChange(u.id, text)}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
+              {...({ inputMode: "decimal" } as any)}
               placeholder="e.g., 120.00"
               editable={!isDisabled}
             />
