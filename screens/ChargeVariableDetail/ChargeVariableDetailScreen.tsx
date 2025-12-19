@@ -269,9 +269,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
       ) : (
         <>
           <View style={styles.detailHeaderContainer}>
-            <View style={styles.iconPlaceholder}>
-              <Text style={styles.iconText}>{categoryIcon}</Text>
-            </View>
+            <Text style={styles.iconText}>{categoryIcon}</Text>
             <Text style={styles.detailTitle}>{charge.description}</Text>
             <Text style={styles.detailDateText}>Ajouté le {dateFormatted}</Text>
           </View>

@@ -10,15 +10,6 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
     marginBottom: 15,
   },
-  iconPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#F39C12",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 5,
-  },
   iconText: {
     fontSize: 30,
     color: "#fff",
