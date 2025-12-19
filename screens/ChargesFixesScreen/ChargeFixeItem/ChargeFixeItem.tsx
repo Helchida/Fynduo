@@ -96,7 +96,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           keyboardType="decimal-pad"
           {...({ inputMode: "decimal" } as any)}
           editable={!isSaving}
-          style={[styles.input, { backgroundColor: "#f5f5f5", color: "#999" }]}
+          style={[styles.input, { backgroundColor: "#f5f5f5", color: "#333" }]}
         />
         <Text style={styles.currency}>€</Text>
         <TouchableOpacity
