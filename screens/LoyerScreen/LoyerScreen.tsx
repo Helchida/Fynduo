@@ -227,9 +227,7 @@ const LoyerScreen: React.FC = () => {
       </View>
 
       <View style={styles.resultContainer}>
-        <Text style={styles.resultLabel}>
-          Loyer Net (Total - APL) à virer à l'agence
-        </Text>
+        <Text style={styles.resultLabel}>Loyer à virer à l'agence :</Text>
         <Text style={styles.resultValue}>{loyerNet.toFixed(2)} €</Text>
       </View>
 
