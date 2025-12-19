@@ -168,7 +168,8 @@ const ChargesFixesScreen: React.FC = () => {
             placeholder="Montant mensuel (ex: 80.50)"
             value={montant}
             onChangeText={setMontant}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
+            {...({ inputMode: "decimal" } as any)}
             editable={!isSubmitting}
           />
           <View style={styles.inputGroup}>
