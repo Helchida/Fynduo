@@ -25,6 +25,7 @@ import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthent
 import { UserDisplayCard } from "./UserDisplayCard/UserDisplayCard";
 import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVariableForm";
 import { useCategories } from "hooks/useCategories";
+import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 dayjs.locale("fr");
 
 type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
@@ -71,6 +72,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   );
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [editDate, setEditDate] = useState<Date>(
     charge?.date ? new Date(charge.date) : new Date()
   );
@@ -317,11 +319,24 @@ const ChargeVariableDetailScreen: React.FC = () => {
                 styles.addButton,
                 { backgroundColor: "#E74C3C", flex: 1, marginLeft: 5 },
               ]}
-              onPress={handleDeleteCharge}
+              onPress={() => setIsDeleteModalVisible(true)}
             >
               <Text style={styles.addButtonText}>Supprimer</Text>
             </TouchableOpacity>
           </View>
+
+          <ConfirmModal
+            visible={isDeleteModalVisible}
+            title="Supprimer la charge"
+            message={`Voulez-vous vraiment supprimer "${charge.description}" ? Cette action est irréversible.`}
+            confirmText="Supprimer"
+            isDestructive={true}
+            onConfirm={async () => {
+              setIsDeleteModalVisible(false);
+              deleteChargeVariable(charge.id);
+            }}
+            onCancel={() => setIsDeleteModalVisible(false)}
+          />
         </>
       )}
     </ScrollView>
