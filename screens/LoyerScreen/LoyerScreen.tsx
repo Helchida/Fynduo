@@ -181,7 +181,7 @@ const LoyerScreen: React.FC = () => {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Qui a payé le loyer ?</Text>
+        <Text style={styles.label}>Qui payera le loyer ?</Text>
         <TouchableOpacity
           style={[
             styles.input,
@@ -200,10 +200,14 @@ const LoyerScreen: React.FC = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>APL reçus par colocataire</Text>
+        <Text style={styles.sectionTitle}>
+          APL futures que recevront les colocataires
+        </Text>
         {householdUsers.map((u) => (
           <View key={u.id} style={styles.inputGroup}>
-            <Text style={styles.label}>APL reçus ({u.displayName}) (€)</Text>
+            <Text style={styles.label}>
+              APL futures que recevra {u.displayName} (€)
+            </Text>
             <TextInput
               style={styles.input}
               value={apportsAPL[u.id] || ""}
@@ -223,7 +227,9 @@ const LoyerScreen: React.FC = () => {
       </View>
 
       <View style={styles.resultContainer}>
-        <Text style={styles.resultLabel}>Loyer Net (Total - APL)</Text>
+        <Text style={styles.resultLabel}>
+          Loyer Net (Total - APL) à virer à l'agence
+        </Text>
         <Text style={styles.resultValue}>{loyerNet.toFixed(2)} €</Text>
       </View>
 
