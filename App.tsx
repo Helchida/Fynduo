@@ -25,6 +25,19 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   useEffect(() => {
     if (Platform.OS === "web") {
+      const lockOrientation = async () => {
+        try {
+          if (screen.orientation && (screen.orientation as any).lock) {
+            await (screen.orientation as any).lock("portrait");
+          }
+        } catch (error) {
+          console.log(
+            "Le verrouillage d'orientation n'est pas supporté sur ce navigateur"
+          );
+        }
+      };
+
+      lockOrientation();
       const meta = document.createElement("meta");
       meta.name = "viewport";
       meta.content =
