@@ -2,7 +2,8 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../hooks/useAuth";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "@/types";
+import { Text, TouchableOpacity } from "react-native";
 
 import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import LoyerScreen from "../screens/LoyerScreen/LoyerScreen";
@@ -15,7 +16,6 @@ import HistoryScreen from "../screens/HistoryScreen/HistoryScreen";
 import HistoryDetailScreen from "../screens/HistoryDetailScreen/HistoryDetailScreen";
 import ChargeVariableDetailScreen from "screens/ChargeVariableDetail/ChargeVariableDetailScreen";
 import { ChevronLeft } from "lucide-react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import RegisterScreen from "screens/RegisterScreen/RegisterScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -24,14 +24,45 @@ const AppStack = () => (
   <Stack.Navigator
     screenOptions={({ navigation }) => ({
       headerShown: true,
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ marginLeft: 10 }}
-        >
-          <ChevronLeft color="#007AFF" size={24} />
-        </TouchableOpacity>
-      ),
+      headerShadowVisible: false,
+      headerStyle: {
+        backgroundColor: "#f4f7f9",
+      },
+      headerTitleStyle: {
+        fontWeight: "600",
+        fontSize: 17,
+        color: "#1a1a1a",
+      },
+      headerLeft: () => {
+        const canGoBack = navigation.canGoBack();
+        if (!canGoBack) {
+          return null;
+        }
+
+        return (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingVertical: 5,
+            }}
+          >
+            <ChevronLeft color="#007AFF" size={28} strokeWidth={1.5} />
+            <Text
+              style={{
+                color: "#007AFF",
+                fontSize: 17,
+                letterSpacing: -0.4,
+              }}
+            >
+              Retour
+            </Text>
+          </TouchableOpacity>
+        );
+      },
+      headerTitleAlign: "center",
     })}
   >
     <Stack.Screen
