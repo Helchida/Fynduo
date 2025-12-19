@@ -27,20 +27,23 @@ const App: React.FC = () => {
     if (Platform.OS === "web") {
       const meta = document.createElement("meta");
       meta.name = "viewport";
-      meta.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover";
+      meta.content =
+        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover";
       document.getElementsByTagName("head")[0].appendChild(meta);
       const style = document.createElement("style");
       style.textContent = `
         /* --- BLOC ROTATION FORCÉE (STYLE JEU) --- */
-        @media screen and (orientation: portrait) {
+        @media screen and (orientation: landscape) {
           #root {
-            transform: rotate(90deg);
-            transform-origin: bottom left;
-            width: 100vh;
-            height: 100vw;
-            position: absolute;
-            top: -100vw;
-            left: 0;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            width: 100vh !important;
+            height: 100vw !important;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -50vw; 
+            margin-left: -50vh;
             overflow: hidden;
           }
         }
@@ -83,7 +86,9 @@ const App: React.FC = () => {
       };
 
       document.addEventListener("touchstart", preventZoom, { passive: false });
-      document.addEventListener("touchend", preventDoubleTap, { passive: false });
+      document.addEventListener("touchend", preventDoubleTap, {
+        passive: false,
+      });
 
       return () => {
         document.removeEventListener("touchstart", preventZoom);
