@@ -61,12 +61,13 @@ const HomeScreen: React.FC = () => {
     }
   }, [user?.householdId]);
 
-  const { isLoadingComptes } = useComptes();
+  const { isLoadingComptes, currentMonthData } = useComptes();
 
   if (isLoadingComptes || isLoading) {
     return <Text style={styles.loading}>Chargement...</Text>;
   }
 
+  const isFinalized = currentMonthData?.statut === "finalisé";
   const isSolo = householdMembers.length <= 1;
 
   return (
@@ -195,14 +196,16 @@ const HomeScreen: React.FC = () => {
               style={[styles.actionButton, { borderLeftColor: "#f39c12" }]}
               onPress={() => navigation.navigate("Regulation")}
             >
-              <Text style={styles.actionText}>Faire les comptes</Text>
+              <Text style={styles.actionText}>
+                {isFinalized ? "Voir le bilan du mois" : "Faire les comptes"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
-              onPress={() => navigation.navigate("ChargesVariables")}
+              style={[styles.actionButton, { borderLeftColor: "#27a1d1ff" }]}
+              onPress={() => navigation.navigate("Loyer")}
             >
-              <Text style={styles.actionText}>Charges variables</Text>
+              <Text style={styles.actionText}>Loyer et APL</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -213,10 +216,10 @@ const HomeScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, { borderLeftColor: "#27a1d1ff" }]}
-              onPress={() => navigation.navigate("Loyer")}
+              style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
+              onPress={() => navigation.navigate("ChargesVariables")}
             >
-              <Text style={styles.actionText}>Loyer et APL</Text>
+              <Text style={styles.actionText}>Charges variables</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
