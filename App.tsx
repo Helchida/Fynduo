@@ -32,23 +32,6 @@ const App: React.FC = () => {
       document.getElementsByTagName("head")[0].appendChild(meta);
       const style = document.createElement("style");
       style.textContent = `
-        /* --- BLOC ROTATION FORCÉE (STYLE JEU) --- */
-        @media screen and (orientation: landscape) {
-          #root {
-            transform: rotate(-90deg);
-            transform-origin: center;
-            width: 100vh !important;
-            height: 100vw !important;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            margin-top: -50vw; 
-            margin-left: -50vh;
-            overflow: hidden;
-          }
-        }
-
-        /* --- BLOC COMPORTEMENT APPLI --- */
         html, body {
           overflow: hidden;
           width: 100%;
@@ -60,7 +43,6 @@ const App: React.FC = () => {
           -webkit-text-size-adjust: 100%;
         }
 
-        /* --- FIXES INPUTS ET BOUTONS --- */
         input, textarea, select {
           font-size: 16px !important;
         }
