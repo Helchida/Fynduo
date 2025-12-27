@@ -34,7 +34,7 @@ const HistoryDetailScreen: React.FC = () => {
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
 
   if (!user) {
-    return(<NoAuthenticatedUser/>)
+    return <NoAuthenticatedUser />;
   }
 
   const currentUserId = user.id;
@@ -99,6 +99,16 @@ const HistoryDetailScreen: React.FC = () => {
   const { totalChargesFixes, soldeFinal, detteLoyer, detteChargesFixes } =
     calculs;
 
+  const aplSomme = Object.values(compte.apportsAPL).reduce(
+    (sum, apl) => sum + apl,
+    0
+  );
+  const montantAVerserAgence = compte.loyerTotal - aplSomme;
+  const loyerPayeurName = useGetDisplayNameUserInHousehold(
+    compte.loyerPayeurUid,
+    householdUsers
+  );
+
   const formattedDateBuild = dayjs(compte.moisAnnee, "YYYY-MM").format(
     "MMMM YYYY"
   );
@@ -126,14 +136,26 @@ const HistoryDetailScreen: React.FC = () => {
         <Text style={styles.sectionTitle}>
           🏠 Loyer & APL ({moisAnneeAfter})
         </Text>
-        <Text style={styles.detail}>
-          Loyer total: {compte.loyerTotal.toFixed(2)} €
-        </Text>
-        {Object.keys(compte.apportsAPL).map((uid) => (
-          <Text key={uid} style={styles.detail}>
-            APL {useGetDisplayNameUserInHousehold(uid, householdUsers)}: {compte.apportsAPL[uid].toFixed(2)} €
+        <View style={styles.chargeRow}>
+          <Text style={styles.chargeDescription}>• Loyer total</Text>
+          <Text style={styles.chargeMontant}>
+            {compte.loyerTotal.toFixed(2)} €
           </Text>
+        </View>
+        {Object.keys(compte.apportsAPL).map((uid) => (
+          <View key={uid} style={styles.chargeRow}>
+            <Text style={styles.chargeDescription}>
+              • APL {useGetDisplayNameUserInHousehold(uid, householdUsers)}
+            </Text>
+            <Text style={styles.chargeMontant}>
+              {compte.apportsAPL[uid].toFixed(2)} €
+            </Text>
+          </View>
         ))}
+        <View style={styles.chargeRow}>
+          <Text style={styles.chargeDescription}>• APL total</Text>
+          <Text style={styles.chargeMontant}>{aplSomme.toFixed(2)} €</Text>
+        </View>
 
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Dette Loyer/APL :</Text>
@@ -153,6 +175,13 @@ const HistoryDetailScreen: React.FC = () => {
             )}
           </View>
         </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Montant à verser :</Text>
+        </View>
+        <Text style={[styles.detail, styles.dettePayer]}>
+          {loyerPayeurName} doit verser {montantAVerserAgence.toFixed(2)} € à
+          l'agence.
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -167,7 +196,10 @@ const HistoryDetailScreen: React.FC = () => {
                 {charge.montantMensuel.toFixed(2)} €
               </Text>
               <Text style={styles.chargePayeur}>
-                {useGetDisplayNameUserInHousehold(charge.payeur, householdUsers)}
+                {useGetDisplayNameUserInHousehold(
+                  charge.payeur,
+                  householdUsers
+                )}
               </Text>
             </View>
           ))}
@@ -196,8 +228,17 @@ const HistoryDetailScreen: React.FC = () => {
         <Text style={styles.sectionTitle}>🎯 Charges variables</Text>
         {compte.dettes.map((dette, index) => (
           <Text key={index} style={styles.finalDetail}>
-            Dette {useGetDisplayNameUserInHousehold(dette.debiteurUid, householdUsers)} vers{" "}
-            {useGetDisplayNameUserInHousehold(dette.creancierUid, householdUsers)}: {dette.montant.toFixed(2)} €
+            Dette{" "}
+            {useGetDisplayNameUserInHousehold(
+              dette.debiteurUid,
+              householdUsers
+            )}{" "}
+            vers{" "}
+            {useGetDisplayNameUserInHousehold(
+              dette.creancierUid,
+              householdUsers
+            )}
+            : {dette.montant.toFixed(2)} €
           </Text>
         ))}
 
