@@ -2,11 +2,10 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
-  FlatList,
   TextInput,
-  Button,
   Alert,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -59,9 +58,13 @@ const ChargesVariablesScreen: React.FC = () => {
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState("Autre");
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDateDepense, setSelectedDateDepense] = useState<Date>(new Date());
+  const [selectedDateAjout, setSelectedDateAjout] = useState<Date>(new Date());
+  const [isDateDepensePickerVisible, setDateDepensePickerVisibility] = useState(false);
+  const [isDateAjoutPickerVisible, setDateAjoutPickerVisibility] = useState(false);
+  const [filterMois, setFilterMois] = useState<string | null>(null);
+  const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
 
   const handleOpenDetail = useCallback(
     (charge: IChargeVariable) => {
@@ -74,12 +77,24 @@ const ChargesVariablesScreen: React.FC = () => {
   );
 
   const groupedCharges = useMemo(() => {
+    let filtered = chargesVariables.slice();
+    if (filterPayeur) {
+      filtered = filtered.filter(c => c.payeur === filterPayeur);
+    }
+
+    if (filterMois) {
+      filtered = filtered.filter(c =>
+        dayjs(c.dateDepense).format("YYYY-MM") === filterMois
+      );
+    }
+
+
     const sortedCharges = chargesVariables
       .slice()
-      .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
+      .sort((a, b) => dayjs(b.dateDepense).valueOf() - dayjs(a.dateDepense).valueOf());
 
     const groupedData = sortedCharges.reduce((acc, charge) => {
-      const dateKey = dayjs(charge.date).format("YYYY-MM-DD");
+      const dateKey = dayjs(charge.dateDepense).format("YYYY-MM-DD");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -100,7 +115,7 @@ const ChargesVariablesScreen: React.FC = () => {
     });
 
     return groupedArray;
-  }, [chargesVariables]);
+  }, [chargesVariables, filterPayeur, filterMois]);
 
   const handleAddDepense = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
@@ -136,8 +151,9 @@ const ChargesVariablesScreen: React.FC = () => {
       montantTotal,
       payeur: payeurUid,
       beneficiaires: beneficiairesUid,
-      date: selectedDate.toISOString(),
-      moisAnnee: dayjs(selectedDate).format("YYYY-MM"),
+      dateDepense: selectedDateDepense.toISOString(),
+      dateAjout: selectedDateAjout.toISOString(),
+      moisAnnee: dayjs(selectedDateAjout).format("YYYY-MM"),
       categorie: selectedCategorie,
     };
 
@@ -145,7 +161,8 @@ const ChargesVariablesScreen: React.FC = () => {
       await addChargeVariable(chargeVariableToAdd);
       setDescription("");
       setMontant("");
-      setSelectedDate(new Date());
+      setSelectedDateDepense(new Date());
+      setSelectedDateAjout(new Date());
       setSelectedCategorie("Autre");
       setPayeurUid(user.id || null);
       setBeneficiairesUid(householdUsers.map((u) => u.id));
@@ -162,7 +179,8 @@ const ChargesVariablesScreen: React.FC = () => {
     montant,
     payeurUid,
     beneficiairesUid,
-    selectedDate,
+    selectedDateDepense,
+    selectedDateAjout,
     selectedCategorie,
     currentMonthData,
     addChargeVariable,
@@ -210,52 +228,57 @@ const ChargesVariablesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Charges variables</Text>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowForm(!showForm)}
-        disabled={isSubmitting}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.addButtonText}>
-          {showForm ? "Annuler l'ajout" : "+ Ajouter une dépense"}
-        </Text>
-      </TouchableOpacity>
+        <Text style={styles.header}>Charges variables</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowForm(!showForm)}
+          disabled={isSubmitting}
+        >
+          <Text style={styles.addButtonText}>
+            {showForm ? "Annuler l'ajout" : "+ Ajouter une dépense"}
+          </Text>
+        </TouchableOpacity>
 
-      {showForm && (
-        <View style={styles.formContainer}>
-          <View style={styles.editSectionCard}>
-            <Text style={styles.editLabel}>Titre</Text>
-            <View style={styles.inputFieldContainer}>
-              <TextInput
-                style={styles.editInputActive}
-                placeholder="Description (ex: Courses)"
-                value={description}
-                onChangeText={setDescription}
-                editable={!isSubmitting}
-              />
+        {showForm && (
+          <View style={styles.formContainer}>
+            <View style={styles.editSectionCard}>
+              <Text style={styles.editLabel}>Titre</Text>
+              <View style={styles.inputFieldContainer}>
+                <TextInput
+                  style={styles.editInputActive}
+                  placeholder="Description (ex: Courses)"
+                  value={description}
+                  onChangeText={setDescription}
+                  editable={!isSubmitting}
+                />
+              </View>
             </View>
-          </View>
 
-          <View style={styles.editSectionCard}>
-            <Text style={styles.editLabel}>Montant Total</Text>
-            <View style={styles.inputFieldContainer}>
-              <TextInput
-                style={styles.editInputActive}
-                placeholder="0.00"
-                value={montant}
-                onChangeText={setMontant}
-                keyboardType="decimal-pad"
-                {...({ inputMode: "decimal" } as any)}
-                editable={!isSubmitting}
-              />
-              <Text style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}>
-                €
-              </Text>
+            <View style={styles.editSectionCard}>
+              <Text style={styles.editLabel}>Montant Total</Text>
+              <View style={styles.inputFieldContainer}>
+                <TextInput
+                  style={styles.editInputActive}
+                  placeholder="0.00"
+                  value={montant}
+                  onChangeText={setMontant}
+                  keyboardType="decimal-pad"
+                  {...({ inputMode: "decimal" } as any)}
+                  editable={!isSubmitting}
+                />
+                <Text style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}>
+                  €
+                </Text>
+              </View>
             </View>
-          </View>
-          <View style={{ flexDirection: "row", marginBottom: 12 }}>
+
             <TouchableOpacity
-              style={[styles.selectorButton, { flex: 1, marginRight: 5 }]}
+              style={styles.selectorButton}
               onPress={() => setIsCategoryModalVisible(true)}
             >
               <Text style={styles.selectorLabel}>Catégorie</Text>
@@ -278,88 +301,171 @@ const ChargesVariablesScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
 
-            <UniversalDatePicker
-              date={selectedDate}
-              isVisible={isDatePickerVisible}
-              onConfirm={(date: Date) => {
-                setSelectedDate(date);
-                setDatePickerVisibility(false);
-              }}
-              onCancel={() => setDatePickerVisibility(false)}
-              onOpen={() => setDatePickerVisibility(true)}
-              styles={{
-                ...styles,
-                editSectionCard: { ...styles.selectorButton },
-                editLabel: styles.selectorLabel,
-                selectorContainer: {
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <UniversalDatePicker
+                date={selectedDateDepense}
+                label="Date de dépense"
+                isVisible={isDateDepensePickerVisible}
+                onConfirm={(date: Date) => {
+                  setSelectedDateDepense(date);
+                  setDateDepensePickerVisibility(false);
+                }}
+                onCancel={() => setDateDepensePickerVisibility(false)}
+                onOpen={() => setDateDepensePickerVisibility(true)}
+                containerStyle={{ flex: 1, marginLeft: 0 }}
+                styles={{
+                  ...styles,
+                  editSectionCard: styles.selectorButton,
+                  editLabel: styles.selectorLabel,
+                  selectorContainer: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  },
+                  miniUserText: { fontSize: 14, color: "#000" },
+                }}
+              />
+
+              <UniversalDatePicker
+                date={selectedDateAjout}
+                label="Date d'ajout"
+                isVisible={isDateAjoutPickerVisible}
+                onConfirm={(date: Date) => {
+                  setSelectedDateAjout(date);
+                  setDateAjoutPickerVisibility(false);
+                }}
+                onCancel={() => setDateAjoutPickerVisibility(false)}
+                onOpen={() => setDateAjoutPickerVisibility(true)}
+                containerStyle={{ flex: 1, marginLeft: 0 }}
+                styles={{
+                  ...styles,
+                  editSectionCard: styles.selectorButton,
+                  editLabel: styles.selectorLabel,
+                  selectorContainer: {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  },
+                  miniUserText: { fontSize: 14, color: "#000" },
+                }}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => setIsPayeurModalVisible(true)}
+            >
+              <Text style={styles.selectorLabel}>Payé par</Text>
+              <View
+                style={{
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
-                },
-              }}
+                }}
+              >
+                <Text>{getDisplayName(payeurUid || "")}</Text>
+                <ChevronsUpDown size={14} color="#8E8E93" />
+              </View>
+            </TouchableOpacity>
+
+            <BeneficiariesSelector
+              users={householdUsers}
+              selectedUids={beneficiairesUid}
+              totalAmount={montant}
+              onToggle={(uid) =>
+                setBeneficiairesUid((prev) =>
+                  prev.includes(uid)
+                    ? prev.filter((i) => i !== uid)
+                    : [...prev, uid]
+                )
+              }
+              getDisplayName={getDisplayName}
+              currentUserId={user.id}
             />
-          </View>
-
-          <TouchableOpacity
-            style={styles.selectorButton}
-            onPress={() => setIsPayeurModalVisible(true)}
-          >
-            <Text style={styles.selectorLabel}>Payé par</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Text>{getDisplayName(payeurUid || "")}</Text>
-              <ChevronsUpDown size={14} color="#8E8E93" />
-            </View>
-          </TouchableOpacity>
-
-          <BeneficiariesSelector
-            users={householdUsers}
-            selectedUids={beneficiairesUid}
-            totalAmount={montant}
-            onToggle={(uid) =>
-              setBeneficiairesUid((prev) =>
-                prev.includes(uid)
-                  ? prev.filter((i) => i !== uid)
-                  : [...prev, uid]
-              )
-            }
-            getDisplayName={getDisplayName}
-            currentUserId={user.id}
-          />
-          <TouchableOpacity
-            style={[
-              styles.saveButton,
-              (isSubmitting || benefCount === 0 || !payeurUid) &&
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                (isSubmitting || benefCount === 0 || !payeurUid) &&
                 styles.disabledButton,
-            ]}
-            onPress={handleAddDepense}
-            disabled={isSubmitting || benefCount === 0 || !payeurUid}
+              ]}
+              onPress={handleAddDepense}
+              disabled={isSubmitting || benefCount === 0 || !payeurUid}
+            >
+              <Text style={styles.saveButtonText}>
+                {isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.filtersContainer}>
+          <Text style={styles.filtersLabel}>Filtrer :</Text>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterMois && styles.filterChipActive]}
+            onPress={() => {
+              setFilterMois(filterMois ? null : dayjs().format("YYYY-MM"));
+            }}
           >
-            <Text style={styles.saveButtonText}>
-              {isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"}
+            <Text
+              style={[
+                styles.filterChipText,
+                filterMois && styles.filterChipTextActive,
+              ]}
+            >
+              📅 {filterMois ? dayjs(filterMois).format("MMM YYYY") : "Mois"}
             </Text>
           </TouchableOpacity>
-        </View>
-      )}
 
-      {groupedCharges.length === 0 ? (
-        <Text style={styles.loading}>
-          Aucune dépense enregistrée pour le moment.
-        </Text>
-      ) : (
-        <FlatList
-          data={groupedCharges}
-          keyExtractor={(item) => item.date}
-          renderItem={renderGroupedCharge}
-          style={styles.list}
-          contentContainerStyle={{ paddingBottom: 10 }}
-        />
-      )}
+          <TouchableOpacity
+            style={[styles.filterChip, filterPayeur && styles.filterChipActive]}
+            onPress={() => {
+              setFilterPayeur(filterPayeur ? null : user.id);
+            }}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterPayeur && styles.filterChipTextActive,
+              ]}
+            >
+              👤 {filterPayeur ? getDisplayName(filterPayeur) : "Payeur"}
+            </Text>
+          </TouchableOpacity>
+
+          {(filterMois || filterPayeur) && (
+            <TouchableOpacity
+              style={styles.filterClearButton}
+              onPress={() => {
+                setFilterMois(null);
+                setFilterPayeur(null);
+              }}
+            >
+              <Text style={styles.filterClearText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {groupedCharges.length === 0 ? (
+          <Text style={styles.loading}>
+            Aucune dépense enregistrée pour le moment.
+          </Text>
+        ) : (
+          groupedCharges.map((group) => (
+            <View key={group.date}>
+              <Text style={styles.dateSeparator}>{group.date}</Text>
+              {group.charges.map((charge) => (
+                <ChargeVariableItem
+                  key={charge.id}
+                  charge={charge}
+                  householdUsers={householdUsers}
+                  onPress={handleOpenDetail}
+                />
+              ))}
+            </View>
+          ))
+        )}
+      </ScrollView>
 
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}
@@ -385,14 +491,31 @@ const ChargesVariablesScreen: React.FC = () => {
       />
 
       <DateTimePickerModal
-        isVisible={isDatePickerVisible}
+        isVisible={isDateDepensePickerVisible}
         mode="date"
-        date={selectedDate}
+        date={selectedDateDepense}
         onConfirm={(date) => {
-          setSelectedDate(date);
-          setDatePickerVisibility(false);
+          setSelectedDateDepense(date);
+          setDateDepensePickerVisibility(false);
         }}
-        onCancel={() => setDatePickerVisibility(false)}
+        onCancel={() => setDateDepensePickerVisibility(false)}
+        confirmTextIOS="Valider"
+        cancelTextIOS="Annuler"
+        locale="fr_FR"
+        isDarkModeEnabled={false}
+        textColor="black"
+        {...({ themeVariant: "light" } as any)}
+      />
+
+      <DateTimePickerModal
+        isVisible={isDateAjoutPickerVisible}
+        mode="date"
+        date={selectedDateAjout}
+        onConfirm={(date) => {
+          setSelectedDateAjout(date);
+          setDateAjoutPickerVisibility(false);
+        }}
+        onCancel={() => setDateAjoutPickerVisibility(false)}
         confirmTextIOS="Valider"
         cancelTextIOS="Annuler"
         locale="fr_FR"

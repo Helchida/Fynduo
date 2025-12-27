@@ -148,4 +148,48 @@ export const styles = StyleSheet.create({
     opacity: 0.5,
     backgroundColor: "#95a5a6",
   },
+
+  filtersContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  filtersLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 4,
+    color: '#666',
+  },
+  filterChip: {
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  filterChipActive: {
+    backgroundColor: '#3498db',
+    borderColor: '#3498db',
+  },
+  filterChipText: {
+    fontSize: 13,
+    color: '#333',
+  },
+  filterChipTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  filterClearButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  filterClearText: {
+    fontSize: 16,
+    color: '#e74c3c',
+    fontWeight: '600',
+  },
 });

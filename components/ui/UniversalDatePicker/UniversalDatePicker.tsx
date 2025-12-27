@@ -7,11 +7,13 @@ import { ChevronsUpDown } from "lucide-react-native";
 
 export const UniversalDatePicker = ({
   date,
+  label,
   isVisible,
   onConfirm,
   onCancel,
   onOpen,
   styles,
+  containerStyle,
 }: any) => {
   if (Platform.OS === "web") {
     return (
@@ -20,16 +22,16 @@ export const UniversalDatePicker = ({
           style={[
             styles.editSectionCard,
             styles.payorCard,
-            { flex: 1, marginLeft: 8 },
+            containerStyle,
           ]}
           onPress={onOpen}
         >
-          <Text style={styles.editLabel}>Quand</Text>
+          <Text style={styles.editLabel}>{label}</Text>
           <View style={styles.selectorContainer}>
             <Text style={styles.miniUserText}>
-              {dayjs(date).format("D MMM")}
+              {dayjs(date).format("DD/MM/YYYY")}
             </Text>
-            <ChevronsUpDown size={16} color="#8E8E93" />
+            <ChevronsUpDown size={14} color="#8E8E93" />
           </View>
         </TouchableOpacity>
 
@@ -52,14 +54,16 @@ export const UniversalDatePicker = ({
         style={[
           styles.editSectionCard,
           styles.payorCard,
-          { flex: 1, marginLeft: 8 },
+          containerStyle,
         ]}
         onPress={onOpen}
       >
-        <Text style={styles.editLabel}>Quand</Text>
+        <Text style={styles.editLabel}>{label}</Text>
         <View style={styles.selectorContainer}>
-          <Text style={styles.miniUserText}>{dayjs(date).format("D MMM")}</Text>
-          <ChevronsUpDown size={16} color="#8E8E93" />
+          <Text style={styles.miniUserText}>
+            {dayjs(date).format("DD/MM/YYYY")}
+          </Text>
+          <ChevronsUpDown size={14} color="#8E8E93" />
         </View>
       </TouchableOpacity>
 
