@@ -2,19 +2,13 @@ import React, { useMemo } from "react";
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
+import { useCalculs } from "../../hooks/useCalculs";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import { styles } from "./SummaryRegulationScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const SummaryRegulationScreen: React.FC = () => {
-  const {
-    currentMonthData,
-    isLoadingComptes,
-    soldeFinal,
-    detteLoyer,
-    detteChargesFixes,
-    detteChargesVariables,
-  } = useComptes();
+  const { currentMonthData, isLoadingComptes, chargesVariables } = useComptes();
 
   const { user } = useAuth();
 
@@ -28,6 +22,14 @@ const SummaryRegulationScreen: React.FC = () => {
   const currentUserUid = currentUser.id || "UID_ACTUEL_INCONNU";
   const otherUser = householdUsers.find((u) => u.id !== currentUserUid);
   const otherUserUid = otherUser?.id || "UID_AUTRE_INCONNU";
+
+  const { soldeFinal, detteLoyer, detteChargesFixes, detteChargesVariables } =
+    useCalculs(
+      currentMonthData,
+      currentMonthData?.chargesFixesSnapshot || [],
+      chargesVariables,
+      currentUserUid
+    );
 
   const colocataireActuel = getDisplayName(currentUserUid);
   const autreColocataire = getDisplayName(otherUserUid);
