@@ -17,6 +17,7 @@ import * as DB from "../../services/firebase/db";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { Info } from "lucide-react-native";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -31,7 +32,7 @@ const ChargesFixesScreen: React.FC = () => {
 
   const { user } = useAuth();
   if (!user) {
-    return(<NoAuthenticatedUser/>)
+    return <NoAuthenticatedUser />;
   }
 
   const [nom, setNom] = useState("");
@@ -42,6 +43,7 @@ const ChargesFixesScreen: React.FC = () => {
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -144,7 +146,15 @@ const ChargesFixesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Charges fixes</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.header}>Charges fixes</Text>
+        <TouchableOpacity
+          onPress={() => setShowInfoModal(true)}
+          style={styles.infoButton}
+        >
+          <Info size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => setShowForm(!showForm)}
@@ -239,6 +249,46 @@ const ChargesFixesScreen: React.FC = () => {
               onPress={() => setIsPayeurModalVisible(false)}
             >
               <Text style={styles.modalCloseButtonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showInfoModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowInfoModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.infoModalContent}>
+            <Text style={styles.infoModalTitle}>
+              💡 À propos des charges fixes
+            </Text>
+            <Text style={styles.infoModalText}>
+              Les <Text style={styles.bold}>charges fixes</Text> sont des
+              dépenses récurrentes chaque mois : électricité, gaz, internet,
+              eau, assurance, etc.
+            </Text>
+            <Text style={styles.infoModalText}>
+              Ces montants sont répartis équitablement entre les colocataires
+              lors de la régularisation mensuelle.
+            </Text>
+            <View style={styles.warningBox}>
+              <Text style={styles.warningTitle}>⚠️ Important</Text>
+              <Text style={styles.warningText}>
+                Si vous modifiez le montant d'une charge fixe, cela
+                <Text style={styles.bold}> n'affecte que les mois futurs</Text>.
+              </Text>
+              <Text style={styles.warningText}>
+                Les mois déjà validés restent inchangés car un historique des
+                charges est enregistré à chaque clôture.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.infoModalButton}
+              onPress={() => setShowInfoModal(false)}
+            >
+              <Text style={styles.infoModalButtonText}>Compris !</Text>
             </TouchableOpacity>
           </View>
         </View>
