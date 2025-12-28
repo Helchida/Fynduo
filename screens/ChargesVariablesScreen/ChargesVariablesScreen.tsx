@@ -24,6 +24,7 @@ import { BeneficiariesSelector } from "../ChargeVariableDetail/EditChargeVariabl
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { ChevronsUpDown } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
+import { MonthPickerModal } from "components/ui/MonthPickerModal/MonthPickerModal";
 
 dayjs.locale("fr");
 
@@ -65,6 +66,8 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isDateComptesPickerVisible, setDateComptesPickerVisibility] = useState(false);
   const [filterMois, setFilterMois] = useState<string | null>(null);
   const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
+  const [isFilterMoisModalVisible, setIsFilterMoisModalVisible] = useState(false);
+  const [isFilterPayeurModalVisible, setIsFilterPayeurModalVisible] = useState(false);
 
   const handleOpenDetail = useCallback(
     (charge: IChargeVariable) => {
@@ -78,20 +81,23 @@ const ChargesVariablesScreen: React.FC = () => {
 
   const groupedCharges = useMemo(() => {
     let filtered = chargesVariables.slice();
+
+    // Filtre par payeur
     if (filterPayeur) {
       filtered = filtered.filter(c => c.payeur === filterPayeur);
     }
 
+    // Filtre par mois
     if (filterMois) {
       filtered = filtered.filter(c =>
         dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois
       );
     }
 
-
-    const sortedCharges = chargesVariables
-      .slice()
-      .sort((a, b) => dayjs(b.dateStatistiques).valueOf() - dayjs(a.dateStatistiques).valueOf());
+    // Tri par dateStatistiques (utilise filtered au lieu de chargesVariables)
+    const sortedCharges = filtered.sort(
+      (a, b) => dayjs(b.dateStatistiques).valueOf() - dayjs(a.dateStatistiques).valueOf()
+    );
 
     const groupedData = sortedCharges.reduce((acc, charge) => {
       const dateKey = dayjs(charge.dateStatistiques).format("YYYY-MM-DD");
@@ -208,23 +214,7 @@ const ChargesVariablesScreen: React.FC = () => {
     (c) => c.id === selectedCategorie
   );
 
-  const renderGroupedCharge = ({
-    item: group,
-  }: {
-    item: GroupedChargesVariables;
-  }) => (
-    <View key={group.date}>
-      <Text style={styles.dateSeparator}>{group.date}</Text>
-      {group.charges.map((charge) => (
-        <ChargeVariableItem
-          key={charge.id}
-          charge={charge}
-          householdUsers={householdUsers}
-          onPress={handleOpenDetail}
-        />
-      ))}
-    </View>
-  );
+
 
   return (
     <View style={styles.container}>
@@ -403,9 +393,7 @@ const ChargesVariablesScreen: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.filterChip, filterMois && styles.filterChipActive]}
-            onPress={() => {
-              setFilterMois(filterMois ? null : dayjs().format("YYYY-MM"));
-            }}
+            onPress={() => setIsFilterMoisModalVisible(true)}
           >
             <Text
               style={[
@@ -419,9 +407,7 @@ const ChargesVariablesScreen: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.filterChip, filterPayeur && styles.filterChipActive]}
-            onPress={() => {
-              setFilterPayeur(filterPayeur ? null : user.id);
-            }}
+            onPress={() => setIsFilterPayeurModalVisible(true)}
           >
             <Text
               style={[
@@ -466,6 +452,26 @@ const ChargesVariablesScreen: React.FC = () => {
           ))
         )}
       </ScrollView>
+
+      <MonthPickerModal
+        isVisible={isFilterMoisModalVisible}
+        onClose={() => setIsFilterMoisModalVisible(false)}
+        selectedMonth={filterMois}
+        onSelect={(month) => setFilterMois(month)}
+        chargesVariables={chargesVariables}
+      />
+
+      <PayeurPickerModal
+        isVisible={isFilterPayeurModalVisible}
+        onClose={() => setIsFilterPayeurModalVisible(false)}
+        users={householdUsers}
+        selectedUid={filterPayeur || ""}
+        onSelect={(uid) => {
+          setFilterPayeur(uid);
+          setIsFilterPayeurModalVisible(false);
+        }}
+        getDisplayName={getDisplayName}
+      />
 
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}
