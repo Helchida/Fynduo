@@ -328,7 +328,8 @@ export async function addChargeVariableRegularisation(
       montantTotal: dette.montant,
       payeur: dette.creancierUid,
       beneficiaires: [dette.debiteurUid],
-      date: dateRegul,
+      dateStatistiques: dateRegul,
+      dateComptes: dateRegul,
       moisAnnee: moisAnnee,
       categorie: "Remboursement",
     });

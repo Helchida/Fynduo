@@ -51,8 +51,8 @@ export interface IChargeVariable extends FirestoreDocument {
   montantTotal: number;
   payeur: string;
   beneficiaires: string[];
-  dateDepense: string;
-  dateAjout: string;
+  dateStatistiques: string;
+  dateComptes: string;
   moisAnnee: string;
   categorie: ICategorie["id"];
   householdId: string;

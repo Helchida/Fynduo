@@ -71,22 +71,34 @@ const ChargeVariableDetailScreen: React.FC = () => {
     charge?.beneficiaires || []
   );
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] = useState(false);
+  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-  const [editDate, setEditDate] = useState<Date>(
-    charge?.date ? new Date(charge.date) : new Date()
+  const [editDateStatistiques, setEditDateStatistiques] = useState<Date>(
+    charge?.dateStatistiques ? new Date(charge.dateStatistiques) : new Date()
+  );
+  const [editDateComptes, setEditDateComptes] = useState<Date>(
+    charge?.dateComptes ? new Date(charge.dateComptes) : new Date()
   );
   const [editCategorie, setEditCategorie] = useState<string>(
     charge?.categorie ? charge.categorie : "Autre"
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
-  const showDatePicker = () => setDatePickerVisibility(true);
-  const hideDatePicker = () => setDatePickerVisibility(false);
+  const showDateStatistiquesPicker = () => setDateStatistiquesPickerVisibility(true);
+  const hideDateStatistiquesPicker = () => setDateStatistiquesPickerVisibility(false);
 
-  const handleConfirmDate = (date: Date) => {
-    setEditDate(date);
-    hideDatePicker();
+  const showDateComptesPicker = () => setDateComptesPickerVisibility(true);
+  const hideDateComptesPicker = () => setDateComptesPickerVisibility(false);
+
+  const handleConfirmDateStatistiques = (date: Date) => {
+    setEditDateStatistiques(date);
+    hideDateStatistiquesPicker();
+  };
+
+  const handleConfirmDateComptes = (date: Date) => {
+    setEditDateComptes(date);
+    hideDateComptesPicker();
   };
 
   const getDisplayName = (uid: string) => {
@@ -102,6 +114,12 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditPayeurUid(initialCharge.payeur);
       setEditBeneficiairesUid(initialCharge.beneficiaires);
       setEditCategorie(initialCharge.categorie);
+      setEditDateStatistiques(
+        initialCharge.dateStatistiques ? new Date(initialCharge.dateStatistiques) : new Date()
+      );
+      setEditDateComptes(
+        initialCharge.dateComptes ? new Date(initialCharge.dateComptes) : new Date()
+      );
     } else if (!isLoadingComptes) {
       Alert.alert("Erreur", "Charge non trouvée.");
       navigation.goBack();
@@ -166,7 +184,8 @@ const ChargeVariableDetailScreen: React.FC = () => {
       montantTotal,
       payeur: editPayeurUid,
       beneficiaires: editBeneficiairesUid,
-      date: editDate.toISOString(),
+      dateStatistiques: editDateStatistiques.toISOString(),
+      dateComptes: editDateComptes.toISOString(),
       categorie: editCategorie,
     };
 
@@ -185,7 +204,8 @@ const ChargeVariableDetailScreen: React.FC = () => {
     editMontant,
     editPayeurUid,
     editBeneficiairesUid,
-    editDate,
+    editDateStatistiques,
+    editDateComptes,
     updateChargeVariable,
     editCategorie,
   ]);
@@ -217,7 +237,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
         name: getDisplayName(userId),
         isCurrentUser: userId === user.id,
         isPayeur: charge.payeur === userId,
-        amountDisplay: amountPerPerson,
+        amountPerPerson,
       };
     });
   }, [charge, householdUsers, user.id, getDisplayName]);
@@ -227,9 +247,12 @@ const ChargeVariableDetailScreen: React.FC = () => {
     name: getDisplayName(charge.payeur),
     isCurrentUser: charge.payeur === user.id,
     isPayeur: true,
-    amountDisplay: 0,
+    amountPerPerson: 0,
   };
-  const dateFormatted = dayjs(charge.date).format("DD MMMM");
+  
+  const dateStatistiquesFormatted = dayjs(charge.dateStatistiques).format("DD MMMM YYYY");
+  const dateComptesFormatted = dayjs(charge.dateComptes).format("DD MMMM YYYY");
+  
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
   const currentCategoryData = categories.find((c) => c.id === charge.categorie);
@@ -249,11 +272,16 @@ const ChargeVariableDetailScreen: React.FC = () => {
           householdUsers={householdUsers}
           getDisplayName={getDisplayName}
           setEditPayeurUid={setEditPayeurUid}
-          editDate={editDate}
-          showDatePicker={showDatePicker}
-          isDatePickerVisible={isDatePickerVisible}
-          handleConfirmDate={handleConfirmDate}
-          hideDatePicker={hideDatePicker}
+          editDateStatistiques={editDateStatistiques}
+          editDateComptes={editDateComptes}
+          showDateStatistiquesPicker={showDateStatistiquesPicker}
+          showDateComptesPicker={showDateComptesPicker}
+          isDateStatistiquesPickerVisible={isDateStatistiquesPickerVisible}
+          isDateComptesPickerVisible={isDateComptesPickerVisible}
+          handleConfirmDateStatistiques={handleConfirmDateStatistiques}
+          handleConfirmDateComptes={handleConfirmDateComptes}
+          hideDateStatistiquesPicker={hideDateStatistiquesPicker}
+          hideDateComptesPicker={hideDateComptesPicker}
           editBeneficiairesUid={editBeneficiairesUid}
           handleToggleEditBeneficiaire={handleToggleEditBeneficiaire}
           currentUserId={user.id}
@@ -271,7 +299,12 @@ const ChargeVariableDetailScreen: React.FC = () => {
           <View style={styles.detailHeaderContainer}>
             <Text style={styles.iconText}>{categoryIcon}</Text>
             <Text style={styles.detailTitle}>{charge.description}</Text>
-            <Text style={styles.detailDateText}>Ajouté le {dateFormatted}</Text>
+            <Text style={styles.detailDateText}>
+              Dépense du {dateStatistiquesFormatted}
+            </Text>
+            <Text style={[styles.detailDateText, { fontSize: 12, color: '#999' }]}>
+              Ajoutée le {dateComptesFormatted}
+            </Text>
           </View>
 
           <View style={styles.cardSection}>
@@ -296,7 +329,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
               <UserDisplayCard
                 key={item.userId + "-split"}
                 name={item.name}
-                amount={item.amountDisplay.toFixed(2).replace(".", ",")}
+                amount={item.amountPerPerson.toFixed(2).replace(".", ",")}
                 isMe={item.userId === user.id}
               />
             ))}

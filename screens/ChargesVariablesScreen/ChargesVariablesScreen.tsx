@@ -59,10 +59,10 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState("Autre");
-  const [selectedDateDepense, setSelectedDateDepense] = useState<Date>(new Date());
-  const [selectedDateAjout, setSelectedDateAjout] = useState<Date>(new Date());
-  const [isDateDepensePickerVisible, setDateDepensePickerVisibility] = useState(false);
-  const [isDateAjoutPickerVisible, setDateAjoutPickerVisibility] = useState(false);
+  const [selectedDateStatistiques, setSelectedDateStatistiques] = useState<Date>(new Date());
+  const [selectedDateComptes, setSelectedDateComptes] = useState<Date>(new Date());
+  const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] = useState(false);
+  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] = useState(false);
   const [filterMois, setFilterMois] = useState<string | null>(null);
   const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
 
@@ -84,17 +84,17 @@ const ChargesVariablesScreen: React.FC = () => {
 
     if (filterMois) {
       filtered = filtered.filter(c =>
-        dayjs(c.dateDepense).format("YYYY-MM") === filterMois
+        dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois
       );
     }
 
 
     const sortedCharges = chargesVariables
       .slice()
-      .sort((a, b) => dayjs(b.dateDepense).valueOf() - dayjs(a.dateDepense).valueOf());
+      .sort((a, b) => dayjs(b.dateStatistiques).valueOf() - dayjs(a.dateStatistiques).valueOf());
 
     const groupedData = sortedCharges.reduce((acc, charge) => {
-      const dateKey = dayjs(charge.dateDepense).format("YYYY-MM-DD");
+      const dateKey = dayjs(charge.dateStatistiques).format("YYYY-MM-DD");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -151,9 +151,9 @@ const ChargesVariablesScreen: React.FC = () => {
       montantTotal,
       payeur: payeurUid,
       beneficiaires: beneficiairesUid,
-      dateDepense: selectedDateDepense.toISOString(),
-      dateAjout: selectedDateAjout.toISOString(),
-      moisAnnee: dayjs(selectedDateAjout).format("YYYY-MM"),
+      dateStatistiques: selectedDateStatistiques.toISOString(),
+      dateComptes: selectedDateComptes.toISOString(),
+      moisAnnee: dayjs(selectedDateComptes).format("YYYY-MM"),
       categorie: selectedCategorie,
     };
 
@@ -161,8 +161,8 @@ const ChargesVariablesScreen: React.FC = () => {
       await addChargeVariable(chargeVariableToAdd);
       setDescription("");
       setMontant("");
-      setSelectedDateDepense(new Date());
-      setSelectedDateAjout(new Date());
+      setSelectedDateStatistiques(new Date());
+      setSelectedDateComptes(new Date());
       setSelectedCategorie("Autre");
       setPayeurUid(user.id || null);
       setBeneficiairesUid(householdUsers.map((u) => u.id));
@@ -179,8 +179,8 @@ const ChargesVariablesScreen: React.FC = () => {
     montant,
     payeurUid,
     beneficiairesUid,
-    selectedDateDepense,
-    selectedDateAjout,
+    selectedDateStatistiques,
+    selectedDateComptes,
     selectedCategorie,
     currentMonthData,
     addChargeVariable,
@@ -303,15 +303,15 @@ const ChargesVariablesScreen: React.FC = () => {
 
             <View style={{ flexDirection: "row", gap: 8 }}>
               <UniversalDatePicker
-                date={selectedDateDepense}
+                date={selectedDateStatistiques}
                 label="Date de dépense"
-                isVisible={isDateDepensePickerVisible}
+                isVisible={isDateStatistiquesPickerVisible}
                 onConfirm={(date: Date) => {
-                  setSelectedDateDepense(date);
-                  setDateDepensePickerVisibility(false);
+                  setSelectedDateStatistiques(date);
+                  setDateStatistiquesPickerVisibility(false);
                 }}
-                onCancel={() => setDateDepensePickerVisibility(false)}
-                onOpen={() => setDateDepensePickerVisibility(true)}
+                onCancel={() => setDateStatistiquesPickerVisibility(false)}
+                onOpen={() => setDateStatistiquesPickerVisibility(true)}
                 containerStyle={{ flex: 1, marginLeft: 0 }}
                 styles={{
                   ...styles,
@@ -327,15 +327,15 @@ const ChargesVariablesScreen: React.FC = () => {
               />
 
               <UniversalDatePicker
-                date={selectedDateAjout}
+                date={selectedDateComptes}
                 label="Date d'ajout"
-                isVisible={isDateAjoutPickerVisible}
+                isVisible={isDateComptesPickerVisible}
                 onConfirm={(date: Date) => {
-                  setSelectedDateAjout(date);
-                  setDateAjoutPickerVisibility(false);
+                  setSelectedDateComptes(date);
+                  setDateComptesPickerVisibility(false);
                 }}
-                onCancel={() => setDateAjoutPickerVisibility(false)}
-                onOpen={() => setDateAjoutPickerVisibility(true)}
+                onCancel={() => setDateComptesPickerVisibility(false)}
+                onOpen={() => setDateComptesPickerVisibility(true)}
                 containerStyle={{ flex: 1, marginLeft: 0 }}
                 styles={{
                   ...styles,
@@ -491,14 +491,14 @@ const ChargesVariablesScreen: React.FC = () => {
       />
 
       <DateTimePickerModal
-        isVisible={isDateDepensePickerVisible}
+        isVisible={isDateStatistiquesPickerVisible}
         mode="date"
-        date={selectedDateDepense}
+        date={selectedDateStatistiques}
         onConfirm={(date) => {
-          setSelectedDateDepense(date);
-          setDateDepensePickerVisibility(false);
+          setSelectedDateStatistiques(date);
+          setDateStatistiquesPickerVisibility(false);
         }}
-        onCancel={() => setDateDepensePickerVisibility(false)}
+        onCancel={() => setDateStatistiquesPickerVisibility(false)}
         confirmTextIOS="Valider"
         cancelTextIOS="Annuler"
         locale="fr_FR"
@@ -508,14 +508,14 @@ const ChargesVariablesScreen: React.FC = () => {
       />
 
       <DateTimePickerModal
-        isVisible={isDateAjoutPickerVisible}
+        isVisible={isDateComptesPickerVisible}
         mode="date"
-        date={selectedDateAjout}
+        date={selectedDateComptes}
         onConfirm={(date) => {
-          setSelectedDateAjout(date);
-          setDateAjoutPickerVisibility(false);
+          setSelectedDateComptes(date);
+          setDateComptesPickerVisibility(false);
         }}
-        onCancel={() => setDateAjoutPickerVisibility(false)}
+        onCancel={() => setDateComptesPickerVisibility(false)}
         confirmTextIOS="Valider"
         cancelTextIOS="Annuler"
         locale="fr_FR"
