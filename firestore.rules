@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: Vérifie si l'utilisateur est authentifié
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function: Vérifie si l'utilisateur appartient au foyer
+    function belongsToHousehold(householdId) {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.householdId == householdId;
+    }
+    
+    // Helper function: Vérifie si c'est le propriétaire du document
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // RÈGLES POUR LES UTILISATEURS
+    match /users/{userId} {
+      // Lecture: seulement son propre profil
+      allow read: if isOwner(userId);
+      
+      // Création: seulement lors de l'inscription (son propre compte)
+      allow create: if isOwner(userId) && 
+                      request.resource.data.keys().hasAll(['email', 'displayName', 'householdId']);
+      
+      // Mise à jour: seulement son propre profil ET ne peut pas changer householdId
+      allow update: if isOwner(userId) && 
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['householdId', 'id']);
+      
+      // Suppression: jamais (ou seulement par un admin)
+      allow delete: if false;
+    }
+    
+    // RÈGLES POUR LES FOYERS (HOUSEHOLDS)
+    match /households/{householdId} {
+      // Lecture: seulement les membres du foyer
+      allow read: if belongsToHousehold(householdId);
+      
+      // Écriture: jamais directement sur le document household
+      allow write: if false;
+      
+      // SOUS-COLLECTION: comptes_mensuels
+      match /comptes_mensuels/{compteId} {
+        allow read: if belongsToHousehold(householdId);
+        
+        allow create: if belongsToHousehold(householdId) &&
+                        request.resource.data.keys().hasAll(['moisAnnee', 'loyerTotal', 'apportsAPL', 'statut']) &&
+                        request.resource.data.moisAnnee is string &&
+                        request.resource.data.loyerTotal is number &&
+                        request.resource.data.loyerTotal >= 0;
+        
+        allow update: if belongsToHousehold(householdId) &&
+                        request.resource.data.moisAnnee == resource.data.moisAnnee; // Ne peut pas changer le mois
+        
+        allow delete: if belongsToHousehold(householdId) &&
+                        resource.data.statut != "finalisé"; // Ne peut pas supprimer un mois finalisé
+      }
+      
+      // SOUS-COLLECTION: charges_fixes
+      match /charges_fixes/{chargeId} {
+        allow read: if belongsToHousehold(householdId);
+        
+        allow create: if belongsToHousehold(householdId) &&
+                        request.resource.data.keys().hasAll(['nom', 'montantMensuel', 'payeur']) &&
+                        request.resource.data.montantMensuel is number &&
+                        request.resource.data.montantMensuel > 0;
+        
+        allow update: if belongsToHousehold(householdId);
+        
+        allow delete: if belongsToHousehold(householdId);
+      }
+      
+      // SOUS-COLLECTION: charges_variables
+      match /charges_variables/{chargeId} {
+        allow read: if belongsToHousehold(householdId);
+        
+        allow create: if belongsToHousehold(householdId) &&
+                        request.resource.data.keys().hasAll(['description', 'montantTotal', 'payeur', 'beneficiaires', 'dateDepense', 'dateAjout', 'moisAnnee']) &&
+                        request.resource.data.montantTotal is number &&
+                        request.resource.data.montantTotal > 0 &&
+                        request.resource.data.beneficiaires is list &&
+                        request.resource.data.beneficiaires.size() > 0;
+        
+        allow update: if belongsToHousehold(householdId);
+        
+        allow delete: if belongsToHousehold(householdId);
+      }
+      
+      // SOUS-COLLECTION: categories
+      match /categories/{categorieId} {
+        allow read: if belongsToHousehold(householdId);
+        
+        allow create: if belongsToHousehold(householdId) &&
+                        request.resource.data.keys().hasAll(['label', 'icon']);
+        
+        allow update: if belongsToHousehold(householdId);
+        
+        allow delete: if belongsToHousehold(householdId) &&
+                        !resource.data.isDefault; // Ne peut pas supprimer les catégories par défaut
+      }
+    }
+  }
+}
