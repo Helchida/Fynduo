@@ -22,17 +22,17 @@ service cloud.firestore {
     // RÈGLES POUR LES UTILISATEURS
     match /users/{userId} {
       // Lecture: seulement son propre profil
-      allow read: if isOwner(userId);
+      allow read: if isSignedIn() && (
+        isOwner(userId) || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.householdId == resource.data.householdId
+      );
       
-      // Création: seulement lors de l'inscription (son propre compte)
       allow create: if isOwner(userId) && 
                       request.resource.data.keys().hasAll(['email', 'displayName', 'householdId']);
       
-      // Mise à jour: seulement son propre profil ET ne peut pas changer householdId
       allow update: if isOwner(userId) && 
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['householdId', 'id']);
       
-      // Suppression: jamais (ou seulement par un admin)
       allow delete: if false;
     }
     
@@ -80,7 +80,7 @@ service cloud.firestore {
         allow read: if belongsToHousehold(householdId);
         
         allow create: if belongsToHousehold(householdId) &&
-                        request.resource.data.keys().hasAll(['description', 'montantTotal', 'payeur', 'beneficiaires', 'dateDepense', 'dateAjout', 'moisAnnee']) &&
+                        request.resource.data.keys().hasAll(['description', 'montantTotal', 'payeur', 'beneficiaires', 'dateStatistiques', 'dateComptes', 'moisAnnee']) &&
                         request.resource.data.montantTotal is number &&
                         request.resource.data.montantTotal > 0 &&
                         request.resource.data.beneficiaires is list &&
