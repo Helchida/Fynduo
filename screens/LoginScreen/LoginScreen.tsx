@@ -11,6 +11,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./LoginScreen.style";
 import { RootStackNavigationProp } from "@/types";
 import { useNavigation } from "@react-navigation/native";
+import { sendEmailVerification } from "firebase/auth";
+import { auth } from "services/firebase/config";
+import Constants from "expo-constants";
 
 const LoginScreen: React.FC = () => {
   const { login, isLoading } = useAuth();
@@ -18,6 +21,18 @@ const LoginScreen: React.FC = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const isDev = Constants.appOwnership === "expo";
+  const resendVerification = async () => {
+    if (!auth.currentUser) return;
+
+    const actionCodeSettings = {
+      url: "https://fynduo.vercel.app/",
+      handleCodeInApp: false,
+    };
+
+    await sendEmailVerification(auth.currentUser, actionCodeSettings);
+    Alert.alert("Email envoyé", "Vérifiez votre boîte mail.");
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -83,6 +98,13 @@ const LoginScreen: React.FC = () => {
             </Text>
           </Text>
         </TouchableOpacity>
+        {!isDev && (
+          <TouchableOpacity onPress={resendVerification}>
+            <Text style={{ color: "#3498db", marginTop: 10 }}>
+              Renvoyer l’email de vérification
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

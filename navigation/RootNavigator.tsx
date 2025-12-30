@@ -17,6 +17,7 @@ import HistoryDetailScreen from "../screens/HistoryDetailScreen/HistoryDetailScr
 import ChargeVariableDetailScreen from "screens/ChargeVariableDetail/ChargeVariableDetailScreen";
 import { ChevronLeft } from "lucide-react-native";
 import RegisterScreen from "screens/RegisterScreen/RegisterScreen";
+import { navigationRef } from "./RootNavigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -128,7 +129,7 @@ const RootNavigator = () => {
   const { user } = useAuth();
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );

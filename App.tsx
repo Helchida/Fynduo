@@ -7,9 +7,36 @@ import RootNavigator from "./navigation/RootNavigator";
 import { useAuth } from "./hooks/useAuth";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
+import { auth } from './services/firebase/config';
+import * as Linking from 'expo-linking';
+import { navigate } from "navigation/RootNavigation";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
+  
+  useEffect(() => {
+    const handleUrl = async ({ url }: { url: string }) => {
+      if (url.includes('email-verified')) {
+        // Met à jour l'utilisateur Firebase
+        if (auth.currentUser) await auth.currentUser.reload();
+
+        // Navigue vers Login
+        navigate('Login');
+      }
+    };
+
+    // Si l'app est déjà ouverte
+    const subscription = Linking.addEventListener('url', handleUrl);
+
+    // Si l'app est lancée via le lien
+    const checkInitialUrl = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl) handleUrl({ url: initialUrl });
+    };
+    checkInitialUrl();
+
+    return () => subscription.remove();
+  }, []);
 
   if (isLoading) {
     return (

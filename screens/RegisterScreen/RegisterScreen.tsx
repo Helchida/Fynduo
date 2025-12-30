@@ -10,9 +10,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { styles } from "./RegisterScreen.style";
 import { createUserProfile } from "services/firebase/db";
+import { sendEmailVerification } from "firebase/auth";
+import { auth } from "services/firebase/config";
+import Constants from "expo-constants";
 
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -29,7 +32,6 @@ const RegisterScreen: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -37,13 +39,28 @@ const RegisterScreen: React.FC = () => {
       );
       const user = userCredential.user;
 
+      const isDev = Constants.appOwnership === "expo";
+
+      const actionCodeSettings = {
+        url: "https://fynduo.vercel.app/",
+        handleCodeInApp: false,
+      };
+
+      if (!isDev) {
+        await sendEmailVerification(user, actionCodeSettings);
+      }
+
       await createUserProfile(user.uid, {
         email: user.email || email,
         displayName: email.split("@")[0],
         householdId: user.uid,
       });
 
-      Alert.alert("Succès", "Compte créé !");
+      Alert.alert(
+        "Compte créé",
+        "Un email de vérification vous a été envoyé. Vérifiez votre boîte mail avant de vous connecter."
+      );
+      navigation.navigate("Login");
     } catch (error: any) {
       Alert.alert("Erreur", error.message);
     } finally {

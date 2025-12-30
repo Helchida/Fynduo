@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./public/apple-touch-icon.png",
+    "scheme": "fynduo",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "backgroundColor": "#f4f7f9",

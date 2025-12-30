@@ -28,55 +28,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
-      if (firebaseUser) {
-        try {
-          const token = await firebaseUser.getIdToken();
-          const userRef = doc(db, "users", firebaseUser.uid);
-          const userSnap = await getDoc(userRef);
 
-          if (userSnap.exists()) {
-            const userData = userSnap.data() as IUser;
-            const householdId = userData.householdId as string | undefined;
-            const displayName = userData.displayName as string;
+      if (!firebaseUser) {
+        setUser(null);
+        setHouseholdUsers([]);
+        setIsLoading(false);
+        return;
+      }
 
-            if (!householdId) {
-              console.error(
-                "L'utilisateur n'est associé à aucun foyer:",
-                firebaseUser.uid
-              );
-              await signOut(auth);
-              setUser(null);
-            } else {
-              setUser({
-                id: firebaseUser.uid,
-                displayName,
-                householdId,
-                token,
-              });
+      if (!firebaseUser.emailVerified) {
+        console.warn("Email non vérifié :", firebaseUser.email);
 
-              const users = await DB.getHouseholdUsers(householdId);
-              setHouseholdUsers(users);
-            }
-          } else {
-            console.error(
-              "Document colocataire non trouvé pour l'UID:",
-              firebaseUser.uid
-            );
-            await signOut(auth);
-            setUser(null);
-          }
-        } catch (error) {
-          console.error(
-            "Erreur lors de la récupération des données utilisateur:",
-            error
-          );
-          await signOut(auth);
-          setUser(null);
+        setUser(null);
+        setHouseholdUsers([]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const token = await firebaseUser.getIdToken();
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          throw new Error("Profil utilisateur introuvable");
         }
-      } else {
+
+        const userData = userSnap.data() as IUser;
+
+        setUser({
+          id: firebaseUser.uid,
+          displayName: userData.displayName,
+          householdId: userData.householdId,
+          token,
+        });
+
+        const users = await DB.getHouseholdUsers(userData.householdId);
+        setHouseholdUsers(users);
+      } catch (error) {
+        console.error("Erreur AuthContext :", error);
         setUser(null);
         setHouseholdUsers([]);
       }
+
       setIsLoading(false);
     });
 
