@@ -15,6 +15,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { IUser } from "@/types";
 import * as DB from "../services/firebase/db";
 import { IAuthContext, IUserContext } from "./types/AuthContext.type";
+import Constants from "expo-constants";
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
@@ -36,7 +37,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      if (!firebaseUser.emailVerified) {
+      const isDev = Constants.appOwnership === "expo";
+
+      if (!firebaseUser.emailVerified && !isDev) {
         console.warn("Email non vérifié :", firebaseUser.email);
 
         setUser(null);
