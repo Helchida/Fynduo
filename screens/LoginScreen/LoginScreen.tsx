@@ -116,19 +116,8 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.formContainer}>
         {errorMessage && (
-          <View
-            style={{
-              backgroundColor: "#f8d7da",
-              padding: 12,
-              borderRadius: 8,
-              marginBottom: 15,
-              borderLeftWidth: 4,
-              borderLeftColor: "#dc3545",
-            }}
-          >
-            <Text style={{ color: "#721c24", fontSize: 14, fontWeight: "500" }}>
-              ❌ {errorMessage}
-            </Text>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>❌ {errorMessage}</Text>
           </View>
         )}
 
@@ -139,11 +128,13 @@ const LoginScreen: React.FC = () => {
           onChangeText={(text) => {
             setEmail(text);
             setErrorMessage(null);
+            setSuccessMessage(null);
             setRemainingAttempts(null);
           }}
           keyboardType="email-address"
           autoCapitalize="none"
         />
+
         <TextInput
           style={styles.input}
           placeholder="Mot de passe"
@@ -156,19 +147,8 @@ const LoginScreen: React.FC = () => {
         />
 
         {successMessage && (
-          <View
-            style={{
-              backgroundColor: "#d4edda",
-              padding: 12,
-              borderRadius: 8,
-              marginBottom: 15,
-              borderLeftWidth: 4,
-              borderLeftColor: "#28a745",
-            }}
-          >
-            <Text style={{ color: "#155724", fontSize: 14 }}>
-              {successMessage}
-            </Text>
+          <View style={styles.successContainer}>
+            <Text style={styles.successText}>{successMessage}</Text>
           </View>
         )}
 
@@ -176,16 +156,8 @@ const LoginScreen: React.FC = () => {
           remainingAttempts > 0 &&
           remainingAttempts < MAX_ATTEMPTS &&
           !errorMessage?.includes("bloqué") && (
-            <View
-              style={{
-                backgroundColor: "#fff3cd",
-                padding: 12,
-                borderRadius: 8,
-                borderLeftWidth: 4,
-                borderLeftColor: "#ffc107",
-              }}
-            >
-              <Text style={{ color: "#856404", fontSize: 14 }}>
+            <View style={styles.warningContainer}>
+              <Text style={styles.warningText}>
                 ⚠️ Tentatives restantes : {remainingAttempts}/{MAX_ATTEMPTS}
               </Text>
             </View>
@@ -205,23 +177,19 @@ const LoginScreen: React.FC = () => {
 
         <TouchableOpacity
           onPress={handleForgotPassword}
-          style={{ marginTop: 15, alignItems: "center" }}
+          style={styles.forgotPasswordButton}
           disabled={localLoading}
         >
-          <Text style={{ color: "#3498db", fontSize: 13, fontWeight: "500" }}>
-            Mot de passe oublié ?
-          </Text>
+          <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Register")}
-          style={{ marginTop: 20, alignItems: "center" }}
+          style={styles.registerContainer}
         >
-          <Text style={{ color: "#2c3e50", fontSize: 14 }}>
+          <Text style={styles.registerText}>
             Pas encore de compte ?{" "}
-            <Text style={{ color: "#3498db", fontWeight: "bold" }}>
-              Créer un compte
-            </Text>
+            <Text style={styles.registerLink}>Créer un compte</Text>
           </Text>
         </TouchableOpacity>
       </View>
