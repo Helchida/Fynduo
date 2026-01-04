@@ -14,4 +14,6 @@ export interface IAuthContext {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   householdUsers: IUser[];
+  setAwaitingVerification?: (value: boolean) => void;
+  isAwaitingVerification?: boolean;
 }

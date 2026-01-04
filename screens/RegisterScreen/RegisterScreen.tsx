@@ -30,6 +30,11 @@ const RegisterScreen: React.FC = () => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      Alert.alert("Erreur", "Les mots de passe ne correspondent pas.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -41,26 +46,21 @@ const RegisterScreen: React.FC = () => {
 
       const isDev = Constants.appOwnership === "expo";
 
-      const actionCodeSettings = {
-        url: "https://fynduo.vercel.app/",
-        handleCodeInApp: false,
-      };
-
-      if (!isDev) {
-        await sendEmailVerification(user, actionCodeSettings);
-      }
-
       await createUserProfile(user.uid, {
         email: user.email || email,
         displayName: email.split("@")[0],
         householdId: user.uid,
       });
 
+      if (!isDev) {
+        await sendEmailVerification(user);
+      }
+
       Alert.alert(
         "Compte créé",
         "Un email de vérification vous a été envoyé. Vérifiez votre boîte mail avant de vous connecter."
       );
-      navigation.navigate("Login");
+      navigation.navigate("EmailVerification");
     } catch (error: any) {
       Alert.alert("Erreur", error.message);
     } finally {

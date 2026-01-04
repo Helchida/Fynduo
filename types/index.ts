@@ -115,6 +115,7 @@ export type RootStackParamList = {
   SummaryRegulation: undefined;
   Login: undefined;
   Register: undefined;
+  EmailVerification: undefined;
   History: undefined;
   HistoryDetail: { moisAnnee: string };
   ChargeVariableDetail: { chargeId: string; description: string };

@@ -17,18 +17,14 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const handleUrl = async ({ url }: { url: string }) => {
       if (url.includes('email-verified')) {
-        // Met à jour l'utilisateur Firebase
         if (auth.currentUser) await auth.currentUser.reload();
 
-        // Navigue vers Login
         navigate('Login');
       }
     };
 
-    // Si l'app est déjà ouverte
     const subscription = Linking.addEventListener('url', handleUrl);
 
-    // Si l'app est lancée via le lien
     const checkInitialUrl = async () => {
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl) handleUrl({ url: initialUrl });

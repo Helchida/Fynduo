@@ -18,6 +18,7 @@ import ChargeVariableDetailScreen from "screens/ChargeVariableDetail/ChargeVaria
 import { ChevronLeft } from "lucide-react-native";
 import RegisterScreen from "screens/RegisterScreen/RegisterScreen";
 import { navigationRef } from "./RootNavigation";
+import EmailVerificationScreen from "screens/EmailVerificationScreen/EmailVerificationScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -125,12 +126,27 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
+const VerificationStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen
+      name="EmailVerification"
+      component={EmailVerificationScreen}
+    />
+  </Stack.Navigator>
+);
+
 const RootNavigator = () => {
-  const { user } = useAuth();
+  const { user, isAwaitingVerification } = useAuth();
 
   return (
     <NavigationContainer ref={navigationRef}>
-      {user ? <AppStack /> : <AuthStack />}
+      {user ? (
+        <AppStack />
+      ) : isAwaitingVerification ? (
+        <VerificationStack />
+      ) : (
+        <AuthStack />
+      )}
     </NavigationContainer>
   );
 };

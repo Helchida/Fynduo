@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [user, setUser] = useState<IUserContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
+  const [isAwaitingVerification, setIsAwaitingVerification] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -33,52 +34,102 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (!firebaseUser) {
         setUser(null);
         setHouseholdUsers([]);
+        setIsAwaitingVerification(false);
         setIsLoading(false);
         return;
       }
 
       const isDev = Constants.appOwnership === "expo";
 
+      await firebaseUser.reload();
+
       if (!firebaseUser.emailVerified && !isDev) {
         console.warn("Email non vérifié :", firebaseUser.email);
 
         setUser(null);
         setHouseholdUsers([]);
+
+        if (!isAwaitingVerification) {
+          setIsAwaitingVerification(true);
+        }
+
         setIsLoading(false);
         return;
       }
 
-      try {
-        const token = await firebaseUser.getIdToken();
-        const userRef = doc(db, "users", firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
+      if (firebaseUser.emailVerified) {
+        setIsAwaitingVerification(false);
 
-        if (!userSnap.exists()) {
-          throw new Error("Profil utilisateur introuvable");
+        try {
+          const token = await firebaseUser.getIdToken();
+          const userRef = doc(db, "users", firebaseUser.uid);
+          const userSnap = await getDoc(userRef);
+
+          if (!userSnap.exists()) {
+            throw new Error("Profil utilisateur introuvable");
+          }
+
+          const userData = userSnap.data() as IUser;
+
+          setUser({
+            id: firebaseUser.uid,
+            displayName: userData.displayName,
+            householdId: userData.householdId,
+            token,
+          });
+
+          const users = await DB.getHouseholdUsers(userData.householdId);
+          setHouseholdUsers(users);
+        } catch (error) {
+          console.error("Erreur AuthContext :", error);
+          setUser(null);
+          setHouseholdUsers([]);
         }
-
-        const userData = userSnap.data() as IUser;
-
-        setUser({
-          id: firebaseUser.uid,
-          displayName: userData.displayName,
-          householdId: userData.householdId,
-          token,
-        });
-
-        const users = await DB.getHouseholdUsers(userData.householdId);
-        setHouseholdUsers(users);
-      } catch (error) {
-        console.error("Erreur AuthContext :", error);
-        setUser(null);
-        setHouseholdUsers([]);
       }
 
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
-  }, []);
+    const verificationInterval = setInterval(async () => {
+      if (isAwaitingVerification && auth.currentUser) {
+        console.log("Vérification de l'email...");
+        await auth.currentUser.reload();
+
+        if (auth.currentUser.emailVerified) {
+          console.log("Email vérifié ! Chargement du profil...");
+          clearInterval(verificationInterval);
+
+          try {
+            const token = await auth.currentUser.getIdToken(true);
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+              const userData = userSnap.data() as IUser;
+
+              setUser({
+                id: auth.currentUser.uid,
+                displayName: userData.displayName,
+                householdId: userData.householdId,
+                token,
+              });
+
+              const users = await DB.getHouseholdUsers(userData.householdId);
+              setHouseholdUsers(users);
+              setIsAwaitingVerification(false);
+            }
+          } catch (error) {
+            console.error("Erreur lors du chargement du profil :", error);
+          }
+        }
+      }
+    }, 3000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(verificationInterval);
+    };
+  }, [isAwaitingVerification]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -105,6 +156,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const setAwaitingVerification = (value: boolean) => {
+    setIsAwaitingVerification(value);
+  };
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -113,8 +168,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       logout,
       isAuthenticated: !!user,
       householdUsers,
+      setAwaitingVerification,
+      isAwaitingVerification,
     }),
-    [user, isLoading, householdUsers]
+    [user, isLoading, householdUsers, isAwaitingVerification]
   );
 
   return (
