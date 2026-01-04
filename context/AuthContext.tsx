@@ -132,14 +132,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [isAwaitingVerification]);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Erreur login :", error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 

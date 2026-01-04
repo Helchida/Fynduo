@@ -13,6 +13,12 @@ export interface IUser extends FirestoreDocument {
   email: string;
 }
 
+export interface LoginAttempt {
+  count: number;
+  firstAttempt: number;
+  blockedUntil?: number;
+}
+
 // DONNÉES FINANCIÈRES
 // 1. Charges fixes récurrentes (Electricité, Gaz, Internet...)
 export interface IChargeFixe extends FirestoreDocument {
