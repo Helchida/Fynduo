@@ -10,6 +10,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { IUser } from "@/types";
@@ -157,6 +158,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setIsAwaitingVerification(value);
   };
 
+  const sendPasswordReset = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Erreur reset password :", error);
+      throw error;
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -167,6 +177,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       householdUsers,
       setAwaitingVerification,
       isAwaitingVerification,
+      sendPasswordReset,
     }),
     [user, isLoading, householdUsers, isAwaitingVerification]
   );

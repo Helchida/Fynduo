@@ -17,7 +17,7 @@ import {
 } from "../../services/login/loginRateLimiter";
 
 const LoginScreen: React.FC = () => {
-  const { login } = useAuth();
+  const { login, sendPasswordReset } = useAuth();
   const navigation = useNavigation<RootStackNavigationProp>();
 
   const [email, setEmail] = useState("");
@@ -27,6 +27,7 @@ const LoginScreen: React.FC = () => {
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [localLoading, setLocalLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleLogin = async () => {
     setErrorMessage(null);
@@ -68,6 +69,36 @@ const LoginScreen: React.FC = () => {
       }
 
       setErrorMessage(msg);
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setErrorMessage(
+        "Veuillez entrer votre email pour réinitialiser le mot de passe."
+      );
+      return;
+    }
+
+    setLocalLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      await sendPasswordReset!(email);
+      setSuccessMessage(
+        "Email de réinitialisation envoyé ! Vérifiez votre boîte de réception."
+      );
+    } catch (error: any) {
+      if (error.code === "auth/user-not-found") {
+        setErrorMessage("Aucun utilisateur trouvé avec cet email.");
+      } else {
+        setErrorMessage(
+          "Erreur lors de l'envoi de l'email. Réessayez plus tard."
+        );
+      }
     } finally {
       setLocalLoading(false);
     }
@@ -124,6 +155,23 @@ const LoginScreen: React.FC = () => {
           secureTextEntry
         />
 
+        {successMessage && (
+          <View
+            style={{
+              backgroundColor: "#d4edda",
+              padding: 12,
+              borderRadius: 8,
+              marginBottom: 15,
+              borderLeftWidth: 4,
+              borderLeftColor: "#28a745",
+            }}
+          >
+            <Text style={{ color: "#155724", fontSize: 14 }}>
+              {successMessage}
+            </Text>
+          </View>
+        )}
+
         {remainingAttempts !== null &&
           remainingAttempts > 0 &&
           remainingAttempts < MAX_ATTEMPTS &&
@@ -153,6 +201,16 @@ const LoginScreen: React.FC = () => {
           ) : (
             <Text style={styles.buttonText}>Se connecter</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleForgotPassword}
+          style={{ marginTop: 15, alignItems: "center" }}
+          disabled={localLoading}
+        >
+          <Text style={{ color: "#3498db", fontSize: 13, fontWeight: "500" }}>
+            Mot de passe oublié ?
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity

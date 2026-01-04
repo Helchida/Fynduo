@@ -16,4 +16,5 @@ export interface IAuthContext {
   householdUsers: IUser[];
   setAwaitingVerification?: (value: boolean) => void;
   isAwaitingVerification?: boolean;
+  sendPasswordReset: (email: string) => Promise<void>;
 }
