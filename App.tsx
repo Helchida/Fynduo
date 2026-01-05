@@ -7,23 +7,24 @@ import RootNavigator from "./navigation/RootNavigator";
 import { useAuth } from "./hooks/useAuth";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
-import { auth } from './services/firebase/config';
-import * as Linking from 'expo-linking';
+import { auth } from "./services/firebase/config";
+import * as Linking from "expo-linking";
 import { navigate } from "navigation/RootNavigation";
+import { ToastProvider } from "./context/ToastContext";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
-  
+
   useEffect(() => {
     const handleUrl = async ({ url }: { url: string }) => {
-      if (url.includes('email-verified')) {
+      if (url.includes("email-verified")) {
         if (auth.currentUser) await auth.currentUser.reload();
 
-        navigate('Login');
+        navigate("Login");
       }
     };
 
-    const subscription = Linking.addEventListener('url', handleUrl);
+    const subscription = Linking.addEventListener("url", handleUrl);
 
     const checkInitialUrl = async () => {
       const initialUrl = await Linking.getInitialURL();
@@ -107,7 +108,9 @@ const App: React.FC = () => {
       <StatusBar style="dark" backgroundColor="#f4f7f9" translucent={false} />
       <AuthProvider>
         <ComptesProvider>
-          <AppContent />
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
         </ComptesProvider>
       </AuthProvider>
     </GestureHandlerRootView>

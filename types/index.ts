@@ -111,6 +111,16 @@ export interface ICategorie extends FirestoreDocument {
   isDefault: boolean;
 }
 
+export type ToastType = "success" | "error" | "info" | "warning";
+
+export interface Toast {
+  id: string;
+  type: ToastType;
+  title: string;
+  message?: string;
+  duration?: number;
+}
+
 // NAVIGATION TYPES
 export type RootStackParamList = {
   Home: undefined;
