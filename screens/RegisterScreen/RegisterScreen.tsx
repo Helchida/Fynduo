@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   Image,
   SafeAreaView,
   ActivityIndicator,
@@ -16,9 +15,11 @@ import { createUserProfile } from "services/firebase/db";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "services/firebase/config";
 import Constants from "expo-constants";
+import { useToast } from "hooks/useToast";
 
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,12 +27,15 @@ const RegisterScreen: React.FC = () => {
 
   const handleRegister = async () => {
     if (!email || !password || !confirmPassword) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      toast.warning("Erreur de saisie", "Veuillez remplir tous les champs.");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Erreur", "Les mots de passe ne correspondent pas.");
+      toast.warning(
+        "Erreur de saisie",
+        "Les mots de passe ne correspondent pas."
+      );
       return;
     }
 
@@ -55,14 +59,13 @@ const RegisterScreen: React.FC = () => {
       if (!isDev) {
         await sendEmailVerification(user);
       }
-
-      Alert.alert(
+      toast.success(
         "Compte créé",
-        "Un email de vérification vous a été envoyé. Vérifiez votre boîte mail avant de vous connecter."
+        "Veuillez vérifier votre boîte mail pour la vérification."
       );
       navigation.navigate("EmailVerification");
     } catch (error: any) {
-      Alert.alert("Erreur", error.message);
+      toast.error("Erreur", error.message);
     } finally {
       setIsLoading(false);
     }

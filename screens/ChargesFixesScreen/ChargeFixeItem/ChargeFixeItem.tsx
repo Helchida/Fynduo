@@ -4,16 +4,15 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   Modal,
   FlatList,
 } from "react-native";
 import { IUser } from "@/types";
 import { styles } from "./ChargeFixeItem.style";
 import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
-import { confirmDeleteCharge } from "utils/confirmDeleteCharge";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
+import { useToast } from "hooks/useToast";
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -27,11 +26,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
+  const toast = useToast();
+
   const handleSave = useCallback(async () => {
     const newAmount = parseFloat(amount);
 
     if (isNaN(newAmount) || newAmount < 0) {
-      Alert.alert("Erreur", "Le montant doit être un nombre positif.");
+      toast.error("Erreur", "Le montant doit être un nombre positif.");
       return;
     }
 
@@ -53,7 +54,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         try {
           await onUpdatePayeur(charge.id, newPayeur.id, newPayeur.displayName);
         } catch (error) {
-          Alert.alert("Erreur", "Échec de la mise à jour du payeur.");
+          toast.error("Erreur", "Échec de la mise à jour du payeur.");
         } finally {
           setIsSaving(false);
           setIsPayeurModalVisible(false);

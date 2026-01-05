@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Alert,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
@@ -25,6 +24,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { ChevronsUpDown } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { MonthPickerModal } from "components/ui/MonthPickerModal/MonthPickerModal";
+import { useToast } from "hooks/useToast";
 
 dayjs.locale("fr");
 
@@ -43,6 +43,7 @@ const ChargesVariablesScreen: React.FC = () => {
     currentMonthData,
   } = useComptes();
   const { user } = useAuth();
+  const toast = useToast();
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -127,26 +128,17 @@ const ChargesVariablesScreen: React.FC = () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
 
     if (!payeurUid || !currentMonthData) {
-      Alert.alert(
-        "Erreur",
-        "Le payeur ou les données mensuelles sont manquantes."
-      );
+      toast.error("Erreur", "Le payeur ou les données mensuelles sont manquantes.");
       return;
     }
 
     if (beneficiairesUid.length === 0) {
-      Alert.alert(
-        "Erreur de saisie",
-        "Veuillez sélectionner au moins un bénéficiaire."
-      );
+      toast.warning("Erreur de saisie", "Veuillez sélectionner au moins un bénéficiaire.");
       return;
     }
 
     if (!description.trim() || isNaN(montantTotal) || montantTotal <= 0) {
-      Alert.alert(
-        "Erreur de saisie",
-        "Veuillez vérifier la description et un montant valide (> 0)."
-      );
+      toast.warning("Erreur de saisie", "Veuillez vérifier la description et un montant valide (> 0).");
       return;
     }
 
@@ -173,10 +165,10 @@ const ChargesVariablesScreen: React.FC = () => {
       setPayeurUid(user.id || null);
       setBeneficiairesUid(householdUsers.map((u) => u.id));
       setShowForm(false);
-      Alert.alert("Succès", "Dépense enregistrée.");
+      toast.success("Succès", "Dépense enregistrée.");
     } catch (error) {
       console.error("Erreur Trésorerie:", error);
-      Alert.alert("Erreur", "Échec de l'enregistrement de la dépense.");
+      toast.error("Erreur", "Échec de l'enregistrement de la dépense.");
     } finally {
       setIsSubmitting(false);
     }

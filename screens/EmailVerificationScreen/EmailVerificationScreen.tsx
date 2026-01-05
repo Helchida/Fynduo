@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   Image,
   SafeAreaView,
   ActivityIndicator,
@@ -13,9 +12,11 @@ import { sendEmailVerification } from "firebase/auth";
 import { auth } from "services/firebase/config";
 import { useNavigation } from "@react-navigation/native";
 import Constants from "expo-constants";
+import { useToast } from "hooks/useToast";
 
 const EmailVerificationScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const toast = useToast();
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const isDev = Constants.appOwnership === "expo";
@@ -54,11 +55,11 @@ const EmailVerificationScreen: React.FC = () => {
 
     try {
       await sendEmailVerification(auth.currentUser);
-      Alert.alert("Email envoyé", "Vérifiez votre boîte mail.");
+      toast.success("Succès", "Email de vérification renvoyé.");
       setCanResend(false);
       setCountdown(60);
     } catch (error: any) {
-      Alert.alert("Erreur", error.message);
+      toast.error("Erreur", error.message);
     }
   };
 
@@ -67,7 +68,7 @@ const EmailVerificationScreen: React.FC = () => {
       await auth.signOut();
       navigation.replace("Login");
     } catch (error: any) {
-      Alert.alert("Erreur", error.message);
+      toast.error("Erreur", error.message);
     }
   };
 

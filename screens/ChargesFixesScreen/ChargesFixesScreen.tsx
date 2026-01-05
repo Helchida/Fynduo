@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Alert,
   TouchableOpacity,
   TextInput,
   Button,
@@ -18,6 +17,7 @@ import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { Info } from "lucide-react-native";
+import { useToast } from "hooks/useToast";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -31,6 +31,7 @@ const ChargesFixesScreen: React.FC = () => {
   } = useComptes();
 
   const { user } = useAuth();
+  const toast = useToast();
   if (!user) {
     return <NoAuthenticatedUser />;
   }
@@ -53,6 +54,7 @@ const ChargesFixesScreen: React.FC = () => {
           setHouseholdUsers(users);
         } catch (error) {
           console.error("Erreur chargement users:", error);
+          toast.error("Erreur", "Impossible de charger les utilisateurs");
         } finally {
           setIsLoadingUsers(false);
         }
@@ -67,11 +69,9 @@ const ChargesFixesScreen: React.FC = () => {
     async (id: string, newAmount: number) => {
       try {
         await updateChargeFixe(id, newAmount);
+        toast.success("Succès", "Charge mise à jour");
       } catch (error) {
-        Alert.alert(
-          "Erreur",
-          "Échec de la mise à jour des charges. Vérifiez les permissions."
-        );
+        toast.error("Erreur", "Échec de la mise à jour des charges");
         console.error("Erreur Charges:", error);
       }
     },
@@ -82,9 +82,9 @@ const ChargesFixesScreen: React.FC = () => {
     async (chargeId: string, newPayeurUid: string) => {
       try {
         await updateChargeFixePayeur(chargeId, newPayeurUid);
-        Alert.alert("Succès", `Le payeur a été mis à jour pour la charge.`);
+        toast.success("Succès", "Le payeur a été mis à jour");
       } catch (error) {
-        Alert.alert("Erreur", "Échec de la mise à jour du payeur.");
+        toast.error("Erreur", "Échec de la mise à jour du payeur");
         console.error("Erreur update Payeur:", error);
       }
     },
@@ -96,17 +96,17 @@ const ChargesFixesScreen: React.FC = () => {
     const montantMensuel = parseFloat(montant.replace(",", "."));
 
     if (!payeur) {
-      Alert.alert(
+      toast.warning(
         "Erreur de saisie",
-        "Veuillez sélectionner qui paie cette charge."
+        "Veuillez sélectionner qui paie cette charge"
       );
       return;
     }
 
     if (!nom.trim() || isNaN(montantMensuel) || montantMensuel <= 0) {
-      Alert.alert(
+      toast.warning(
         "Erreur de saisie",
-        "Veuillez vérifier la description et un montant valide (> 0)."
+        "Veuillez vérifier la description et le montant"
       );
       return;
     }
@@ -126,10 +126,10 @@ const ChargesFixesScreen: React.FC = () => {
       setMontant("");
       setPayeur(user?.id || null);
       setShowForm(false);
-      Alert.alert("Succès", "Charge fixe enregistrée.");
+      toast.success("Succès", "Charge fixe enregistrée");
     } catch (error) {
       console.error("Erreur charge fixe:", error);
-      Alert.alert("Erreur", "Échec de l'enregistrement de la charge fixe.");
+      toast.error("Erreur", "Échec de l'enregistrement");
     } finally {
       setIsSubmitting(false);
     }

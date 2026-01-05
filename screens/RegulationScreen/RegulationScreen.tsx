@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -24,18 +23,19 @@ import dayjs from "dayjs";
 import LoyerSection from "./LoyerSection/LoyerSection";
 import ChargesFixesSection from "./ChargesFixesSection/ChargesFixesSection";
 import AjustementSection from "./AjustementSection/AjustementSection";
-import { confirmDeleteCharge } from "../../utils/confirmDeleteCharge";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { useToast } from "hooks/useToast";
 
 const RegulationScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
 
   const { user } = useAuth();
+  const toast = useToast();
 
   if (!user) {
-    return(<NoAuthenticatedUser/>)
+    return <NoAuthenticatedUser />;
   }
-  
+
   const householdId = user.householdId;
   const { householdUsers, getDisplayName } = useHouseholdUsers();
 
@@ -151,20 +151,17 @@ const RegulationScreen: React.FC = () => {
   );
 
   const handleDeleteCharge = useCallback(
-    (id: string, targetUid: string) => {
+    async (id: string, targetUid: string) => {
       const charge = chargesFormMap[targetUid]?.find((c) => c.id === id);
       if (!charge) return;
+      if (!charge.isNew) {
+        await deleteChargeFixe(id);
+      }
 
-      confirmDeleteCharge(charge.nom, async () => {
-        if (!charge.isNew) {
-          await deleteChargeFixe(id);
-        }
-
-        setChargesFormMap((prev) => ({
-          ...prev,
-          [targetUid]: prev[targetUid].filter((c) => c.id !== id),
-        }));
-      });
+      setChargesFormMap((prev) => ({
+        ...prev,
+        [targetUid]: prev[targetUid].filter((c) => c.id !== id),
+      }));
     },
     [chargesFormMap, deleteChargeFixe]
   );
@@ -196,7 +193,7 @@ const RegulationScreen: React.FC = () => {
 
   const handleValidation = async () => {
     if (currentMonthData.statut === "finalisé") {
-      Alert.alert("Attention", "Ce mois est déjà clôturé.");
+      toast.info("Attention", "Ce mois est déjà clôturé.");
       return;
     }
 
@@ -260,10 +257,7 @@ const RegulationScreen: React.FC = () => {
       await cloturerMois(dataToSubmit);
       navigation.navigate("SummaryRegulation");
     } catch (error) {
-      Alert.alert(
-        "Erreur de Clôture",
-        "La clôture a échoué. " + (error as Error).message
-      );
+      toast.error("Erreur", "La clôture a échoué. " + (error as Error).message);
     }
   };
 

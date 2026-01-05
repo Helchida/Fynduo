@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Alert,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -17,12 +16,14 @@ import { IUser } from "../../types";
 import * as DB from "../../services/firebase/db";
 import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { useToast } from "hooks/useToast";
 
 type ApportsAPLState = { [uid: string]: string };
 
 const LoyerScreen: React.FC = () => {
   const { currentMonthData, updateLoyer, isLoadingComptes } = useComptes();
   const { user } = useAuth();
+  const toast = useToast();
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -44,7 +45,7 @@ const LoyerScreen: React.FC = () => {
           setHouseholdUsers(users);
         } catch (error) {
           console.error("Erreur chargement users:", error);
-          Alert.alert(
+          toast.error(
             "Erreur",
             "Impossible de charger les utilisateurs du foyer."
           );
@@ -89,11 +90,17 @@ const LoyerScreen: React.FC = () => {
   const handleSave = async () => {
     const total = parseFloat(loyerTotal.replace(",", "."));
     if (isNaN(total) || total < 0) {
-      Alert.alert("Erreur", "Veuillez entrer un loyer total valide.");
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez entrer un loyer total valide."
+      );
       return;
     }
     if (!loyerPayeurUid) {
-      Alert.alert("Erreur", "Veuillez sélectionner qui a payé le loyer.");
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez sélectionner qui a payé le loyer."
+      );
       return;
     }
 
@@ -107,8 +114,8 @@ const LoyerScreen: React.FC = () => {
         "un utilisateur";
 
       if (isNaN(aplValue) || aplValue < 0) {
-        Alert.alert(
-          "Erreur",
+        toast.warning(
+          "Erreur de saisie",
           `Le montant APL pour ${userDisplay} est invalide.`
         );
         return;
@@ -117,7 +124,7 @@ const LoyerScreen: React.FC = () => {
     }
 
     if (!currentMonthData) {
-      Alert.alert(
+      toast.error(
         "Erreur",
         "Données du mois non chargées. Impossible d'enregistrer."
       );
@@ -131,15 +138,12 @@ const LoyerScreen: React.FC = () => {
         finalApports,
         loyerPayeurUid
       );
-      Alert.alert(
-        "Succès",
-        "Le loyer et les APL individuels ont été mis à jour."
-      );
+      toast.success("Succès", "Loyer et APL mis à jour avec succès.");
     } catch (error) {
       console.error("Erreur Loyer:", error);
-      Alert.alert(
+      toast.error(
         "Erreur",
-        "Échec de l'enregistrement dans la base de données. Consultez la console."
+        "Échec de l'enregistrement dans la base de données."
       );
     } finally {
       setIsSaving(false);

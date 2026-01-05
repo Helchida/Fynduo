@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
-  CategoryType,
-  ICategorie,
   IChargeVariable,
   RootStackNavigationProp,
   RootStackRouteProp,
@@ -17,7 +15,6 @@ import {
   TouchableOpacity,
   View,
   Text,
-  Alert,
 } from "react-native";
 import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 import { useComptes } from "hooks/useComptes";
@@ -26,6 +23,7 @@ import { UserDisplayCard } from "./UserDisplayCard/UserDisplayCard";
 import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVariableForm";
 import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
+import { useToast } from "hooks/useToast";
 dayjs.locale("fr");
 
 type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
@@ -34,6 +32,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const route = useRoute<ChargeVariableDetailRouteProp>();
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user } = useAuth();
+  const toast = useToast();
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -71,8 +70,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
     charge?.beneficiaires || []
   );
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-  const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] = useState(false);
-  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] = useState(false);
+  const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] =
+    useState(false);
+  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] =
+    useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [editDateStatistiques, setEditDateStatistiques] = useState<Date>(
     charge?.dateStatistiques ? new Date(charge.dateStatistiques) : new Date()
@@ -85,8 +86,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
-  const showDateStatistiquesPicker = () => setDateStatistiquesPickerVisibility(true);
-  const hideDateStatistiquesPicker = () => setDateStatistiquesPickerVisibility(false);
+  const showDateStatistiquesPicker = () =>
+    setDateStatistiquesPickerVisibility(true);
+  const hideDateStatistiquesPicker = () =>
+    setDateStatistiquesPickerVisibility(false);
 
   const showDateComptesPicker = () => setDateComptesPickerVisibility(true);
   const hideDateComptesPicker = () => setDateComptesPickerVisibility(false);
@@ -115,13 +118,17 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditBeneficiairesUid(initialCharge.beneficiaires);
       setEditCategorie(initialCharge.categorie);
       setEditDateStatistiques(
-        initialCharge.dateStatistiques ? new Date(initialCharge.dateStatistiques) : new Date()
+        initialCharge.dateStatistiques
+          ? new Date(initialCharge.dateStatistiques)
+          : new Date()
       );
       setEditDateComptes(
-        initialCharge.dateComptes ? new Date(initialCharge.dateComptes) : new Date()
+        initialCharge.dateComptes
+          ? new Date(initialCharge.dateComptes)
+          : new Date()
       );
     } else if (!isLoadingComptes) {
-      Alert.alert("Erreur", "Charge non trouvée.");
+      toast.error("Erreur", "Charge non trouvée.");
       navigation.goBack();
     }
   }, [initialCharge, isLoadingComptes, navigation]);
@@ -134,34 +141,6 @@ const ChargeVariableDetailScreen: React.FC = () => {
     );
   }
 
-  const handleDeleteCharge = useCallback(async () => {
-    if (!charge) return;
-
-    Alert.alert(
-      "Confirmation",
-      `Êtes-vous sûr de vouloir supprimer la dépense: "${charge.description}" ?`,
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: async () => {
-            setIsSubmitting(true);
-            try {
-              await deleteChargeVariable(charge.id);
-              Alert.alert("Succès", "Dépense supprimée.");
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert("Erreur", "Échec de la suppression.");
-            } finally {
-              setIsSubmitting(false);
-            }
-          },
-        },
-      ]
-    );
-  }, [charge, deleteChargeVariable, navigation]);
-
   const handleUpdateCharge = useCallback(async () => {
     if (!charge || !editPayeurUid) return;
 
@@ -173,7 +152,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
       montantTotal <= 0 ||
       editBeneficiairesUid.length === 0
     ) {
-      Alert.alert("Erreur de saisie", "Veuillez vérifier tous les champs.");
+      toast.warning("Erreur de saisie", "Veuillez vérifier tous les champs.");
       return;
     }
 
@@ -191,10 +170,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
 
     try {
       await updateChargeVariable(charge.id, updatedData);
-      Alert.alert("Succès", "Dépense modifiée.");
+      toast.success("Succès", "Dépense modifiée.");
       setIsEditing(false);
     } catch (error) {
-      Alert.alert("Erreur", "Échec de la modification.");
+      toast.error("Erreur", "Échec de la modification.");
     } finally {
       setIsSubmitting(false);
     }
@@ -214,7 +193,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
     setEditBeneficiairesUid((prev) => {
       if (prev.includes(userId)) {
         if (prev.length === 1) {
-          Alert.alert("Attention", "Il doit y avoir au moins un bénéficiaire.");
+          toast.warning(
+            "Attention",
+            "Il doit y avoir au moins un bénéficiaire."
+          );
           return prev;
         }
         return prev.filter((id) => id !== userId);
@@ -249,10 +231,12 @@ const ChargeVariableDetailScreen: React.FC = () => {
     isPayeur: true,
     amountPerPerson: 0,
   };
-  
-  const dateStatistiquesFormatted = dayjs(charge.dateStatistiques).format("DD MMMM YYYY");
+
+  const dateStatistiquesFormatted = dayjs(charge.dateStatistiques).format(
+    "DD MMMM YYYY"
+  );
   const dateComptesFormatted = dayjs(charge.dateComptes).format("DD MMMM YYYY");
-  
+
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
   const currentCategoryData = categories.find((c) => c.id === charge.categorie);
@@ -302,7 +286,9 @@ const ChargeVariableDetailScreen: React.FC = () => {
             <Text style={styles.detailDateText}>
               Dépense du {dateStatistiquesFormatted}
             </Text>
-            <Text style={[styles.detailDateText, { fontSize: 12, color: '#999' }]}>
+            <Text
+              style={[styles.detailDateText, { fontSize: 12, color: "#999" }]}
+            >
               Ajoutée le {dateComptesFormatted}
             </Text>
           </View>
