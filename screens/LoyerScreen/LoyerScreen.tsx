@@ -89,10 +89,10 @@ const LoyerScreen: React.FC = () => {
 
   const handleSave = async () => {
     const total = parseFloat(loyerTotal.replace(",", "."));
-    if (isNaN(total) || total < 0) {
+    if (isNaN(total) || total <= 0) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez entrer un loyer total valide."
+        "Veuillez entrer un loyer total supérieur à 0."
       );
       return;
     }
@@ -171,54 +171,58 @@ const LoyerScreen: React.FC = () => {
     >
       <Text style={styles.header}>Gestion du loyer</Text>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Loyer total à payer (€)</Text>
-        <TextInput
-          style={styles.input}
-          value={loyerTotal}
-          onChangeText={setLoyerTotal}
-          keyboardType="decimal-pad"
-          {...({ inputMode: "decimal" } as any)}
-          placeholder="e.g., 1200.00"
-          editable={!isDisabled}
-        />
-      </View>
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>💰 Loyer & Paiement</Text>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Loyer total à payer (€)</Text>
+          <TextInput
+            style={styles.input}
+            value={loyerTotal}
+            onChangeText={setLoyerTotal}
+            keyboardType="decimal-pad"
+            {...({ inputMode: "decimal" } as any)}
+            placeholder="e.g., 1200.00"
+            editable={!isDisabled}
+          />
+        </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Qui payera le loyer ?</Text>
-        <TouchableOpacity
-          style={[
-            styles.input,
-            styles.dropdownInput,
-            isDisabled && styles.disabledInput,
-          ]}
-          onPress={() => setIsPayeurModalVisible(true)}
-          disabled={isDisabled}
-        >
-          <Text
-            style={!loyerPayeurUid ? styles.placeholderText : styles.inputText}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Qui payera le loyer ?</Text>
+          <TouchableOpacity
+            style={[
+              styles.input,
+              styles.dropdownInput,
+              isDisabled && styles.disabledInput,
+            ]}
+            onPress={() => setIsPayeurModalVisible(true)}
+            disabled={isDisabled}
           >
-            {useGetDisplayNameUserInHousehold(loyerPayeurUid, householdUsers)}
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={
+                !loyerPayeurUid ? styles.placeholderText : styles.inputText
+              }
+            >
+              {useGetDisplayNameUserInHousehold(loyerPayeurUid, householdUsers)}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          APL futures que recevront les colocataires
-        </Text>
+      <View style={[styles.card, styles.aplCard]}>
+        <Text style={styles.sectionTitle}>📩 Apports APL</Text>
         {householdUsers.map((u) => (
           <View key={u.id} style={styles.inputGroup}>
-            <Text style={styles.label}>
-              APL futures que recevra {u.displayName} (€)
-            </Text>
+            <Text style={styles.label}>APL de {u.displayName}</Text>
             <TextInput
               style={styles.input}
               value={apportsAPL[u.id] || ""}
-              onChangeText={(text) => handleAplChange(u.id, text)}
+              onChangeText={(text) =>
+                handleAplChange(u.id, text.replace(",", "."))
+              }
               keyboardType="decimal-pad"
-              {...({ inputMode: "decimal" } as any)}
-              placeholder="e.g., 120.00"
+              placeholder="0.00"
+              placeholderTextColor="#95a5a6"
+              maxLength={8}
               editable={!isDisabled}
             />
           </View>
