@@ -103,10 +103,18 @@ const ChargesFixesScreen: React.FC = () => {
       return;
     }
 
-    if (!nom.trim() || isNaN(montantMensuel) || montantMensuel <= 0) {
+    if (!nom.trim()) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez vérifier la description et le montant"
+        "Veuillez saisir une description pour la charge"
+      );
+      return;
+    }
+
+    if (isNaN(montantMensuel) || montantMensuel <= 0) {
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez saisir un montant supérieur à 0 pour la charge."
       );
       return;
     }
@@ -169,17 +177,21 @@ const ChargesFixesScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Description (ex: Facture Internet)"
+            placeholderTextColor="#95a5a6"
             value={nom}
             onChangeText={setNom}
+            maxLength={30}
             editable={!isSubmitting}
           />
           <TextInput
             style={styles.input}
             placeholder="Montant mensuel (ex: 80.50)"
+            placeholderTextColor="#95a5a6"
             value={montant}
             onChangeText={setMontant}
             keyboardType="decimal-pad"
             {...({ inputMode: "decimal" } as any)}
+            maxLength={8}
             editable={!isSubmitting}
           />
           <View style={styles.inputGroup}>
@@ -194,13 +206,17 @@ const ChargesFixesScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           </View>
-          <Button
-            title={
-              isSubmitting ? "Enregistrement..." : "Enregistrer la charge fixe"
-            }
+          <TouchableOpacity
             onPress={handleAddDepense}
             disabled={isSubmitting}
-          />
+            style={styles.addButton}
+          >
+            <Text style={styles.addButtonText}>
+              {isSubmitting
+                ? "Enregistrement..."
+                : "Enregistrer la charge fixe"}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
       <FlatList

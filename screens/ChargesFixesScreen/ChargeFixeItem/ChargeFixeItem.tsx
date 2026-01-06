@@ -41,6 +41,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       try {
         await onUpdate(charge.id, newAmount);
       } catch (error) {
+        toast.error("Erreur", "Impossible de mettre à jour le montant");
       } finally {
         setIsSaving(false);
       }
@@ -93,11 +94,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       <View style={styles.inputRow}>
         <TextInput
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={(text) => setAmount(text.replace(",", "."))}
           keyboardType="decimal-pad"
           {...({ inputMode: "decimal" } as any)}
+          maxLength={8}
           editable={!isSaving}
           style={[styles.input, { backgroundColor: "#f5f5f5", color: "#333" }]}
+          placeholderTextColor="#95a5a6"
         />
         <Text style={styles.currency}>€</Text>
         <TouchableOpacity
