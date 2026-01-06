@@ -98,6 +98,7 @@ export interface IReglementData {
   apportsAPL: Record<string, number>;
   dettes: IDette[];
   loyerPayeurUid: string;
+  chargesFixesSnapshot?: IChargeFixeSnapshot[];
 }
 
 export interface IHistoricalData {

@@ -9,7 +9,6 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import {
   RootStackNavigationProp,
-  IChargeFixe,
   IDette,
   IReglementData,
   ChargeFixeForm,
@@ -131,7 +130,7 @@ const RegulationScreen: React.FC = () => {
         [targetUid]: [...(prev[targetUid] || []), newCharge],
       }));
     },
-    [currentMonthData, getDisplayName]
+    [currentMonthData, chargesFormMap, getDisplayName]
   );
 
   const updateChargeForm = useCallback(
@@ -198,27 +197,31 @@ const RegulationScreen: React.FC = () => {
     }
 
     try {
-      const allCharges = Object.values(chargesFormMap).flat();
-      const newCharges = allCharges.filter((c) => c.isNew);
-      const existingCharges = allCharges.filter((c) => !c.isNew);
+      const allChargesForm = Object.values(chargesFormMap).flat();
 
-      await Promise.all(
-        newCharges.map((charge) => {
-          const newChargeData: Omit<IChargeFixe, "id" | "householdId"> = {
-            moisAnnee: currentMonthData.moisAnnee,
-            nom: charge.nom || `Charge ajoutée (${charge.payeur})`,
-            montantMensuel: parseFloat(charge.montantForm) || 0,
-            payeur: charge.payeur,
-          };
-          return addChargeFixe(newChargeData);
-        })
-      );
+      await Promise.all([
+        ...allChargesForm
+          .filter((c) => c.isNew)
+          .map((charge) =>
+            addChargeFixe({
+              moisAnnee: currentMonthData.moisAnnee,
+              nom: charge.nom || `Charge ajoutée`,
+              montantMensuel: parseFloat(charge.montantForm) || 0,
+              payeur: charge.payeur,
+            })
+          ),
+        ...allChargesForm
+          .filter((c) => !c.isNew)
+          .map((charge) =>
+            updateChargeFixe(charge.id, parseFloat(charge.montantForm) || 0)
+          ),
+      ]);
 
-      await Promise.all(
-        existingCharges.map((charge) =>
-          updateChargeFixe(charge.id, parseFloat(charge.montantForm) || 0)
-        )
-      );
+      const chargesFixesSnapshot = allChargesForm.map((charge) => ({
+        nom: charge.nom,
+        montantMensuel: parseFloat(charge.montantForm) || 0,
+        payeur: charge.payeur,
+      }));
 
       const apportsAPL: Record<string, number> = {};
       Object.entries(apportsAPLForm).forEach(([uid, amountString]) => {
@@ -252,6 +255,7 @@ const RegulationScreen: React.FC = () => {
         apportsAPL: apportsAPL,
         dettes: dettesToSubmit,
         loyerPayeurUid: currentMonthData.loyerPayeurUid || user.id || uid1,
+        chargesFixesSnapshot: chargesFixesSnapshot,
       };
 
       await cloturerMois(dataToSubmit);

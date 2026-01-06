@@ -10,6 +10,7 @@ import {
   IChargeFixe,
   IChargeVariable,
   IReglementData,
+  IChargeFixeSnapshot,
 } from "../types";
 import { useAuth } from "../hooks/useAuth";
 import { useCalculs } from "../hooks/useCalculs";
@@ -242,16 +243,20 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const cloturerMois = useCallback(
-    async (data: IReglementData) => {
+    async (
+      data: IReglementData & { chargesFixesSnapshot?: IChargeFixeSnapshot[] }
+    ) => {
       if (!currentMonthData || !currentMonthData.id || !householdId) {
         throw new Error("Impossible de clôturer le mois : données manquantes.");
       }
 
-      const chargesFixesSnapshot = chargesFixes.map((charge) => ({
-        nom: charge.nom,
-        montantMensuel: charge.montantMensuel,
-        payeur: charge.payeur,
-      }));
+      const snapshot =
+        data.chargesFixesSnapshot ||
+        chargesFixes.map((charge) => ({
+          nom: charge.nom,
+          montantMensuel: charge.montantMensuel,
+          payeur: charge.payeur,
+        }));
       setIsLoadingComptes(true);
       try {
         await updateLoyer(
@@ -263,7 +268,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
           householdId,
           currentMonthData.id,
           data.dettes,
-          chargesFixesSnapshot
+          snapshot
         );
 
         await DB.addChargeVariableRegularisation(
