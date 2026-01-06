@@ -43,6 +43,12 @@ export const EditChargeVariableForm = ({
   categories,
 }: EditChargeVariableFormProps) => {
   const currentCategory = categories.find((c) => c.id === editCategorie);
+  const isInvalid =
+    isSubmitting ||
+    editBeneficiairesUid.length === 0 ||
+    !editDescription.trim() ||
+    isNaN(parseFloat(editMontant)) ||
+    parseFloat(editMontant) <= 0;
   return (
     <View style={styles.editFormContainer}>
       <View style={[styles.userCard, styles.payorCard, { marginBottom: 12 }]}>
@@ -54,6 +60,8 @@ export const EditChargeVariableForm = ({
               value={editDescription}
               onChangeText={setEditDescription}
               placeholder="Nom de la dépense"
+              placeholderTextColor="#95a5a6"
+              maxLength={30}
             />
             {editDescription.length > 0 && (
               <TouchableOpacity onPress={() => setEditDescription("")}>
@@ -71,10 +79,12 @@ export const EditChargeVariableForm = ({
             <TextInput
               style={[styles.editInputActive]}
               value={editMontant}
-              onChangeText={setEditMontant}
+              onChangeText={(text) => setEditMontant(text.replace(",", "."))}
               keyboardType="decimal-pad"
               {...({ inputMode: "decimal" } as any)}
               placeholder="0,00"
+              placeholderTextColor="#95a5a6"
+              maxLength={8}
             />
             <Text style={[styles.cardAmount, { marginLeft: 4 }]}>€</Text>
           </View>
@@ -87,9 +97,14 @@ export const EditChargeVariableForm = ({
       >
         <Text style={styles.editLabel}>Catégorie</Text>
         <View style={styles.selectorContainer}>
-          <Text style={styles.miniUserText}>
-            {currentCategory?.icon} {currentCategory?.label}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={{ fontSize: 18, marginRight: 8 }}>
+              {currentCategory?.icon || "📦"}
+            </Text>
+            <Text style={styles.miniUserText}>
+              {currentCategory?.label || "Choisir une catégorie"}
+            </Text>
+          </View>
           <ChevronsUpDown size={16} color="#8E8E93" />
         </View>
       </TouchableOpacity>
@@ -172,12 +187,12 @@ export const EditChargeVariableForm = ({
       <TouchableOpacity
         style={[
           styles.saveButton,
-          (isSubmitting || editBeneficiairesUid.length === 0) && {
+          isInvalid && {
             opacity: 0.5,
           },
         ]}
         onPress={handleUpdateCharge}
-        disabled={isSubmitting || editBeneficiairesUid.length === 0}
+        disabled={isInvalid}
       >
         <Text style={styles.saveButtonText}>
           {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
