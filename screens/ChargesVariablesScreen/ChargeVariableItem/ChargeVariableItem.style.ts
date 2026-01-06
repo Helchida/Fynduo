@@ -27,4 +27,20 @@ export const styles = StyleSheet.create({
     marginTop: 3,
     fontWeight: "500",
   },
+  avatarBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f0f2f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#e1e4e8",
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#57606a",
+  },
 });

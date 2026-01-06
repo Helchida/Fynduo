@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#2c3e50",
     marginBottom: 20,
-    textAlign: "center",
+    textAlign: "left",
   },
   loading: {
     textAlign: "center",
@@ -150,38 +150,38 @@ export const styles = StyleSheet.create({
   },
 
   filtersContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginBottom: 16,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   filtersLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 4,
-    color: '#666',
+    color: "#666",
   },
   filterChip: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
   },
   filterChipActive: {
-    backgroundColor: '#3498db',
-    borderColor: '#3498db',
+    backgroundColor: "#3498db",
+    borderColor: "#3498db",
   },
   filterChipText: {
     fontSize: 13,
-    color: '#333',
+    color: "#333",
   },
   filterChipTextActive: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   filterClearButton: {
     paddingHorizontal: 8,
@@ -189,7 +189,7 @@ export const styles = StyleSheet.create({
   },
   filterClearText: {
     fontSize: 16,
-    color: '#e74c3c',
-    fontWeight: '600',
+    color: "#e74c3c",
+    fontWeight: "600",
   },
 });

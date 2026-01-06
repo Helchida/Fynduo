@@ -61,14 +61,21 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState("Autre");
-  const [selectedDateStatistiques, setSelectedDateStatistiques] = useState<Date>(new Date());
-  const [selectedDateComptes, setSelectedDateComptes] = useState<Date>(new Date());
-  const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] = useState(false);
-  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] = useState(false);
+  const [selectedDateStatistiques, setSelectedDateStatistiques] =
+    useState<Date>(new Date());
+  const [selectedDateComptes, setSelectedDateComptes] = useState<Date>(
+    new Date()
+  );
+  const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] =
+    useState(false);
+  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] =
+    useState(false);
   const [filterMois, setFilterMois] = useState<string | null>(null);
   const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
-  const [isFilterMoisModalVisible, setIsFilterMoisModalVisible] = useState(false);
-  const [isFilterPayeurModalVisible, setIsFilterPayeurModalVisible] = useState(false);
+  const [isFilterMoisModalVisible, setIsFilterMoisModalVisible] =
+    useState(false);
+  const [isFilterPayeurModalVisible, setIsFilterPayeurModalVisible] =
+    useState(false);
 
   const handleOpenDetail = useCallback(
     (charge: IChargeVariable) => {
@@ -85,19 +92,21 @@ const ChargesVariablesScreen: React.FC = () => {
 
     // Filtre par payeur
     if (filterPayeur) {
-      filtered = filtered.filter(c => c.payeur === filterPayeur);
+      filtered = filtered.filter((c) => c.payeur === filterPayeur);
     }
 
     // Filtre par mois
     if (filterMois) {
-      filtered = filtered.filter(c =>
-        dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois
+      filtered = filtered.filter(
+        (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois
       );
     }
 
     // Tri par dateStatistiques (utilise filtered au lieu de chargesVariables)
     const sortedCharges = filtered.sort(
-      (a, b) => dayjs(b.dateStatistiques).valueOf() - dayjs(a.dateStatistiques).valueOf()
+      (a, b) =>
+        dayjs(b.dateStatistiques).valueOf() -
+        dayjs(a.dateStatistiques).valueOf()
     );
 
     const groupedData = sortedCharges.reduce((acc, charge) => {
@@ -128,17 +137,26 @@ const ChargesVariablesScreen: React.FC = () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
 
     if (!payeurUid || !currentMonthData) {
-      toast.error("Erreur", "Le payeur ou les données mensuelles sont manquantes.");
+      toast.error(
+        "Erreur",
+        "Le payeur ou les données mensuelles sont manquantes."
+      );
       return;
     }
 
     if (beneficiairesUid.length === 0) {
-      toast.warning("Erreur de saisie", "Veuillez sélectionner au moins un bénéficiaire.");
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez sélectionner au moins un bénéficiaire."
+      );
       return;
     }
 
     if (!description.trim() || isNaN(montantTotal) || montantTotal <= 0) {
-      toast.warning("Erreur de saisie", "Veuillez vérifier la description et un montant valide (> 0).");
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez vérifier la description et un montant valide (> 0)."
+      );
       return;
     }
 
@@ -206,8 +224,6 @@ const ChargesVariablesScreen: React.FC = () => {
     (c) => c.id === selectedCategorie
   );
 
-
-
   return (
     <View style={styles.container}>
       <ScrollView
@@ -234,8 +250,10 @@ const ChargesVariablesScreen: React.FC = () => {
                 <TextInput
                   style={styles.editInputActive}
                   placeholder="Description (ex: Courses)"
+                  placeholderTextColor="#95a5a6"
                   value={description}
                   onChangeText={setDescription}
+                  maxLength={30}
                   editable={!isSubmitting}
                 />
               </View>
@@ -247,13 +265,17 @@ const ChargesVariablesScreen: React.FC = () => {
                 <TextInput
                   style={styles.editInputActive}
                   placeholder="0.00"
+                  placeholderTextColor="#95a5a6"
                   value={montant}
                   onChangeText={setMontant}
                   keyboardType="decimal-pad"
                   {...({ inputMode: "decimal" } as any)}
+                  maxLength={8}
                   editable={!isSubmitting}
                 />
-                <Text style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}>
+                <Text
+                  style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}
+                >
                   €
                 </Text>
               </View>
@@ -367,11 +389,21 @@ const ChargesVariablesScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.saveButton,
-                (isSubmitting || benefCount === 0 || !payeurUid) &&
-                styles.disabledButton,
+                (isSubmitting ||
+                  benefCount === 0 ||
+                  !payeurUid ||
+                  !description ||
+                  !montant) &&
+                  styles.disabledButton,
               ]}
               onPress={handleAddDepense}
-              disabled={isSubmitting || benefCount === 0 || !payeurUid}
+              disabled={
+                isSubmitting ||
+                benefCount === 0 ||
+                !payeurUid ||
+                !description ||
+                !montant
+              }
             >
               <Text style={styles.saveButtonText}>
                 {isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"}
