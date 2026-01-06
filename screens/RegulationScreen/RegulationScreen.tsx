@@ -196,9 +196,38 @@ const RegulationScreen: React.FC = () => {
       return;
     }
 
-    try {
-      const allChargesForm = Object.values(chargesFormMap).flat();
+    const loyerNum = parseFloat(loyerTotal);
+    if (isNaN(loyerNum) || loyerNum <= 0) {
+      return toast.error(
+        "Données invalides",
+        "Le montant du loyer doit être supérieur à 0."
+      );
+    }
 
+    const allChargesForm = Object.values(chargesFormMap).flat();
+
+    const hasEmptyChargeName = allChargesForm.some(
+      (c) => !c.nom || c.nom.trim().length === 0
+    );
+    if (hasEmptyChargeName) {
+      return toast.error(
+        "Données manquantes",
+        "Toutes les charges doivent avoir une description."
+      );
+    }
+
+    const hasInvalidChargeAmount = allChargesForm.some((c) => {
+      const val = parseFloat(c.montantForm);
+      return isNaN(val) || val <= 0;
+    });
+    if (hasInvalidChargeAmount) {
+      return toast.error(
+        "Données invalides",
+        "Les montants des charges doivent être supérieur à 0."
+      );
+    }
+
+    try {
       await Promise.all([
         ...allChargesForm
           .filter((c) => c.isNew)

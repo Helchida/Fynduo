@@ -28,7 +28,8 @@ const AjustementSection: React.FC<AjustementSectionProps> = ({
               style={styles.mainInput}
               keyboardType="decimal-pad"
               {...({ inputMode: "decimal" } as any)}
-              placeholder="0.00"
+              placeholder="0"
+              placeholderTextColor="#95a5a6"
               value={dettesAjustements[`${uid1}-${uid2}`]}
               onChangeText={(text) =>
                 updateDettesAjustements(`${uid1}-${uid2}`, text)
@@ -44,7 +45,8 @@ const AjustementSection: React.FC<AjustementSectionProps> = ({
               style={styles.mainInput}
               keyboardType="decimal-pad"
               {...({ inputMode: "decimal" } as any)}
-              placeholder="0.00"
+              placeholder="0"
+              placeholderTextColor="#95a5a6"
               value={dettesAjustements[`${uid2}-${uid1}`]}
               onChangeText={(text) =>
                 updateDettesAjustements(`${uid2}-${uid1}`, text)
