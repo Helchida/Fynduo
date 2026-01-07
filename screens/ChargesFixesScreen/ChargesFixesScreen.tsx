@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Button,
   Modal,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
@@ -14,10 +13,10 @@ import { styles } from "./ChargesFixesScreen.style";
 import { IChargeFixe, IUser } from "@/types";
 import * as DB from "../../services/firebase/db";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
-import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { Info } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
+import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -141,7 +140,7 @@ const ChargesFixesScreen: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [nom, montant, user, addChargeFixe, currentMonthData]);
+  }, [nom, montant, payeur, user, addChargeFixe, currentMonthData]);
 
   const selectPayeur = (uid: string) => {
     setPayeur(uid);
@@ -202,7 +201,7 @@ const ChargesFixesScreen: React.FC = () => {
               disabled={isSubmitting}
             >
               <Text style={!payeur ? styles.placeholderText : styles.inputText}>
-                {useGetDisplayNameUserInHousehold(payeur, householdUsers)}
+                {getDisplayNameUserInHousehold(payeur, householdUsers)}
               </Text>
             </TouchableOpacity>
           </View>

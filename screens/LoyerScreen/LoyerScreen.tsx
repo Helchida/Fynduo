@@ -14,9 +14,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./LoyerScreen.style";
 import { IUser } from "../../types";
 import * as DB from "../../services/firebase/db";
-import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
+import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 
 type ApportsAPLState = { [uid: string]: string };
 
@@ -202,7 +202,7 @@ const LoyerScreen: React.FC = () => {
                 !loyerPayeurUid ? styles.placeholderText : styles.inputText
               }
             >
-              {useGetDisplayNameUserInHousehold(loyerPayeurUid, householdUsers)}
+              {getDisplayNameUserInHousehold(loyerPayeurUid, householdUsers)}
             </Text>
           </TouchableOpacity>
         </View>

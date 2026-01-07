@@ -2,10 +2,10 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "./ChargeVariableItem.style";
 import { ChargeVariableItemProps } from "./ChargeVariableItem.type";
-import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import { useCategories } from "hooks/useCategories";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 
 const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
   charge,
@@ -19,7 +19,7 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
   }
 
   const { categories } = useCategories(user.householdId);
-  const payeurName = useGetDisplayNameUserInHousehold(
+  const payeurName = getDisplayNameUserInHousehold(
     charge.payeur,
     householdUsers
   );

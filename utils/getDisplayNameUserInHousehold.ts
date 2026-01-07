@@ -1,6 +1,6 @@
 import { IUser } from "@/types";
 
-export const useGetDisplayNameUserInHousehold = (
+export const getDisplayNameUserInHousehold = (
   userId: string | null,
   householdUsers: IUser[]
 ): string => {

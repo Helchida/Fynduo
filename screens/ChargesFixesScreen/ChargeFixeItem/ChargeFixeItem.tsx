@@ -10,9 +10,9 @@ import {
 import { IUser } from "@/types";
 import { styles } from "./ChargeFixeItem.style";
 import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
-import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
+import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -88,7 +88,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       >
         <Text style={styles.payeurLabel}>Payé par: </Text>
         <Text style={styles.payeurName}>
-          {useGetDisplayNameUserInHousehold(charge.payeur, householdUsers)}
+          {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
         </Text>
       </TouchableOpacity>
       <View style={styles.inputRow}>

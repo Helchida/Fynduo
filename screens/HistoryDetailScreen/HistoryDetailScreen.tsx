@@ -13,8 +13,8 @@ import dayjs from "dayjs";
 import { styles } from "./HistoryDetailScreen.style";
 import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
-import { useGetDisplayNameUserInHousehold } from "hooks/useGetDisplayNameUserInHousehold";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 dayjs.locale("fr");
 
 type HistoryDetailRouteProp = RootStackRouteProp<"HistoryDetail">;
@@ -104,7 +104,7 @@ const HistoryDetailScreen: React.FC = () => {
     0
   );
   const montantAVerserAgence = compte.loyerTotal - aplSomme;
-  const loyerPayeurName = useGetDisplayNameUserInHousehold(
+  const loyerPayeurName = getDisplayNameUserInHousehold(
     compte.loyerPayeurUid,
     householdUsers
   );
@@ -145,7 +145,7 @@ const HistoryDetailScreen: React.FC = () => {
         {Object.keys(compte.apportsAPL).map((uid) => (
           <View key={uid} style={styles.chargeRow}>
             <Text style={styles.chargeDescription}>
-              • APL {useGetDisplayNameUserInHousehold(uid, householdUsers)}
+              • APL {getDisplayNameUserInHousehold(uid, householdUsers)}
             </Text>
             <Text style={styles.chargeMontant}>
               {compte.apportsAPL[uid].toFixed(2)} €
@@ -196,7 +196,7 @@ const HistoryDetailScreen: React.FC = () => {
                 {charge.montantMensuel.toFixed(2)} €
               </Text>
               <Text style={styles.chargePayeur}>
-                {useGetDisplayNameUserInHousehold(
+                {getDisplayNameUserInHousehold(
                   charge.payeur,
                   householdUsers
                 )}
@@ -229,12 +229,12 @@ const HistoryDetailScreen: React.FC = () => {
         {compte.dettes.map((dette, index) => (
           <Text key={index} style={styles.finalDetail}>
             Dette{" "}
-            {useGetDisplayNameUserInHousehold(
+            {getDisplayNameUserInHousehold(
               dette.debiteurUid,
               householdUsers
             )}{" "}
             vers{" "}
-            {useGetDisplayNameUserInHousehold(
+            {getDisplayNameUserInHousehold(
               dette.creancierUid,
               householdUsers
             )}
