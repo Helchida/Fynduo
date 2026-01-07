@@ -25,6 +25,7 @@ import { ChevronsUpDown } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { MonthPickerModal } from "components/ui/MonthPickerModal/MonthPickerModal";
 import { useToast } from "hooks/useToast";
+import { YearPickerModal } from "components/ui/YearPickerModal/YearPickerModal";
 
 dayjs.locale("fr");
 
@@ -50,7 +51,7 @@ const ChargesVariablesScreen: React.FC = () => {
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
-  const { categories, isLoadingCategories } = useCategories(user.householdId);
+  const { categories, getCategoryLabel } = useCategories(user.householdId);
 
   const [description, setDescription] = useState("");
   const [montant, setMontant] = useState("");
@@ -71,10 +72,16 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isDateComptesPickerVisible, setDateComptesPickerVisibility] =
     useState(false);
   const [filterMois, setFilterMois] = useState<string | null>(null);
+  const [filterAnnee, setFilterAnnee] = useState<string | null>(null);
+  const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
   const [isFilterMoisModalVisible, setIsFilterMoisModalVisible] =
     useState(false);
   const [isFilterPayeurModalVisible, setIsFilterPayeurModalVisible] =
+    useState(false);
+  const [isFilterAnneeModalVisible, setIsFilterAnneeModalVisible] =
+    useState(false);
+  const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
 
   const handleOpenDetail = useCallback(
@@ -90,19 +97,26 @@ const ChargesVariablesScreen: React.FC = () => {
   const groupedCharges = useMemo(() => {
     let filtered = chargesVariables.slice();
 
-    // Filtre par payeur
     if (filterPayeur) {
       filtered = filtered.filter((c) => c.payeur === filterPayeur);
     }
 
-    // Filtre par mois
     if (filterMois) {
       filtered = filtered.filter(
         (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois
       );
     }
 
-    // Tri par dateStatistiques (utilise filtered au lieu de chargesVariables)
+    if (filterAnnee) {
+      filtered = filtered.filter(
+        (c) => dayjs(c.dateStatistiques).format("YYYY") === filterAnnee
+      );
+    }
+
+    if (filterCategory) {
+      filtered = filtered.filter((c) => c.categorie === filterCategory);
+    }
+
     const sortedCharges = filtered.sort(
       (a, b) =>
         dayjs(b.dateStatistiques).valueOf() -
@@ -131,7 +145,7 @@ const ChargesVariablesScreen: React.FC = () => {
     });
 
     return groupedArray;
-  }, [chargesVariables, filterPayeur, filterMois]);
+  }, [chargesVariables, filterPayeur, filterMois, filterAnnee, filterCategory]);
 
   const handleAddDepense = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
@@ -430,6 +444,20 @@ const ChargesVariablesScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={[styles.filterChip, filterAnnee && styles.filterChipActive]}
+            onPress={() => setIsFilterAnneeModalVisible(true)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterAnnee && styles.filterChipTextActive,
+              ]}
+            >
+              ⏳ {filterAnnee ? dayjs(filterAnnee).format("YYYY") : "Année"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.filterChip, filterPayeur && styles.filterChipActive]}
             onPress={() => setIsFilterPayeurModalVisible(true)}
           >
@@ -443,12 +471,32 @@ const ChargesVariablesScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          {(filterMois || filterPayeur) && (
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              filterCategory && styles.filterChipActive,
+            ]}
+            onPress={() => setIsFilterCategoryModalVisible(true)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterCategory && styles.filterChipTextActive,
+              ]}
+            >
+              🏷️{" "}
+              {filterCategory ? getCategoryLabel(filterCategory) : "Catégorie"}
+            </Text>
+          </TouchableOpacity>
+
+          {(filterMois || filterPayeur || filterAnnee || filterCategory) && (
             <TouchableOpacity
               style={styles.filterClearButton}
               onPress={() => {
                 setFilterMois(null);
                 setFilterPayeur(null);
+                setFilterAnnee(null);
+                setFilterCategory(null);
               }}
             >
               <Text style={styles.filterClearText}>✕</Text>
@@ -485,6 +533,14 @@ const ChargesVariablesScreen: React.FC = () => {
         chargesVariables={chargesVariables}
       />
 
+      <YearPickerModal
+        isVisible={isFilterAnneeModalVisible}
+        onClose={() => setIsFilterAnneeModalVisible(false)}
+        selectedYear={filterAnnee}
+        onSelect={(year) => setFilterAnnee(year)}
+        chargesVariables={chargesVariables}
+      />
+
       <PayeurPickerModal
         isVisible={isFilterPayeurModalVisible}
         onClose={() => setIsFilterPayeurModalVisible(false)}
@@ -495,6 +551,17 @@ const ChargesVariablesScreen: React.FC = () => {
           setIsFilterPayeurModalVisible(false);
         }}
         getDisplayName={getDisplayName}
+      />
+
+      <CategoryPickerModal
+        isVisible={isFilterCategoryModalVisible}
+        onClose={() => setIsFilterCategoryModalVisible(false)}
+        selectedId={selectedCategorie}
+        categories={categories}
+        onSelect={(id) => {
+          setFilterCategory(id);
+          setIsFilterCategoryModalVisible(false);
+        }}
       />
 
       <CategoryPickerModal

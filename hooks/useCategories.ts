@@ -1,5 +1,5 @@
 import { ICategorie } from "@/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getHouseholdCategories } from "services/firebase/db";
 
 export const useCategories = (householdId: string) => {
@@ -23,5 +23,14 @@ export const useCategories = (householdId: string) => {
     fetchCats();
   }, [householdId]);
 
-  return { categories, isLoadingCategories };
+  const getCategoryLabel = useCallback(
+    (categoryId: string | null) => {
+      if (!categoryId) return "Autre";
+      const category = categories.find((c) => c.id === categoryId);
+      return category ? category.label : "Autre";
+    },
+    [categories]
+  );
+
+  return { categories, isLoadingCategories, getCategoryLabel };
 };
