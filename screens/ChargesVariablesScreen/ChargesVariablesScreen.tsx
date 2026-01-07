@@ -23,9 +23,8 @@ import { BeneficiariesSelector } from "../ChargeVariableDetail/EditChargeVariabl
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { ChevronsUpDown } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
-import { MonthPickerModal } from "components/ui/MonthPickerModal/MonthPickerModal";
 import { useToast } from "hooks/useToast";
-import { YearPickerModal } from "components/ui/YearPickerModal/YearPickerModal";
+import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
 
 dayjs.locale("fr");
 
@@ -75,11 +74,9 @@ const ChargesVariablesScreen: React.FC = () => {
   const [filterAnnee, setFilterAnnee] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
-  const [isFilterMoisModalVisible, setIsFilterMoisModalVisible] =
+  const [isFilterPeriodeModalVisible, setIsFilterPeriodeModalVisible] =
     useState(false);
   const [isFilterPayeurModalVisible, setIsFilterPayeurModalVisible] =
-    useState(false);
-  const [isFilterAnneeModalVisible, setIsFilterAnneeModalVisible] =
     useState(false);
   const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
@@ -425,35 +422,27 @@ const ChargesVariablesScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-
+        <Text style={styles.filtersLabel}>Filtrer :</Text>
         <View style={styles.filtersContainer}>
-          <Text style={styles.filtersLabel}>Filtrer :</Text>
-
           <TouchableOpacity
-            style={[styles.filterChip, filterMois && styles.filterChipActive]}
-            onPress={() => setIsFilterMoisModalVisible(true)}
+            style={[
+              styles.filterChip,
+              (filterMois || filterAnnee) && styles.filterChipActive,
+            ]}
+            onPress={() => setIsFilterPeriodeModalVisible(true)}
           >
             <Text
               style={[
                 styles.filterChipText,
-                filterMois && styles.filterChipTextActive,
+                (filterMois || filterAnnee) && styles.filterChipTextActive,
               ]}
             >
-              📅 {filterMois ? dayjs(filterMois).format("MMM YYYY") : "Mois"}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterChip, filterAnnee && styles.filterChipActive]}
-            onPress={() => setIsFilterAnneeModalVisible(true)}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                filterAnnee && styles.filterChipTextActive,
-              ]}
-            >
-              ⏳ {filterAnnee ? dayjs(filterAnnee).format("YYYY") : "Année"}
+              📅{" "}
+              {filterMois
+                ? dayjs(filterMois).format("MMM YYYY")
+                : filterAnnee
+                ? filterAnnee
+                : "Période"}
             </Text>
           </TouchableOpacity>
 
@@ -525,19 +514,21 @@ const ChargesVariablesScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      <MonthPickerModal
-        isVisible={isFilterMoisModalVisible}
-        onClose={() => setIsFilterMoisModalVisible(false)}
+      <PeriodPickerModal
+        isVisible={isFilterPeriodeModalVisible}
+        onClose={() => setIsFilterPeriodeModalVisible(false)}
+        onSelectMonth={(month) => {
+          setFilterAnnee(null);
+          setFilterMois(month);
+          setIsFilterPeriodeModalVisible(false);
+        }}
+        onSelectYear={(year) => {
+          setFilterMois(null);
+          setFilterAnnee(year);
+          setIsFilterPeriodeModalVisible(false);
+        }}
         selectedMonth={filterMois}
-        onSelect={(month) => setFilterMois(month)}
-        chargesVariables={chargesVariables}
-      />
-
-      <YearPickerModal
-        isVisible={isFilterAnneeModalVisible}
-        onClose={() => setIsFilterAnneeModalVisible(false)}
         selectedYear={filterAnnee}
-        onSelect={(year) => setFilterAnnee(year)}
         chargesVariables={chargesVariables}
       />
 

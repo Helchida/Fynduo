@@ -154,7 +154,6 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
     marginBottom: 16,
-    paddingHorizontal: 16,
     alignItems: "center",
   },
   filtersLabel: {
@@ -162,6 +161,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     marginRight: 4,
     color: "#666",
+    marginBottom: 4,
   },
   filterChip: {
     backgroundColor: "#f0f0f0",
