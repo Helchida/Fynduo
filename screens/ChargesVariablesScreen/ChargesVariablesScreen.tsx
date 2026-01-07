@@ -25,6 +25,8 @@ import { ChevronsUpDown } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { useToast } from "hooks/useToast";
 import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
+import { useMultiUserBalance } from "hooks/useMultiUserBalance";
+import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 
 dayjs.locale("fr");
 
@@ -50,7 +52,10 @@ const ChargesVariablesScreen: React.FC = () => {
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
-  const { categories, getCategoryLabel } = useCategories(user.householdId);
+  const { categories, getCategoryLabel, defaultCategory } = useCategories(
+    user.householdId
+  );
+  const balances = useMultiUserBalance(chargesVariables, householdUsers);
 
   const [description, setDescription] = useState("");
   const [montant, setMontant] = useState("");
@@ -60,7 +65,9 @@ const ChargesVariablesScreen: React.FC = () => {
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-  const [selectedCategorie, setSelectedCategorie] = useState("Autre");
+  const [selectedCategorie, setSelectedCategorie] = useState(
+    defaultCategory?.id || "Autre"
+  );
   const [selectedDateStatistiques, setSelectedDateStatistiques] =
     useState<Date>(new Date());
   const [selectedDateComptes, setSelectedDateComptes] = useState<Date>(
@@ -81,6 +88,15 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
 
+  useEffect(() => {
+    if (categories.length > 0) {
+      const defaultCat = categories.find((c) => c.isDefault);
+      if (defaultCat) {
+        setSelectedCategorie(defaultCat.id);
+      }
+    }
+  }, [categories]);
+
   const handleOpenDetail = useCallback(
     (charge: IChargeVariable) => {
       navigation.navigate("ChargeVariableDetail", {
@@ -90,6 +106,10 @@ const ChargesVariablesScreen: React.FC = () => {
     },
     [navigation]
   );
+
+  const suggestionsVirements = useMemo(() => {
+    return calculSimplifiedTransfers(balances);
+  }, [balances]);
 
   const groupedCharges = useMemo(() => {
     let filtered = chargesVariables.slice();
@@ -190,7 +210,7 @@ const ChargesVariablesScreen: React.FC = () => {
       setMontant("");
       setSelectedDateStatistiques(new Date());
       setSelectedDateComptes(new Date());
-      setSelectedCategorie("Autre");
+      setSelectedCategorie(defaultCategory?.label || "Autre");
       setPayeurUid(user.id || null);
       setBeneficiairesUid(householdUsers.map((u) => u.id));
       setShowForm(false);
@@ -422,6 +442,26 @@ const ChargesVariablesScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
+        <View style={styles.balanceContainer}>
+          <Text style={styles.balanceTitle}>Equilibrer ?</Text>
+          {suggestionsVirements.length === 0 ? (
+            <Text style={styles.emptyText}>Tout est déjà équilibré ! ✨</Text>
+          ) : (
+            suggestionsVirements.map((virement, index) => (
+              <View key={index} style={styles.virementRow}>
+                <Text style={styles.virementText}>
+                  <Text style={styles.bold}>{getDisplayName(virement.de)}</Text>{" "}
+                  doit envoyer{" "}
+                  <Text style={styles.amountText}>
+                    {virement.montant.toFixed(2)}€
+                  </Text>{" "}
+                  à{" "}
+                  <Text style={styles.bold}>{getDisplayName(virement.a)}</Text>
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
         <Text style={styles.filtersLabel}>Filtrer :</Text>
         <View style={styles.filtersContainer}>
           <TouchableOpacity

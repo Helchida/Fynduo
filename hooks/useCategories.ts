@@ -5,6 +5,7 @@ import { getHouseholdCategories } from "services/firebase/db";
 export const useCategories = (householdId: string) => {
   const [categories, setCategories] = useState<ICategorie[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const defaultCategory = categories.find((c) => c.isDefault);
 
   useEffect(() => {
     if (!householdId) return;
@@ -32,5 +33,5 @@ export const useCategories = (householdId: string) => {
     [categories]
   );
 
-  return { categories, isLoadingCategories, getCategoryLabel };
+  return { categories, isLoadingCategories, getCategoryLabel, defaultCategory };
 };

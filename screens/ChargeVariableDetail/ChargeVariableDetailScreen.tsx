@@ -128,7 +128,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
           : new Date()
       );
     } else if (!isLoadingComptes) {
-      toast.error("Erreur", "Charge non trouvée.");
+      toast.success("Succès", "Charge supprimée.");
       navigation.goBack();
     }
   }, [initialCharge, isLoadingComptes, navigation]);
