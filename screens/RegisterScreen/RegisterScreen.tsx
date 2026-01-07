@@ -14,7 +14,6 @@ import { styles } from "./RegisterScreen.style";
 import { createUserProfile } from "services/firebase/db";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "services/firebase/config";
-import Constants from "expo-constants";
 import { useToast } from "hooks/useToast";
 
 const RegisterScreen: React.FC = () => {
@@ -58,12 +57,15 @@ const RegisterScreen: React.FC = () => {
 
       if (!isDevMode) {
         await sendEmailVerification(user);
+        toast.success(
+          "Compte créé",
+          "Veuillez vérifier votre boîte mail pour la vérification."
+        );
+        navigation.navigate("EmailVerification");
+      } else {
+        toast.success("Mode DEV : Compte créé sans vérification d'email.");
+        navigation.navigate("Home");
       }
-      toast.success(
-        "Compte créé",
-        "Veuillez vérifier votre boîte mail pour la vérification."
-      );
-      navigation.navigate("EmailVerification");
     } catch (error: any) {
       toast.error("Erreur", error.message);
     } finally {

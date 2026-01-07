@@ -16,7 +16,6 @@ import { doc, getDoc } from "firebase/firestore";
 import { IUser } from "@/types";
 import * as DB from "../services/firebase/db";
 import { IAuthContext, IUserContext } from "./types/AuthContext.type";
-import Constants from "expo-constants";
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
@@ -27,6 +26,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
   const [isAwaitingVerification, setIsAwaitingVerification] = useState(false);
+
+  const loadUserProfile = async (firebaseUser: any) => {
+    try {
+      const token = await firebaseUser.getIdToken();
+      const userRef = doc(db, "users", firebaseUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        throw new Error("Profil utilisateur introuvable");
+      }
+
+      const userData = userSnap.data() as IUser;
+
+      setUser({
+        id: firebaseUser.uid,
+        displayName: userData.displayName,
+        householdId: userData.householdId,
+        token,
+      });
+
+      const users = await DB.getHouseholdUsers(userData.householdId);
+      setHouseholdUsers(users);
+      setIsAwaitingVerification(false);
+    } catch (error) {
+      console.error("Erreur chargement profil :", error);
+      setUser(null);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -40,88 +67,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      const isDevMode = __DEV__;
-
       await firebaseUser.reload();
 
-      if (!firebaseUser.emailVerified && !isDevMode) {
-        console.warn("Email non vérifié :", firebaseUser.email);
+      const canAccess = firebaseUser.emailVerified || __DEV__;
 
+      if (canAccess) {
+        await loadUserProfile(firebaseUser);
+      } else {
+        console.warn("Email non vérifié en mode Prod :", firebaseUser.email);
         setUser(null);
-        setHouseholdUsers([]);
-
-        if (!isAwaitingVerification) {
-          setIsAwaitingVerification(true);
-        }
-
-        setIsLoading(false);
-        return;
-      }
-
-      if (firebaseUser.emailVerified) {
-        setIsAwaitingVerification(false);
-
-        try {
-          const token = await firebaseUser.getIdToken();
-          const userRef = doc(db, "users", firebaseUser.uid);
-          const userSnap = await getDoc(userRef);
-
-          if (!userSnap.exists()) {
-            throw new Error("Profil utilisateur introuvable");
-          }
-
-          const userData = userSnap.data() as IUser;
-
-          setUser({
-            id: firebaseUser.uid,
-            displayName: userData.displayName,
-            householdId: userData.householdId,
-            token,
-          });
-
-          const users = await DB.getHouseholdUsers(userData.householdId);
-          setHouseholdUsers(users);
-        } catch (error) {
-          console.error("Erreur AuthContext :", error);
-          setUser(null);
-          setHouseholdUsers([]);
-        }
+        setIsAwaitingVerification(true);
       }
 
       setIsLoading(false);
     });
 
     const verificationInterval = setInterval(async () => {
-      if (isAwaitingVerification && auth.currentUser) {
-        console.log("Vérification de l'email...");
+      if (isAwaitingVerification && auth.currentUser && !__DEV__) {
         await auth.currentUser.reload();
-
         if (auth.currentUser.emailVerified) {
-          console.log("Email vérifié ! Chargement du profil...");
           clearInterval(verificationInterval);
-
-          try {
-            const token = await auth.currentUser.getIdToken(true);
-            const userRef = doc(db, "users", auth.currentUser.uid);
-            const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-              const userData = userSnap.data() as IUser;
-
-              setUser({
-                id: auth.currentUser.uid,
-                displayName: userData.displayName,
-                householdId: userData.householdId,
-                token,
-              });
-
-              const users = await DB.getHouseholdUsers(userData.householdId);
-              setHouseholdUsers(users);
-              setIsAwaitingVerification(false);
-            }
-          } catch (error) {
-            console.error("Erreur lors du chargement du profil :", error);
-          }
+          await loadUserProfile(auth.currentUser);
         }
       }
     }, 3000);
