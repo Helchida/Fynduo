@@ -19,10 +19,10 @@ const EmailVerificationScreen: React.FC = () => {
   const toast = useToast();
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(60);
-  const isDev = Constants.appOwnership === "expo";
+  const isDevMode = __DEV__;
 
   useEffect(() => {
-    if (isDev) {
+    if (isDevMode) {
       navigation.replace("Home");
       return;
     }
@@ -39,7 +39,7 @@ const EmailVerificationScreen: React.FC = () => {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [navigation, isDev]);
+  }, [navigation, isDevMode]);
 
   useEffect(() => {
     if (countdown > 0) {

@@ -40,11 +40,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      const isDev = Constants.appOwnership === "expo";
+      const isDevMode = __DEV__;
 
       await firebaseUser.reload();
 
-      if (!firebaseUser.emailVerified && !isDev) {
+      if (!firebaseUser.emailVerified && !isDevMode) {
         console.warn("Email non vérifié :", firebaseUser.email);
 
         setUser(null);

@@ -48,7 +48,7 @@ const RegisterScreen: React.FC = () => {
       );
       const user = userCredential.user;
 
-      const isDev = Constants.appOwnership === "expo";
+      const isDevMode = __DEV__;
 
       await createUserProfile(user.uid, {
         email: user.email || email,
@@ -56,7 +56,7 @@ const RegisterScreen: React.FC = () => {
         householdId: user.uid,
       });
 
-      if (!isDev) {
+      if (!isDevMode) {
         await sendEmailVerification(user);
       }
       toast.success(
