@@ -39,10 +39,7 @@ export const CategoryPickerModal = ({
         await createCategory(newLabel.trim(), newIcon);
       }
 
-      setNewLabel("");
-      setNewIcon("📦");
-      setEditingId(null);
-      setIsAdding(false);
+      resetForm();
     } catch (error) {
       console.error("Erreur lors de la sauvegarde :", error);
     }
@@ -119,10 +116,7 @@ export const CategoryPickerModal = ({
                     ]}
                     onPress={async () => {
                       await removeCategory(editingId);
-                      setIsAdding(false);
-                      setEditingId(null);
-                      setNewLabel("");
-                      setNewIcon("📦");
+                      resetForm();
                     }}
                   >
                     <Text
