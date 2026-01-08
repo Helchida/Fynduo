@@ -52,9 +52,7 @@ const ChargesVariablesScreen: React.FC = () => {
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
-  const { categories, getCategoryLabel, defaultCategory } = useCategories(
-    user.householdId
-  );
+  const { categories, getCategoryLabel, defaultCategory } = useCategories();
   const balances = useMultiUserBalance(chargesVariables, householdUsers);
 
   const [description, setDescription] = useState("");

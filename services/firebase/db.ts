@@ -13,6 +13,7 @@ import {
   DocumentData,
   CollectionReference,
   getDoc,
+  writeBatch,
 } from "firebase/firestore";
 import dayjs from "dayjs";
 import {
@@ -405,4 +406,66 @@ export async function getHouseholdCategories(
     console.error("Erreur lors de la récupération des catégories:", error);
     throw error;
   }
+}
+
+export async function addCategory(
+  householdId: string,
+  category: Omit<ICategorie, "id">
+) {
+  const categorieCollection = getCollectionRef(
+    householdId,
+    SUB_COLLECTIONS.CATEGORIES
+  );
+  const docRef = await addDoc(categorieCollection, category);
+  return docRef.id;
+}
+
+export async function updateCategory(
+  householdId: string,
+  categoryId: string,
+  updateData: Partial<ICategorie>
+) {
+  try {
+    const categoryRef = doc(
+      getCollectionRef(householdId, SUB_COLLECTIONS.CATEGORIES),
+      categoryId
+    );
+    await updateDoc(categoryRef, {
+      ...updateData,
+    });
+  } catch (error) {
+    console.error("Erreur updateCategory:", error);
+    throw error;
+  }
+}
+
+export async function deleteCategory(householdId: string, categoryId: string) {
+  try {
+    const categoryRef = doc(
+      getCollectionRef(householdId, SUB_COLLECTIONS.CATEGORIES),
+      categoryId
+    );
+    await deleteDoc(categoryRef);
+  } catch (error) {
+    console.error("Erreur deleteCategory:", error);
+    throw error;
+  }
+}
+
+export async function migrateChargesOnDelete(
+  householdId: string,
+  oldCategoryId: string,
+  defaultCategoryId: string
+) {
+  const batch = writeBatch(db);
+  const chargesCollection = getCollectionRef(
+    householdId,
+    SUB_COLLECTIONS.CHARGES_VARIABLES
+  );
+  const q = query(chargesCollection, where("categorie", "==", oldCategoryId));
+  const snapshot = await getDocs(q);
+  snapshot.forEach((doc) => {
+    batch.update(doc.ref, { categorie: defaultCategoryId });
+  });
+  await batch.commit();
 }

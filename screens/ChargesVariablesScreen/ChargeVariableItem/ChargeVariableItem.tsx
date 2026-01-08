@@ -18,7 +18,7 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
     return <NoAuthenticatedUser />;
   }
 
-  const { categories } = useCategories(user.householdId);
+  const { categories } = useCategories();
   const payeurName = getDisplayNameUserInHousehold(
     charge.payeur,
     householdUsers

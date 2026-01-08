@@ -47,7 +47,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     deleteChargeVariable,
   } = useComptes();
   const { householdUsers } = useHouseholdUsers();
-  const { categories } = useCategories(user.householdId);
+  const { categories, defaultCategory } = useCategories();
 
   const initialCharge = chargesVariables.find((c) => c.id === chargeId);
 
@@ -82,7 +82,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     charge?.dateComptes ? new Date(charge.dateComptes) : new Date()
   );
   const [editCategorie, setEditCategorie] = useState<string>(
-    charge?.categorie ? charge.categorie : "Autre"
+    charge?.categorie || ""
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
@@ -116,7 +116,19 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditMontant(initialCharge.montantTotal.toFixed(2).replace(".", ","));
       setEditPayeurUid(initialCharge.payeur);
       setEditBeneficiairesUid(initialCharge.beneficiaires);
-      setEditCategorie(initialCharge.categorie);
+
+      const categoryExists = categories.some(
+        (c) => c.id === initialCharge.categorie
+      );
+
+      if (categoryExists) {
+        setEditCategorie(initialCharge.categorie);
+      } else if (defaultCategory) {
+        setEditCategorie(defaultCategory.id);
+      } else {
+        setEditCategorie("Autre");
+      }
+
       setEditDateStatistiques(
         initialCharge.dateStatistiques
           ? new Date(initialCharge.dateStatistiques)
@@ -131,7 +143,13 @@ const ChargeVariableDetailScreen: React.FC = () => {
       toast.success("Succès", "Charge supprimée.");
       navigation.goBack();
     }
-  }, [initialCharge, isLoadingComptes, navigation]);
+  }, [
+    initialCharge,
+    isLoadingComptes,
+    navigation,
+    categories,
+    defaultCategory,
+  ]);
 
   if (isLoadingComptes || !charge) {
     return (

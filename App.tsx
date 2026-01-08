@@ -11,6 +11,7 @@ import { auth } from "./services/firebase/config";
 import * as Linking from "expo-linking";
 import { navigate } from "navigation/RootNavigation";
 import { ToastProvider } from "./context/ToastContext";
+import { CategoriesProvider } from "context/CategoriesContext";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
@@ -107,11 +108,13 @@ const App: React.FC = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" backgroundColor="#f4f7f9" translucent={false} />
       <AuthProvider>
-        <ComptesProvider>
-          <ToastProvider>
-            <AppContent />
-          </ToastProvider>
-        </ComptesProvider>
+        <CategoriesProvider>
+          <ComptesProvider>
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
+          </ComptesProvider>
+        </CategoriesProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );
