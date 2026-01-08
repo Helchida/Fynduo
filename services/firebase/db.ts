@@ -327,8 +327,8 @@ export async function addChargeVariableRegularisation(
     await addChargeVariable(householdId, {
       description: "Régularisation Trésorerie",
       montantTotal: dette.montant,
-      payeur: dette.creancierUid,
-      beneficiaires: [dette.debiteurUid],
+      payeur: dette.debiteurUid,
+      beneficiaires: [dette.creancierUid],
       dateStatistiques: dateRegul,
       dateComptes: dateRegul,
       moisAnnee: moisAnnee,

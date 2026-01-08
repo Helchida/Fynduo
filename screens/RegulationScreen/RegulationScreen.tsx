@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -21,9 +21,11 @@ import { styles } from "./RegulationScreen.style";
 import dayjs from "dayjs";
 import LoyerSection from "./LoyerSection/LoyerSection";
 import ChargesFixesSection from "./ChargesFixesSection/ChargesFixesSection";
-import AjustementSection from "./AjustementSection/AjustementSection";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
+import ChargesVariablesSection from "./ChargesVariablesSection/ChargesVariablesSection";
+import { useMultiUserBalance } from "hooks/useMultiUserBalance";
+import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 
 const RegulationScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
@@ -41,12 +43,18 @@ const RegulationScreen: React.FC = () => {
   const {
     currentMonthData,
     chargesFixes,
+    chargesVariables,
     cloturerMois,
     updateChargeFixe,
     addChargeFixe,
     deleteChargeFixe,
     isLoadingComptes,
   } = useComptes();
+
+  const balances = useMultiUserBalance(chargesVariables, householdUsers);
+  const suggestionsVirements = useMemo(() => {
+    return calculSimplifiedTransfers(balances);
+  }, [balances]);
 
   const [loyerTotal, setLoyerTotal] = useState("");
   const [apportsAPLForm, setApportsAPLForm] = useState<Record<string, string>>(
@@ -259,25 +267,41 @@ const RegulationScreen: React.FC = () => {
 
       const dettesToSubmit: IDette[] = [];
 
-      const key1to2 = `${uid1}-${uid2}`;
-      const d1to2 = parseFloat(dettesAjustements[key1to2] || "0") || 0;
-      if (d1to2 > 0) {
+      suggestionsVirements.forEach((v) => {
         dettesToSubmit.push({
-          debiteurUid: uid1,
-          creancierUid: uid2,
-          montant: d1to2,
+          debiteurUid: v.de,
+          creancierUid: v.a,
+          montant: v.montant,
         });
-      }
+      });
 
-      const key2to1 = `${uid2}-${uid1}`;
-      const d2to1 = parseFloat(dettesAjustements[key2to1] || "0") || 0;
-      if (d2to1 > 0) {
-        dettesToSubmit.push({
-          debiteurUid: uid2,
-          creancierUid: uid1,
-          montant: d2to1,
-        });
-      }
+      const processAjustement = (
+        debUid: string,
+        creUid: string,
+        montant: number
+      ) => {
+        if (montant <= 0) return;
+        const existing = dettesToSubmit.find(
+          (d) => d.debiteurUid === debUid && d.creancierUid === creUid
+        );
+        if (existing) {
+          existing.montant += montant;
+        } else {
+          dettesToSubmit.push({
+            debiteurUid: debUid,
+            creancierUid: creUid,
+            montant,
+          });
+        }
+      };
+
+      const d1to2 =
+        parseFloat(dettesAjustements[`${uid1}-${uid2}`] || "0") || 0;
+      processAjustement(uid1, uid2, d1to2);
+
+      const d2to1 =
+        parseFloat(dettesAjustements[`${uid2}-${uid1}`] || "0") || 0;
+      processAjustement(uid2, uid1, d2to1);
 
       const dataToSubmit: IReglementData = {
         loyerTotal: parseFloat(loyerTotal) || 0,
@@ -325,12 +349,10 @@ const RegulationScreen: React.FC = () => {
         handleDeleteCharge={handleDeleteCharge}
       />
 
-      <AjustementSection
+      <ChargesVariablesSection
+        chargesVariables={chargesVariables}
         householdUsers={householdUsers}
-        uid1={uid1}
-        uid2={uid2}
-        dettesAjustements={dettesAjustements}
-        updateDettesAjustements={updateDettesAjustements}
+        virements={suggestionsVirements}
         getDisplayName={getDisplayName}
       />
 
