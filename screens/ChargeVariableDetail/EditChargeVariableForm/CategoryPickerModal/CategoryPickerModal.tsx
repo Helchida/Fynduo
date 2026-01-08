@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Modal,
   View,
@@ -11,7 +11,6 @@ import { styles } from "./CategoryPickerModal.style";
 import { CategoryPickerModalProps } from "./CategoryPickerModal.type";
 import { CategoryType } from "@/types";
 import { useCategories } from "hooks/useCategories";
-import EmojiPicker, { EmojiType } from "rn-emoji-keyboard";
 
 export const CategoryPickerModal = ({
   isVisible,
@@ -24,8 +23,8 @@ export const CategoryPickerModal = ({
   const [isAdding, setIsAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newIcon, setNewIcon] = useState("📦");
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const emojiInputRef = useRef<TextInput>(null);
 
   const handleSave = async () => {
     if (!newLabel.trim()) return;
@@ -48,23 +47,35 @@ export const CategoryPickerModal = ({
       console.error("Erreur lors de la sauvegarde :", error);
     }
   };
-  const handlePickEmoji = (emojiObject: EmojiType) => {
-    setNewIcon(emojiObject.emoji);
-    setIsEmojiPickerOpen(false);
+  const resetForm = () => {
+    setNewLabel("");
+    setNewIcon("📦");
+    setEditingId(null);
+    setIsAdding(false);
+  };
+
+  const handleEmojiInput = (text: string) => {
+    if (text.length > 0) {
+      const lastChar = Array.from(text).pop();
+      if (lastChar) setNewIcon(lastChar);
+    }
   };
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
+          <TextInput
+            ref={emojiInputRef}
+            style={{ position: "absolute", opacity: 0, height: 0, width: 0 }}
+            value=""
+            onChangeText={handleEmojiInput}
+            keyboardType="default"
+          />
           <View style={styles.modalHeaderContainer}>
             <Text style={styles.modalHeader}>Choisir une catégorie</Text>
             <TouchableOpacity
               onPress={() => {
-                if (isAdding) {
-                  setEditingId(null);
-                  setNewLabel("");
-                  setNewIcon("📦");
-                }
+                if (isAdding) resetForm();
                 setIsAdding(!isAdding);
               }}
             >
@@ -87,7 +98,7 @@ export const CategoryPickerModal = ({
                     styles.modalItem,
                     { flex: 0.25, justifyContent: "center" },
                   ]}
-                  onPress={() => setIsEmojiPickerOpen(true)}
+                  onPress={() => emojiInputRef.current?.focus()}
                 >
                   <Text style={{ fontSize: 30 }}>{newIcon}</Text>
                 </TouchableOpacity>
@@ -184,13 +195,6 @@ export const CategoryPickerModal = ({
           <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
             <Text style={styles.modalCloseButtonText}>Annuler</Text>
           </TouchableOpacity>
-
-          <EmojiPicker
-            onEmojiSelected={handlePickEmoji}
-            open={isEmojiPickerOpen}
-            onClose={() => setIsEmojiPickerOpen(false)}
-            categoryPosition="bottom"
-          />
         </View>
       </View>
     </Modal>
