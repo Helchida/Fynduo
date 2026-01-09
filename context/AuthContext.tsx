@@ -27,6 +27,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
   const [isAwaitingVerification, setIsAwaitingVerification] = useState(false);
 
+  const updateLocalUser = (newName: string) => {
+    setUser((prev) => (prev ? { ...prev, displayName: newName } : null));
+  };
+
   const loadUserProfile = async (firebaseUser: any) => {
     try {
       const token = await firebaseUser.getIdToken();
@@ -144,6 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setAwaitingVerification,
       isAwaitingVerification,
       sendPasswordReset,
+      updateLocalUser,
     }),
     [user, isLoading, householdUsers, isAwaitingVerification]
   );

@@ -17,4 +17,5 @@ export interface IAuthContext {
   setAwaitingVerification?: (value: boolean) => void;
   isAwaitingVerification?: boolean;
   sendPasswordReset: (email: string) => Promise<void>;
+  updateLocalUser: (newName: string) => void;
 }

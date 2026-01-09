@@ -117,7 +117,7 @@ const HomeScreen: React.FC = () => {
                   style={styles.menuItem}
                   onPress={() => {
                     setMenuVisible(false);
-                    toast.info("Info", "Page des paramètres à venir !");
+                    navigation.navigate("UserSettings");
                   }}
                 >
                   <Settings color="#2c3e50" size={18} />

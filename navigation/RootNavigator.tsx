@@ -19,6 +19,7 @@ import { ChevronLeft } from "lucide-react-native";
 import RegisterScreen from "screens/RegisterScreen/RegisterScreen";
 import { navigationRef } from "./RootNavigation";
 import EmailVerificationScreen from "screens/EmailVerificationScreen/EmailVerificationScreen";
+import UserSettingsScreen from "../screens/UserSettingsScreen/UserSettingsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -42,25 +43,8 @@ const AppStack = () => (
         }
 
         return (
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 5,
-            }}
-          >
-            <ChevronLeft color="#007AFF" size={28} strokeWidth={1.5} />
-            <Text
-              style={{
-                color: "#007AFF",
-                fontSize: 17,
-                letterSpacing: -0.4,
-              }}
-            >
-              Retour
-            </Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ChevronLeft color="#2c3e50" size={28} />
           </TouchableOpacity>
         );
       },
@@ -71,6 +55,11 @@ const AppStack = () => (
       name="Home"
       component={HomeScreen}
       options={{ title: "Accueil" }}
+    />
+    <Stack.Screen
+      name="UserSettings"
+      component={UserSettingsScreen}
+      options={{ title: "Paramètres" }}
     />
     <Stack.Screen
       name="Loyer"
@@ -131,6 +120,7 @@ const VerificationStack = () => (
     <Stack.Screen
       name="EmailVerification"
       component={EmailVerificationScreen}
+      options={{ title: "Vérification par email" }}
     />
   </Stack.Navigator>
 );

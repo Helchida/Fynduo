@@ -69,6 +69,35 @@ export async function createUserProfile(
 }
 
 /**
+ * Modifie les infos d'un utilisateur
+ */
+export async function updateUserInfo(uid: string, data: any) {
+  const userRef = doc(db, "users", uid);
+  const cleanData = { ...data };
+  delete cleanData.id;
+  delete cleanData.householdId;
+
+  try {
+    await updateDoc(userRef, cleanData);
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Supprime un utilisateur
+ */
+export async function deleteUserInfo(uid: string) {
+  try {
+    const userRef = doc(db, "users", uid);
+    await deleteDoc(userRef);
+  } catch (error) {
+    console.error("Erreur lors de la suppression du profil Firestore:", error);
+    throw error;
+  }
+}
+
+/**
  * Récupère tous les utilisateurs appartenant à un HouseholdId donné.
  */
 export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
