@@ -46,3 +46,7 @@ yarn-error.*
 # Firebase logs
 *-debug.log
 .firebase/
+
+# Script migration
+scripts/migration.ts
+scripts/serviceAccountKey.json
