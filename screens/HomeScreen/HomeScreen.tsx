@@ -141,7 +141,7 @@ const HomeScreen: React.FC = () => {
                 ]}
               >
                 {isSolo
-                  ? "Mode Solo"
+                  ? "Foyer Solo"
                   : `Foyer Partagé (${householdMembers.length})`}{" "}
                 ▾
               </Text>
@@ -327,14 +327,13 @@ const HomeScreen: React.FC = () => {
       )}
       
       <Text style={[styles.householdItemText, isActive && styles.activeHouseholdText]}>
-        {/* On affiche le nom stocké dans notre state, ou le hId par défaut pendant le chargement */}
         {householdNames[hId] || (isSolo ? "Mon Foyer Solo" : "Chargement...")}
       </Text>
     </TouchableOpacity>
   );
                 })}
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.addHouseholdItem}
                   onPress={() => {
                     setHouseholdMenuVisible(false);
@@ -343,7 +342,7 @@ const HomeScreen: React.FC = () => {
                 >
                   <PlusCircle size={18} color="#3498db" />
                   <Text style={styles.addHouseholdText}>Gérer les foyers</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           </TouchableWithoutFeedback>
