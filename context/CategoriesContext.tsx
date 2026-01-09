@@ -16,40 +16,40 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useAuth();
 
   const fetchCats = useCallback(async () => {
-    if (!user?.householdId) return;
+    if (!user?.activeHouseholdId) return;
     try {
       setIsLoading(true);
-      const data = await DB.getHouseholdCategories(user.householdId);
+      const data = await DB.getHouseholdCategories(user.activeHouseholdId);
       setCategories(data);
     } catch (error) {
       console.error("Erreur CategoryContext fetch:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [user?.householdId]);
+  }, [user?.activeHouseholdId]);
 
   useEffect(() => {
     fetchCats();
   }, [fetchCats]);
 
   const createCategory = async (label: string, icon: string) => {
-    if (!user?.householdId) return;
+    if (!user?.activeHouseholdId) return;
     const newCat = { label, icon, isDefault: false };
-    await DB.addCategory(user.householdId, newCat);
+    await DB.addCategory(user.activeHouseholdId, newCat);
     await fetchCats();
   };
 
   const editCategory = async (id: string, data: Partial<ICategorie>) => {
-    if (!user?.householdId) return;
-    await DB.updateCategory(user.householdId, id, data);
+    if (!user?.activeHouseholdId) return;
+    await DB.updateCategory(user.activeHouseholdId, id, data);
     await fetchCats();
   };
 
   const removeCategory = async (id: string) => {
-    if (!user?.householdId || !defaultCategory) return;
+    if (!user?.activeHouseholdId || !defaultCategory) return;
     try {
-      await DB.migrateChargesOnDelete(user.householdId, id, defaultCategory.id);
-      await DB.deleteCategory(user.householdId, id);
+      await DB.migrateChargesOnDelete(user.activeHouseholdId, id, defaultCategory.id);
+      await DB.deleteCategory(user.activeHouseholdId, id);
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
     } catch (error) {
       console.error("Erreur lors de la suppression de la catégorie :", error);

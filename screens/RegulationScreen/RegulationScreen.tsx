@@ -37,7 +37,7 @@ const RegulationScreen: React.FC = () => {
     return <NoAuthenticatedUser />;
   }
 
-  const householdId = user.householdId;
+  const activeHouseholdId = user.activeHouseholdId;
   const { householdUsers, getDisplayName } = useHouseholdUsers();
 
   const {
@@ -120,11 +120,11 @@ const RegulationScreen: React.FC = () => {
 
   const handleAddCharge = useCallback(
     (targetUid: string) => {
-      if (!currentMonthData || !householdId) return;
+      if (!currentMonthData || !activeHouseholdId) return;
 
       const newCharge: ChargeFixeForm = {
         id: nanoid(),
-        householdId: householdId,
+        householdId: activeHouseholdId,
         moisAnnee: currentMonthData.moisAnnee,
         nom: `Nouvelle Charge (${getDisplayName(targetUid)})`,
         montantMensuel: 0,

@@ -33,7 +33,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { user } = useAuth();
   const currentUserUid = user?.id;
-  const householdId = user?.householdId;
+  const activeHouseholdId = user?.activeHouseholdId;
 
   const [currentMonthData, setCurrentMonthData] =
     useState<ICompteMensuel | null>(null);
@@ -52,11 +52,11 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const loadData = useCallback(async () => {
-    if (!householdId || !currentUserUid) return;
+    if (!activeHouseholdId || !currentUserUid) return;
 
     setIsLoadingComptes(true);
     try {
-      let moisData = await DB.getCompteMensuel(householdId, TARGET_MOIS_ANNEE);
+      let moisData = await DB.getCompteMensuel(activeHouseholdId, TARGET_MOIS_ANNEE);
 
       if (!moisData) {
         const nouveauMois: ICompteMensuel = {
@@ -69,39 +69,39 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
           loyerPayeurUid: currentUserUid,
         };
 
-        await DB.createCompteMensuel(householdId, nouveauMois);
+        await DB.createCompteMensuel(activeHouseholdId, nouveauMois);
         moisData = nouveauMois;
       }
 
       setCurrentMonthData(moisData);
 
-      const chargesFixesData = await DB.getChargesFixes(householdId);
+      const chargesFixesData = await DB.getChargesFixes(activeHouseholdId);
       setChargesFixes(chargesFixesData);
 
-      const chargesVariablesData = await DB.getChargesVariables(householdId);
+      const chargesVariablesData = await DB.getChargesVariables(activeHouseholdId);
       setChargesVariables(chargesVariablesData);
     } catch (error) {
       console.error("Erreur lors du chargement des comptes:", error);
     } finally {
       setIsLoadingComptes(false);
     }
-  }, [householdId]);
+  }, [activeHouseholdId]);
 
   const loadHistory = useCallback(async () => {
-    if (!householdId) return;
+    if (!activeHouseholdId) return;
     try {
-      const historyData = await DB.getHistoryMonths(householdId);
+      const historyData = await DB.getHistoryMonths(activeHouseholdId);
       setHistoryMonths(historyData);
     } catch (error) {
       console.error("Erreur lors du chargement de l'historique:", error);
     }
-  }, [householdId]);
+  }, [activeHouseholdId]);
 
   const updateChargeFixe = useCallback(
     async (chargeId: string, newAmount: number) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        await DB.updateChargeFixeAmount(householdId, chargeId, newAmount);
+        await DB.updateChargeFixeAmount(activeHouseholdId, chargeId, newAmount);
         setChargesFixes((prev) =>
           prev.map((c) =>
             c.id === chargeId ? { ...c, montantMensuel: newAmount } : c
@@ -112,14 +112,14 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const updateChargeFixePayeur = useCallback(
     async (chargeId: string, newPayeurId: string) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        await DB.updateChargeFixePayeur(householdId, chargeId, newPayeurId);
+        await DB.updateChargeFixePayeur(activeHouseholdId, chargeId, newPayeurId);
 
         setChargesFixes((prev) =>
           prev.map((c) =>
@@ -131,36 +131,36 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const addChargeFixe = useCallback(
     async (charge: Omit<IChargeFixe, "id" | "householdId">) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        const id = await DB.addChargeFixe(householdId, charge);
-        const newCharge: IChargeFixe = { id, householdId, ...charge };
+        const id = await DB.addChargeFixe(activeHouseholdId, charge);
+        const newCharge: IChargeFixe = { id, householdId: activeHouseholdId, ...charge };
         setChargesFixes((prev) => [...prev, newCharge]);
       } catch (error) {
         console.error("Erreur addChargeFixe:", error);
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const deleteChargeFixe = useCallback(
     async (chargeId: string) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        await DB.deleteChargeFixe(householdId, chargeId);
+        await DB.deleteChargeFixe(activeHouseholdId, chargeId);
         setChargesFixes((prev) => prev.filter((c) => c.id !== chargeId));
       } catch (error) {
         console.error("Erreur deleteChargeFixe:", error);
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const updateLoyer = useCallback(
@@ -169,10 +169,10 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       apportsAPL: Record<string, number>,
       loyerPayeurUid: string
     ) => {
-      if (!currentMonthData || !householdId) return;
+      if (!currentMonthData || !activeHouseholdId) return;
       try {
         await DB.updateLoyerApl(
-          householdId,
+          activeHouseholdId,
           currentMonthData.id,
           loyerTotal,
           apportsAPL,
@@ -186,22 +186,22 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [currentMonthData, householdId]
+    [currentMonthData, activeHouseholdId]
   );
 
   const addChargeVariable = useCallback(
     async (depense: Omit<IChargeVariable, "id" | "householdId">) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        const id = await DB.addChargeVariable(householdId, depense);
-        const newVar: IChargeVariable = { id, householdId, ...depense };
+        const id = await DB.addChargeVariable(activeHouseholdId, depense);
+        const newVar: IChargeVariable = { id, householdId: activeHouseholdId, ...depense };
         setChargesVariables((prev) => [...prev, newVar]);
       } catch (error) {
         console.error("Erreur addChargeVariable:", error);
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const updateChargeVariable = useCallback(
@@ -214,9 +214,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         >
       >
     ) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        await DB.updateChargeVariable(householdId, chargeId, updateData);
+        await DB.updateChargeVariable(activeHouseholdId, chargeId, updateData);
         setChargesVariables((prev) =>
           prev.map((c) => (c.id === chargeId ? { ...c, ...updateData } : c))
         );
@@ -225,28 +225,28 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const deleteChargeVariable = useCallback(
     async (chargeId: string) => {
-      if (!householdId) return;
+      if (!activeHouseholdId) return;
       try {
-        await DB.deleteChargeVariable(householdId, chargeId);
+        await DB.deleteChargeVariable(activeHouseholdId, chargeId);
         setChargesVariables((prev) => prev.filter((c) => c.id !== chargeId));
       } catch (error) {
         console.error("Erreur deleteChargeVariable:", error);
         throw error;
       }
     },
-    [householdId]
+    [activeHouseholdId]
   );
 
   const cloturerMois = useCallback(
     async (
       data: IReglementData & { chargesFixesSnapshot?: IChargeFixeSnapshot[] }
     ) => {
-      if (!currentMonthData || !currentMonthData.id || !householdId) {
+      if (!currentMonthData || !currentMonthData.id || !activeHouseholdId) {
         throw new Error("Impossible de clôturer le mois : données manquantes.");
       }
 
@@ -265,14 +265,14 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
           data.loyerPayeurUid
         );
         await DB.updateRegularisationDettes(
-          householdId,
+          activeHouseholdId,
           currentMonthData.id,
           data.dettes,
           snapshot
         );
 
         await DB.addChargeVariableRegularisation(
-          householdId,
+          activeHouseholdId,
           currentMonthData.id,
           data.dettes
         );
@@ -286,7 +286,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
             : prev
         );
 
-        await DB.setMoisFinalise(householdId, currentMonthData.id);
+        await DB.setMoisFinalise(activeHouseholdId, currentMonthData.id);
         await loadData();
       } catch (error) {
         console.error("Erreur lors de la clôture du mois:", error);
@@ -295,7 +295,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoadingComptes(false);
       }
     },
-    [currentMonthData, loadData, updateLoyer, chargesFixes, householdId]
+    [currentMonthData, loadData, updateLoyer, chargesFixes, activeHouseholdId]
   );
 
   useEffect(() => {

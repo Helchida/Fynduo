@@ -54,7 +54,7 @@ const mapDocToType = <T>(doc: QueryDocumentSnapshot<DocumentData>): T => {
  */
 export async function createUserProfile(
   uid: string,
-  data: { email: string; displayName: string; householdId: string }
+  data: { email: string; displayName: string; activeHouseholdId: string; households: string[] }
 ) {
   try {
     const userRef = doc(db, "users", uid);
@@ -75,7 +75,8 @@ export async function updateUserInfo(uid: string, data: any) {
   const userRef = doc(db, "users", uid);
   const cleanData = { ...data };
   delete cleanData.id;
-  delete cleanData.householdId;
+  delete cleanData.activeHouseholdId;
+  delete cleanData.households;
 
   try {
     await updateDoc(userRef, cleanData);
@@ -97,12 +98,26 @@ export async function deleteUserInfo(uid: string) {
   }
 }
 
+export const getHouseholdName = async (householdId: string) => {
+  try {
+    const docRef = doc(db, "households", householdId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().name;
+    }
+    return null;
+  } catch (error) {
+    console.error("Erreur récup nom foyer:", error);
+    return null;
+  }
+};
+
 /**
  * Récupère tous les utilisateurs appartenant à un HouseholdId donné.
  */
 export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
   const usersCollection = collection(db, "users");
-  const q = query(usersCollection, where("householdId", "==", householdId));
+  const q = query(usersCollection, where("activeHouseholdId", "==", householdId));
 
   try {
     const snapshot = await getDocs(q);
@@ -498,3 +513,13 @@ export async function migrateChargesOnDelete(
   });
   await batch.commit();
 }
+
+export async function switchActiveHousehold(userId: string, newHouseholdId: string) {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, { activeHouseholdId: newHouseholdId });
+  } catch (error) {
+    console.error("Erreur switch household:", error);
+    throw error;
+  }
+};

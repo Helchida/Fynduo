@@ -47,9 +47,9 @@ const ChargesFixesScreen: React.FC = () => {
 
   useEffect(() => {
     const loadUsers = async () => {
-      if (user.householdId) {
+      if (user.activeHouseholdId) {
         try {
-          const users = await DB.getHouseholdUsers(user.householdId);
+          const users = await DB.getHouseholdUsers(user.activeHouseholdId);
           setHouseholdUsers(users);
         } catch (error) {
           console.error("Erreur chargement users:", error);
@@ -62,7 +62,7 @@ const ChargesFixesScreen: React.FC = () => {
       }
     };
     loadUsers();
-  }, [user.householdId]);
+  }, [user.activeHouseholdId]);
 
   const handleChargeUpdate = useCallback(
     async (id: string, newAmount: number) => {

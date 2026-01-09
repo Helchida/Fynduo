@@ -52,7 +52,8 @@ const RegisterScreen: React.FC = () => {
       await createUserProfile(user.uid, {
         email: user.email || email,
         displayName: email.split("@")[0],
-        householdId: user.uid,
+        activeHouseholdId: user.uid,
+        households: [user.uid]
       });
 
       if (!isDevMode) {

@@ -39,9 +39,9 @@ const LoyerScreen: React.FC = () => {
 
   useEffect(() => {
     const loadUsers = async () => {
-      if (user.householdId) {
+      if (user.activeHouseholdId) {
         try {
-          const users = await DB.getHouseholdUsers(user.householdId);
+          const users = await DB.getHouseholdUsers(user.activeHouseholdId);
           setHouseholdUsers(users);
         } catch (error) {
           console.error("Erreur chargement users:", error);
@@ -57,7 +57,7 @@ const LoyerScreen: React.FC = () => {
       }
     };
     loadUsers();
-  }, [user.householdId]);
+  }, [user.activeHouseholdId]);
 
   useEffect(() => {
     if (currentMonthData && householdUsers.length > 0) {

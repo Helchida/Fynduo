@@ -11,7 +11,6 @@ import { styles } from "./EmailVerificationScreen.style";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "services/firebase/config";
 import { useNavigation } from "@react-navigation/native";
-import Constants from "expo-constants";
 import { useToast } from "hooks/useToast";
 
 const EmailVerificationScreen: React.FC = () => {

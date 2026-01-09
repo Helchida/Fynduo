@@ -11,7 +11,7 @@ service cloud.firestore {
     // Helper function: Vérifie si l'utilisateur appartient au foyer
     function belongsToHousehold(householdId) {
       return isSignedIn() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.householdId == householdId;
+        householdId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households;
     }
     
     // Helper function: Vérifie si c'est le propriétaire du document
@@ -24,14 +24,14 @@ service cloud.firestore {
       // Lecture: seulement son propre profil
       allow read: if isSignedIn() && (
         isOwner(userId) || 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.householdId == resource.data.householdId
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.activeHouseholdId == resource.data.activeHouseholdId
       );
       
       allow create: if isOwner(userId) && 
-                      request.resource.data.keys().hasAll(['email', 'displayName', 'householdId']);
+                      request.resource.data.keys().hasAll(['email', 'displayName', 'activeHouseholdId']);
       
       allow update: if isOwner(userId) && 
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['householdId', 'id']);
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id']);
       
       allow delete: if isOwner(userId);
     }

@@ -31,6 +31,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setUser((prev) => (prev ? { ...prev, displayName: newName } : null));
   };
 
+  const updateLocalActiveHousehold = (newActiveId: string) => {
+  setUser((prev) => {
+    if (!prev) return null;
+    return {
+      ...prev,
+      activeHouseholdId: newActiveId,
+    };
+  });
+};
+
   const loadUserProfile = async (firebaseUser: any) => {
     try {
       const token = await firebaseUser.getIdToken();
@@ -46,11 +56,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setUser({
         id: firebaseUser.uid,
         displayName: userData.displayName,
-        householdId: userData.householdId,
+        activeHouseholdId: userData.activeHouseholdId,
+        households: userData.households,
         token,
       });
 
-      const users = await DB.getHouseholdUsers(userData.householdId);
+      const users = await DB.getHouseholdUsers(userData.activeHouseholdId);
       setHouseholdUsers(users);
       setIsAwaitingVerification(false);
     } catch (error) {
@@ -149,6 +160,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       isAwaitingVerification,
       sendPasswordReset,
       updateLocalUser,
+      updateLocalActiveHousehold,
     }),
     [user, isLoading, householdUsers, isAwaitingVerification]
   );

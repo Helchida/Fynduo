@@ -9,8 +9,9 @@ interface FirestoreDocument {
 
 export interface IUser extends FirestoreDocument {
   displayName: string;
-  householdId: string;
   email: string;
+  households: string[];
+  activeHouseholdId: string;
 }
 
 export interface LoginAttempt {

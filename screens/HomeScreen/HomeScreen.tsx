@@ -13,8 +13,19 @@ import { IUser, RootStackNavigationProp } from "@/types";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./HomeScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
-import { getHouseholdUsers } from "services/firebase/db";
-import { LogOut, User, Settings } from "lucide-react-native";
+import {
+  getHouseholdName,
+  getHouseholdUsers,
+  switchActiveHousehold,
+} from "services/firebase/db";
+import {
+  LogOut,
+  User,
+  Settings,
+  PlusCircle,
+  Home,
+  Users,
+} from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 
 const MOCK_HISTORY = [
@@ -46,8 +57,12 @@ const HistogramPlaceholder = ({
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const toast = useToast();
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, updateLocalActiveHousehold } = useAuth();
+  const [householdNames, setHouseholdNames] = useState<Record<string, string>>(
+    {}
+  );
   const [menuVisible, setMenuVisible] = useState(false);
+  const [householdMenuVisible, setHouseholdMenuVisible] = useState(false);
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -55,18 +70,50 @@ const HomeScreen: React.FC = () => {
   const [householdMembers, setHouseholdMembers] = useState<IUser[]>([]);
 
   useEffect(() => {
-    if (user?.householdId) {
-      getHouseholdUsers(user.householdId)
+    const fetchNames = async () => {
+      if (user.households) {
+        const namesMap: Record<string, string> = {};
+        for (const hId of user.households) {
+          if (hId === user.id) {
+            namesMap[hId] = "Mon Foyer Solo";
+          } else {
+            const name = await getHouseholdName(hId);
+            namesMap[hId] = name || `Foyer (${hId.substring(0, 4)})`;
+          }
+        }
+        setHouseholdNames(namesMap);
+      }
+    };
+    fetchNames();
+  }, [user.households]);
+
+  useEffect(() => {
+    if (user?.activeHouseholdId) {
+      getHouseholdUsers(user.activeHouseholdId)
         .then(setHouseholdMembers)
         .catch((err) => console.error("Erreur membres foyer:", err));
     }
-  }, [user?.householdId]);
+  }, [user?.activeHouseholdId]);
 
   const { isLoadingComptes, currentMonthData } = useComptes();
 
   if (isLoadingComptes || isLoading) {
     return <Text style={styles.loading}>Chargement...</Text>;
   }
+
+  const handleSwitchHousehold = async (targetId: string) => {
+    if (!user || user.activeHouseholdId === targetId) return;
+
+    try {
+      await switchActiveHousehold(user.id, targetId);
+      updateLocalActiveHousehold(targetId);
+
+      setHouseholdMenuVisible(false);
+      toast.success("Foyer changé", "Chargement de votre nouvel espace...");
+    } catch (error) {
+      toast.error("Erreur", "Impossible de changer de foyer");
+    }
+  };
 
   const isFinalized = currentMonthData?.statut === "finalisé";
   const isSolo = householdMembers.length <= 1;
@@ -79,11 +126,13 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.welcomeText}>
               Bonjour, {user.displayName} 👋
             </Text>
-            <View
+
+            <TouchableOpacity
               style={[
                 styles.badge,
                 isSolo ? styles.badgeSolo : styles.badgeShared,
               ]}
+              onPress={() => setHouseholdMenuVisible(true)}
             >
               <Text
                 style={[
@@ -93,9 +142,10 @@ const HomeScreen: React.FC = () => {
               >
                 {isSolo
                   ? "Mode Solo"
-                  : `Foyer Partagé (${householdMembers.length})`}
+                  : `Foyer Partagé (${householdMembers.length})`}{" "}
+                ▾
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={styles.userIconButton}
@@ -246,6 +296,58 @@ const HomeScreen: React.FC = () => {
             </View>
           )}
         </ScrollView>
+
+        <Modal
+          visible={householdMenuVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setHouseholdMenuVisible(false)}
+        >
+          <TouchableWithoutFeedback
+            onPress={() => setHouseholdMenuVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.householdMenuDropdown}>
+                <Text style={styles.householdMenuTitle}>Mes Espaces</Text>
+
+                {user.households?.map((hId) => {
+                  const isSolo = hId === user.id;
+                  const isActive = hId === user.activeHouseholdId;
+
+                  return (
+    <TouchableOpacity 
+      key={hId}
+      style={[styles.householdItem, isActive && styles.activeHouseholdItem]}
+      onPress={() => handleSwitchHousehold(hId)}
+    >
+      {isSolo ? (
+        <Home size={18} color={isActive ? "#3498db" : "#2c3e50"} />
+      ) : (
+        <Users size={18} color={isActive ? "#3498db" : "#2c3e50"} />
+      )}
+      
+      <Text style={[styles.householdItemText, isActive && styles.activeHouseholdText]}>
+        {/* On affiche le nom stocké dans notre state, ou le hId par défaut pendant le chargement */}
+        {householdNames[hId] || (isSolo ? "Mon Foyer Solo" : "Chargement...")}
+      </Text>
+    </TouchableOpacity>
+  );
+                })}
+
+                <TouchableOpacity
+                  style={styles.addHouseholdItem}
+                  onPress={() => {
+                    setHouseholdMenuVisible(false);
+                    navigation.navigate("UserSettings");
+                  }}
+                >
+                  <PlusCircle size={18} color="#3498db" />
+                  <Text style={styles.addHouseholdText}>Gérer les foyers</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </View>
     </>
   );

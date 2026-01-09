@@ -46,7 +46,8 @@ describe("Firestore Security Rules", () => {
     await adminDb.collection("users").doc("user1").set({
       email: "test@test.com",
       displayName: "Test User",
-      householdId: "house1",
+      activeHouseholdId: "house1",
+      households: ["house1"],
     });
 
     const testDoc = db.collection("users").doc("user1");
@@ -60,25 +61,27 @@ describe("Firestore Security Rules", () => {
     await adminDb.collection("users").doc("user2").set({
       email: "other@test.com",
       displayName: "Other User",
-      householdId: "house2",
+      activeHouseholdId: "house2",
+      households: ["house2"],
     });
 
     const testDoc = db.collection("users").doc("user2");
     await firebase.assertFails(testDoc.get());
   });
 
-  it("❌ Refuse modification householdId", async () => {
+  it("❌ Refuse modification activeHouseholdId", async () => {
     const db = getFirestore({ uid: "user1" });
     const adminDb = getAdminFirestore();
 
     await adminDb.collection("users").doc("user1").set({
       email: "test@test.com",
       displayName: "Test User",
-      householdId: "house1",
+      activeHouseholdId: "house1",
+      households: ["house1"],
     });
 
     const testDoc = db.collection("users").doc("user1");
-    await firebase.assertFails(testDoc.update({ householdId: "house2" }));
+    await firebase.assertFails(testDoc.update({ activeHouseholdId: "house2" }));
   });
 
   it("✅ Permet lecture charges du foyer", async () => {
@@ -88,7 +91,8 @@ describe("Firestore Security Rules", () => {
     await adminDb.collection("users").doc("user1").set({
       email: "test@test.com",
       displayName: "Test User",
-      householdId: "house1",
+      activeHouseholdId: "house1",
+      households: ["house1"],
     });
 
     await adminDb
@@ -118,7 +122,8 @@ describe("Firestore Security Rules", () => {
     await adminDb.collection("users").doc("user1").set({
       email: "test@test.com",
       displayName: "Test User",
-      householdId: "house1",
+      activeHouseholdId: "house1",
+      households: ["house1"],
     });
 
     await adminDb
@@ -147,7 +152,7 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1" });
+      .set({ activeHouseholdId: "house1" });
 
     const testRef = db
       .collection("households")
@@ -174,7 +179,7 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1" });
+      .set({ activeHouseholdId: "house1" });
 
     const testRef = db
       .collection("households")
@@ -201,7 +206,7 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1" });
+      .set({ activeHouseholdId: "house1" });
 
     const testRef = db
       .collection("households")
@@ -227,7 +232,7 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1" });
+      .set({ activeHouseholdId: "house1" });
     await adminDb
       .collection("households")
       .doc("house1")
@@ -254,7 +259,7 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1" });
+      .set({ activeHouseholdId: "house1" });
 
     await adminDb
       .collection("households")
@@ -282,11 +287,11 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1", displayName: "User 1" });
+      .set({ activeHouseholdId: "house1", displayName: "User 1", households: ["house1"] });
     await adminDb
       .collection("users")
       .doc("user2")
-      .set({ householdId: "house1", displayName: "User 2" });
+      .set({ activeHouseholdId: "house1", displayName: "User 2", households: ["house1"] });
 
     const testDoc = db.collection("users").doc("user2");
     await firebase.assertSucceeds(testDoc.get());
@@ -299,14 +304,14 @@ describe("Firestore Security Rules", () => {
     await adminDb
       .collection("users")
       .doc("user1")
-      .set({ householdId: "house1", displayName: "Me" });
+      .set({ activeHouseholdId: "house1", displayName: "Me", households: ["house1"] });
     await adminDb
       .collection("users")
       .doc("user2")
-      .set({ householdId: "house1", displayName: "Roommate" });
+      .set({ activeHouseholdId: "house1", displayName: "Roommate", households: ["house1"] });
 
     const usersCol = db.collection("users");
-    const q = usersCol.where("householdId", "==", "house1");
+    const q = usersCol.where("activeHouseholdId", "==", "house1");
 
     await firebase.assertSucceeds(q.get());
   });

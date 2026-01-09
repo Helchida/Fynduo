@@ -44,11 +44,11 @@ const HistoryDetailScreen: React.FC = () => {
     const loadDetail = async () => {
       setLoading(true);
       try {
-        const users = await DB.getHouseholdUsers(user.householdId);
+        const users = await DB.getHouseholdUsers(user.activeHouseholdId);
         setHouseholdUsers(users);
 
         const compteMensuel = await DB.getCompteMensuel(
-          user.householdId,
+          user.activeHouseholdId,
           moisAnnee
         );
 
@@ -57,7 +57,7 @@ const HistoryDetailScreen: React.FC = () => {
           return;
         }
 
-        const variables = await DB.getChargesVariables(user.householdId);
+        const variables = await DB.getChargesVariables(user.activeHouseholdId);
 
         setHistoricalData({
           compte: compteMensuel,
@@ -74,7 +74,7 @@ const HistoryDetailScreen: React.FC = () => {
       }
     };
     loadDetail();
-  }, [moisAnnee, user.householdId]);
+  }, [moisAnnee, user.activeHouseholdId]);
 
   const calculs: IResultatsCalcul = useCalculs(
     historicalData?.compte || null,

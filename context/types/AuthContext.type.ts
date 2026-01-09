@@ -3,7 +3,8 @@ import { IUser } from "@/types";
 export interface IUserContext {
   id: string;
   displayName: string;
-  householdId: string;
+  households: string[];
+  activeHouseholdId: string;
   token: string | null;
 }
 
@@ -18,4 +19,5 @@ export interface IAuthContext {
   isAwaitingVerification?: boolean;
   sendPasswordReset: (email: string) => Promise<void>;
   updateLocalUser: (newName: string) => void;
+  updateLocalActiveHousehold: (newActiveId: string) => void;
 }
