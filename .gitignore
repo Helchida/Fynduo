@@ -48,5 +48,5 @@ yarn-error.*
 .firebase/
 
 # Script migration
-scripts/migration.ts
 scripts/serviceAccountKey.json
+scripts/migrateDataChargesVariables.ts
