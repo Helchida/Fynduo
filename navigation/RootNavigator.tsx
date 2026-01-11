@@ -20,6 +20,7 @@ import RegisterScreen from "screens/RegisterScreen/RegisterScreen";
 import { navigationRef } from "./RootNavigation";
 import EmailVerificationScreen from "screens/EmailVerificationScreen/EmailVerificationScreen";
 import UserSettingsScreen from "../screens/UserSettingsScreen/UserSettingsScreen";
+import HouseholdsScreen from "../screens/HouseholdsScreen/HouseholdsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -60,6 +61,11 @@ const AppStack = () => (
       name="UserSettings"
       component={UserSettingsScreen}
       options={{ title: "Paramètres" }}
+    />
+    <Stack.Screen
+      name="Households"
+      component={HouseholdsScreen}
+      options={{ title: "Mes Foyers" }}
     />
     <Stack.Screen
       name="Loyer"

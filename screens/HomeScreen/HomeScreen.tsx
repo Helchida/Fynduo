@@ -315,34 +315,34 @@ const HomeScreen: React.FC = () => {
                   const isActive = hId === user.activeHouseholdId;
 
                   return (
-    <TouchableOpacity 
-      key={hId}
-      style={[styles.householdItem, isActive && styles.activeHouseholdItem]}
-      onPress={() => handleSwitchHousehold(hId)}
-    >
-      {isSolo ? (
-        <Home size={18} color={isActive ? "#3498db" : "#2c3e50"} />
-      ) : (
-        <Users size={18} color={isActive ? "#3498db" : "#2c3e50"} />
-      )}
-      
-      <Text style={[styles.householdItemText, isActive && styles.activeHouseholdText]}>
-        {householdNames[hId] || (isSolo ? "Mon Foyer Solo" : "Chargement...")}
-      </Text>
-    </TouchableOpacity>
-  );
+                    <TouchableOpacity
+                      key={hId}
+                      style={[styles.householdItem, isActive && styles.activeHouseholdItem]}
+                      onPress={() => handleSwitchHousehold(hId)}
+                    >
+                      {isSolo ? (
+                        <Home size={18} color={isActive ? "#3498db" : "#2c3e50"} />
+                      ) : (
+                        <Users size={18} color={isActive ? "#3498db" : "#2c3e50"} />
+                      )}
+
+                      <Text style={[styles.householdItemText, isActive && styles.activeHouseholdText]}>
+                        {householdNames[hId] || (isSolo ? "Mon Foyer Solo" : "Chargement...")}
+                      </Text>
+                    </TouchableOpacity>
+                  );
                 })}
 
-                {/* <TouchableOpacity
+                <TouchableOpacity
                   style={styles.addHouseholdItem}
                   onPress={() => {
                     setHouseholdMenuVisible(false);
-                    navigation.navigate("UserSettings");
+                    navigation.navigate("Households");
                   }}
                 >
                   <PlusCircle size={18} color="#3498db" />
                   <Text style={styles.addHouseholdText}>Gérer les foyers</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </View>
             </View>
           </TouchableWithoutFeedback>

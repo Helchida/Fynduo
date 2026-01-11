@@ -238,7 +238,7 @@ export const styles = StyleSheet.create({
   },
   householdMenuDropdown: {
     position: "absolute",
-    top: 100, // Ajusté pour apparaître sous le badge
+    top: 100,
     left: 20,
     backgroundColor: "#fff",
     borderRadius: 15,
@@ -272,7 +272,7 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
   },
   activeHouseholdItem: {
-    backgroundColor: "#f0f7ff", // Fond bleu très léger pour le foyer actif
+    backgroundColor: "#f0f7ff",
     borderLeftWidth: 3,
     borderLeftColor: "#3498db",
   },

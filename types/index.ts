@@ -135,6 +135,7 @@ export type RootStackParamList = {
   Register: undefined;
   EmailVerification: undefined;
   UserSettings: undefined;
+  Households: undefined;
   History: undefined;
   HistoryDetail: { moisAnnee: string };
   ChargeVariableDetail: { chargeId: string; description: string };
