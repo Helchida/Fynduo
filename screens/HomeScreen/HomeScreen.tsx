@@ -147,8 +147,8 @@ const HomeScreen: React.FC = () => {
               >
                 {isSolo
                   ? "Mon Foyer Solo"
-                  : `${householdsDetails[user.activeHouseholdId].name} (${
-                      householdsDetails[user.activeHouseholdId].count || "..."
+                  : `${householdsDetails[user.activeHouseholdId]?.name || "Chargement..."} (${
+                      householdsDetails[user.activeHouseholdId]?.count || "..."
                     })`}{" "}
                 ▾
               </Text>

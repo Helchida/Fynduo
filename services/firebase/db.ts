@@ -106,20 +106,6 @@ export async function deleteUserInfo(uid: string) {
   }
 }
 
-export const getHouseholdName = async (householdId: string) => {
-  try {
-    const docRef = doc(db, "households", householdId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return docSnap.data().name;
-    }
-    return null;
-  } catch (error) {
-    console.error("Erreur récup nom foyer:", error);
-    return null;
-  }
-};
-
 /**
  * Récupère tous les utilisateurs appartenant à un HouseholdId donné.
  */
