@@ -148,7 +148,7 @@ const HomeScreen: React.FC = () => {
                 {isSolo
                   ? "Mon Foyer Solo"
                   : `${householdsDetails[user.activeHouseholdId]?.name || "Chargement..."} (${
-                      householdsDetails[user.activeHouseholdId]?.count || "..."
+                      householdsDetails[user.activeHouseholdId]?.count ?? "..."
                     })`}{" "}
                 ▾
               </Text>
@@ -234,7 +234,7 @@ const HomeScreen: React.FC = () => {
             </View>
           </View>
 
-          {isSolo || householdsDetails[user.activeHouseholdId].count <= 1 ? (
+          {isSolo || (householdsDetails[user.activeHouseholdId]?.count ?? 0) <= 1 ? (
             <View style={styles.soloInfoCard}>
               {isSolo ? (
                 <>
