@@ -9,15 +9,11 @@ import {
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useNavigation } from "@react-navigation/native";
-import { IUser, RootStackNavigationProp } from "@/types";
+import { RootStackNavigationProp } from "@/types";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./HomeScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
-import {
-  getHouseholdName,
-  getHouseholdUsers,
-  switchActiveHousehold,
-} from "services/firebase/db";
+import { switchActiveHousehold } from "services/firebase/db";
 import {
   LogOut,
   User,
@@ -27,6 +23,8 @@ import {
   Users,
 } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "services/firebase/config";
 
 const MOCK_HISTORY = [
   { month: "Sept", total: 1250.0 },
@@ -57,43 +55,52 @@ const HistogramPlaceholder = ({
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const toast = useToast();
-  const { user, logout, isLoading, updateLocalActiveHousehold } = useAuth();
-  const [householdNames, setHouseholdNames] = useState<Record<string, string>>(
-    {}
-  );
+  const { user, logout, isLoading, householdUsers } = useAuth();
+  const [householdsDetails, setHouseholdsDetails] = useState<
+    Record<string, { name: string; count: number }>
+  >({});
   const [menuVisible, setMenuVisible] = useState(false);
   const [householdMenuVisible, setHouseholdMenuVisible] = useState(false);
 
   if (!user) {
     return <NoAuthenticatedUser />;
   }
-  const [householdMembers, setHouseholdMembers] = useState<IUser[]>([]);
 
   useEffect(() => {
-    const fetchNames = async () => {
-      if (user.households) {
-        const namesMap: Record<string, string> = {};
-        for (const hId of user.households) {
-          if (hId === user.id) {
-            namesMap[hId] = "Mon Foyer Solo";
-          } else {
-            const name = await getHouseholdName(hId);
-            namesMap[hId] = name || `Foyer (${hId.substring(0, 4)})`;
-          }
-        }
-        setHouseholdNames(namesMap);
+    if (!user?.households) return;
+
+    const unsubscribes: (() => void)[] = [];
+
+    user.households.forEach((hId) => {
+      if (hId === user.id) {
+        setHouseholdsDetails((prev) => ({
+          ...prev,
+          [hId]: { name: "Mon Foyer Solo", count: 1 },
+        }));
+      } else {
+        const householdRef = doc(db, "households", hId);
+        const unsubscribe = onSnapshot(
+          householdRef,
+          (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              setHouseholdsDetails((prev) => ({
+                ...prev,
+                [hId]: {
+                  name: data.name || `Foyer (${hId.substring(0, 4)})`,
+                  count: data.members?.length || 0,
+                },
+              }));
+            }
+          },
+          (error) => console.error(`Erreur foyer ${hId}:`, error)
+        );
+        unsubscribes.push(unsubscribe);
       }
-    };
-    fetchNames();
-  }, [user.households]);
+    });
 
-  useEffect(() => {
-    if (user?.activeHouseholdId) {
-      getHouseholdUsers(user.activeHouseholdId)
-        .then(setHouseholdMembers)
-        .catch((err) => console.error("Erreur membres foyer:", err));
-    }
-  }, [user?.activeHouseholdId]);
+    return () => unsubscribes.forEach((unsub) => unsub());
+  }, [user?.households]);
 
   const { isLoadingComptes, currentMonthData } = useComptes();
 
@@ -106,17 +113,15 @@ const HomeScreen: React.FC = () => {
 
     try {
       await switchActiveHousehold(user.id, targetId);
-      updateLocalActiveHousehold(targetId);
-
       setHouseholdMenuVisible(false);
-      toast.success("Foyer changé", "Chargement de votre nouvel espace...");
+      toast.success("Foyer changé");
     } catch (error) {
       toast.error("Erreur", "Impossible de changer de foyer");
     }
   };
 
   const isFinalized = currentMonthData?.statut === "finalisé";
-  const isSolo = householdMembers.length <= 1;
+  const isSolo = user.activeHouseholdId === user.id;
 
   return (
     <>
@@ -141,8 +146,10 @@ const HomeScreen: React.FC = () => {
                 ]}
               >
                 {isSolo
-                  ? "Foyer Solo"
-                  : `Foyer Partagé (${householdMembers.length})`}{" "}
+                  ? "Mon Foyer Solo"
+                  : `${householdsDetails[user.activeHouseholdId].name} (${
+                      householdsDetails[user.activeHouseholdId].count || "..."
+                    })`}{" "}
                 ▾
               </Text>
             </TouchableOpacity>
@@ -227,24 +234,44 @@ const HomeScreen: React.FC = () => {
             </View>
           </View>
 
-          {isSolo ? (
+          {isSolo || householdsDetails[user.activeHouseholdId].count <= 1 ? (
             <View style={styles.soloInfoCard}>
-              <Text style={styles.soloTitle}>Mode Solo actif</Text>
-              <Text style={styles.soloDescription}>
-                Les fonctionnalités de gestion de foyer (partage des charges,
-                régularisation) seront disponibles dès que vous rejoindrez ou
-                créerez un foyer partagé.
-              </Text>
-              <TouchableOpacity
-                style={styles.inviteButton}
-                onPress={() =>
-                  toast.info("Info", "Fonctionnalité d'invitation à venir !")
-                }
-              >
-                <Text style={styles.inviteButtonText}>
-                  Inviter un partenaire
-                </Text>
-              </TouchableOpacity>
+              {isSolo ? (
+                <>
+                  <Text style={styles.soloTitle}>Mode Solo actif</Text>
+                  <Text style={styles.soloDescription}>
+                    Les fonctionnalités de gestion de foyer (partage des
+                    charges, régularisation) seront disponibles dès que vous
+                    rejoindrez ou créerez un foyer partagé.
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.inviteButton}
+                    onPress={() => navigation.navigate("Households")}
+                  >
+                    <Text style={styles.inviteButtonText}>
+                      Gérer mes foyers
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.soloTitle}>Invitez des personnes</Text>
+                  <Text style={styles.soloDescription}>
+                    Les fonctionnalités de gestion de foyer (partage des
+                    charges, régularisation) seront disponibles dès que vous
+                    serez plusieurs dans le foyer partagé. Partagez le code
+                    d'accès à votre foyer depuis l'écran de gestion des foyers.
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.inviteButton}
+                    onPress={() => navigation.navigate("Households")}
+                  >
+                    <Text style={styles.inviteButtonText}>
+                      Gérer mes foyers
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           ) : (
             <View style={styles.actionsContainer}>
@@ -311,23 +338,39 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.householdMenuTitle}>Mes Espaces</Text>
 
                 {user.households?.map((hId) => {
-                  const isSolo = hId === user.id;
+                  const isSoloItem = hId === user.id;
                   const isActive = hId === user.activeHouseholdId;
+                  const details = householdsDetails[hId];
 
                   return (
                     <TouchableOpacity
                       key={hId}
-                      style={[styles.householdItem, isActive && styles.activeHouseholdItem]}
+                      style={[
+                        styles.householdItem,
+                        isActive && styles.activeHouseholdItem,
+                      ]}
                       onPress={() => handleSwitchHousehold(hId)}
                     >
                       {isSolo ? (
-                        <Home size={18} color={isActive ? "#3498db" : "#2c3e50"} />
+                        <Home
+                          size={18}
+                          color={isActive ? "#3498db" : "#2c3e50"}
+                        />
                       ) : (
-                        <Users size={18} color={isActive ? "#3498db" : "#2c3e50"} />
+                        <Users
+                          size={18}
+                          color={isActive ? "#3498db" : "#2c3e50"}
+                        />
                       )}
 
-                      <Text style={[styles.householdItemText, isActive && styles.activeHouseholdText]}>
-                        {householdNames[hId] || (isSolo ? "Mon Foyer Solo" : "Chargement...")}
+                      <Text
+                        style={[
+                          styles.householdItemText,
+                          isActive && styles.activeHouseholdText,
+                        ]}
+                      >
+                        {details?.name ||
+                          (isSoloItem ? "Mon Foyer Solo" : "Chargement...")}
                       </Text>
                     </TouchableOpacity>
                   );

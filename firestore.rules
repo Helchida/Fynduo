@@ -30,19 +30,41 @@ service cloud.firestore {
       allow create: if isOwner(userId) && 
                       request.resource.data.keys().hasAll(['email', 'displayName', 'activeHouseholdId']);
       
+      // MODIFICATION ICI : Permettre la mise à jour du champ households
       allow update: if isOwner(userId) && 
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id']);
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'email']);
       
       allow delete: if isOwner(userId);
     }
     
     // RÈGLES POUR LES FOYERS (HOUSEHOLDS)
     match /households/{householdId} {
-      // Lecture: seulement les membres du foyer
-      allow read: if belongsToHousehold(householdId);
+      // MODIFICATION ICI : Permettre la lecture si l'utilisateur recherche par code d'invitation
+      allow get: if isSignedIn() && (
+        belongsToHousehold(householdId) || 
+        resource.data.invitationCode != null
+      );
       
-      // Écriture: jamais directement sur le document household
-      allow write: if false;
+      // MODIFICATION ICI : Permettre list avec filtre sur invitationCode
+      allow list: if isSignedIn() && (
+        belongsToHousehold(householdId) || 
+        request.query.limit <= 1
+      );
+      
+      allow create: if isSignedIn();
+      
+      // MODIFICATION ICI : Permettre update si on ajoute seulement son propre userId aux members
+      allow update: if isSignedIn() && (
+        belongsToHousehold(householdId) ||
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) &&
+          request.resource.data.members.hasAll(resource.data.members) &&
+          request.resource.data.members.size() == resource.data.members.size() + 1 &&
+          request.resource.data.members.hasAll([request.auth.uid])
+        )
+      );
+
+      allow delete: if false;
       
       // SOUS-COLLECTION: comptes_mensuels
       match /comptes_mensuels/{compteId} {
@@ -55,10 +77,10 @@ service cloud.firestore {
                         request.resource.data.loyerTotal >= 0;
         
         allow update: if belongsToHousehold(householdId) &&
-                        request.resource.data.moisAnnee == resource.data.moisAnnee; // Ne peut pas changer le mois
+                        request.resource.data.moisAnnee == resource.data.moisAnnee;
         
         allow delete: if belongsToHousehold(householdId) &&
-                        resource.data.statut != "finalisé"; // Ne peut pas supprimer un mois finalisé
+                        resource.data.statut != "finalisé";
       }
       
       // SOUS-COLLECTION: charges_fixes
@@ -101,7 +123,7 @@ service cloud.firestore {
         allow update: if belongsToHousehold(householdId);
         
         allow delete: if belongsToHousehold(householdId) &&
-                        !resource.data.isDefault; // Ne peut pas supprimer les catégories par défaut
+                        !resource.data.isDefault;
       }
     }
   }

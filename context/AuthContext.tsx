@@ -12,7 +12,7 @@ import {
   signOut,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { IUser } from "@/types";
 import * as DB from "../services/firebase/db";
 import { IAuthContext, IUserContext } from "./types/AuthContext.type";
@@ -32,86 +32,94 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const updateLocalActiveHousehold = (newActiveId: string) => {
-  setUser((prev) => {
-    if (!prev) return null;
-    return {
-      ...prev,
-      activeHouseholdId: newActiveId,
-    };
-  });
-};
-
-  const loadUserProfile = async (firebaseUser: any) => {
-    try {
-      const token = await firebaseUser.getIdToken();
-      const userRef = doc(db, "users", firebaseUser.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        throw new Error("Profil utilisateur introuvable");
-      }
-
-      const userData = userSnap.data() as IUser;
-
-      setUser({
-        id: firebaseUser.uid,
-        displayName: userData.displayName,
-        activeHouseholdId: userData.activeHouseholdId,
-        households: userData.households,
-        token,
-      });
-
-      const users = await DB.getHouseholdUsers(userData.activeHouseholdId);
-      setHouseholdUsers(users);
-      setIsAwaitingVerification(false);
-    } catch (error) {
-      console.error("Erreur chargement profil :", error);
-      setUser(null);
-    }
+    setUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        activeHouseholdId: newActiveId,
+      };
+    });
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeDoc: () => void;
+    let unsubscribeHousehold: () => void;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
 
       if (!firebaseUser) {
         setUser(null);
         setHouseholdUsers([]);
-        setIsAwaitingVerification(false);
+        if (unsubscribeDoc) unsubscribeDoc();
+        if (unsubscribeHousehold) unsubscribeHousehold();
         setIsLoading(false);
         return;
       }
 
-      await firebaseUser.reload();
-
       const canAccess = firebaseUser.emailVerified || __DEV__;
 
       if (canAccess) {
-        await loadUserProfile(firebaseUser);
+        const userRef = doc(db, "users", firebaseUser.uid);
+
+        unsubscribeDoc = onSnapshot(
+          userRef,
+          async (docSnap) => {
+            if (docSnap.exists()) {
+              const userData = docSnap.data() as IUser;
+              const token = await firebaseUser.getIdToken();
+              const activeId = userData.activeHouseholdId; //
+
+              setUser({
+                id: firebaseUser.uid,
+                displayName: userData.displayName,
+                activeHouseholdId: activeId,
+                households: userData.households,
+                token,
+              });
+
+              if (unsubscribeHousehold) unsubscribeHousehold();
+              if (activeId === firebaseUser.uid) {
+                setHouseholdUsers([]);
+              } else {
+                const householdRef = doc(db, "households", activeId);
+                unsubscribeHousehold = onSnapshot(
+                  householdRef,
+                  async (householdSnap) => {
+                    if (householdSnap.exists()) {
+                      const members = await DB.getHouseholdUsers(activeId);
+                      setHouseholdUsers(members);
+                    } else {
+                      setHouseholdUsers([]);
+                    }
+                  },
+                  (error) => {
+                    console.error("Erreur listener household:", error);
+                    setHouseholdUsers([]);
+                  }
+                );
+              }
+            }
+            setIsLoading(false);
+          },
+          (error: any) => {
+            console.error("Erreur listener profil:", error);
+            setIsLoading(false);
+          }
+        );
       } else {
-        console.warn("Email non vérifié en mode Prod :", firebaseUser.email);
         setUser(null);
         setIsAwaitingVerification(true);
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     });
 
-    const verificationInterval = setInterval(async () => {
-      if (isAwaitingVerification && auth.currentUser && !__DEV__) {
-        await auth.currentUser.reload();
-        if (auth.currentUser.emailVerified) {
-          clearInterval(verificationInterval);
-          await loadUserProfile(auth.currentUser);
-        }
-      }
-    }, 3000);
-
     return () => {
-      unsubscribe();
-      clearInterval(verificationInterval);
+      unsubscribeAuth();
+      if (unsubscribeDoc) unsubscribeDoc();
+      if (unsubscribeHousehold) unsubscribeHousehold();
     };
-  }, [isAwaitingVerification]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
@@ -127,6 +135,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await signOut(auth);
       setUser(null);
+      setHouseholdUsers([]);
     } catch (error) {
       console.error("Erreur logout :", error);
       throw error;

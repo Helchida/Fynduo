@@ -14,6 +14,9 @@ import {
   CollectionReference,
   getDoc,
   writeBatch,
+  arrayUnion,
+  arrayRemove,
+  limit,
 } from "firebase/firestore";
 import dayjs from "dayjs";
 import {
@@ -54,7 +57,12 @@ const mapDocToType = <T>(doc: QueryDocumentSnapshot<DocumentData>): T => {
  */
 export async function createUserProfile(
   uid: string,
-  data: { email: string; displayName: string; activeHouseholdId: string; households: string[] }
+  data: {
+    email: string;
+    displayName: string;
+    activeHouseholdId: string;
+    households: string[];
+  }
 ) {
   try {
     const userRef = doc(db, "users", uid);
@@ -117,7 +125,10 @@ export const getHouseholdName = async (householdId: string) => {
  */
 export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
   const usersCollection = collection(db, "users");
-  const q = query(usersCollection, where("activeHouseholdId", "==", householdId));
+  const q = query(
+    usersCollection,
+    where("activeHouseholdId", "==", householdId)
+  );
 
   try {
     const snapshot = await getDocs(q);
@@ -514,7 +525,10 @@ export async function migrateChargesOnDelete(
   await batch.commit();
 }
 
-export async function switchActiveHousehold(userId: string, newHouseholdId: string) {
+export async function switchActiveHousehold(
+  userId: string,
+  newHouseholdId: string
+) {
   try {
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, { activeHouseholdId: newHouseholdId });
@@ -522,4 +536,140 @@ export async function switchActiveHousehold(userId: string, newHouseholdId: stri
     console.error("Erreur switch household:", error);
     throw error;
   }
-};
+}
+
+/**
+ * Crée un nouveau foyer partagé et l'ajoute à la liste de l'utilisateur
+ */
+export async function createHousehold(userId: string, name: string) {
+  try {
+    const batch = writeBatch(db);
+
+    const householdRef = doc(collection(db, "households"));
+    batch.set(householdRef, {
+      name,
+      createdAt: new Date().toISOString(),
+      members: [userId],
+    });
+
+    const userRef = doc(db, "users", userId);
+    batch.update(userRef, {
+      households: arrayUnion(householdRef.id),
+    });
+
+    await batch.commit();
+    return householdRef.id;
+  } catch (error) {
+    console.error("Erreur createHousehold:", error);
+    throw error;
+  }
+}
+
+/**
+ * Génère ou récupère un code d'invitation directement dans le foyer
+ */
+export async function generateInvitationCode(householdId: string) {
+  try {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const expiresAt = dayjs().add(24, "hours").toISOString();
+
+    const householdRef = doc(db, "households", householdId);
+
+    await updateDoc(householdRef, {
+      invitationCode: code,
+      invitationExpiresAt: expiresAt,
+    });
+
+    return code;
+  } catch (error) {
+    console.error("Erreur lors de la génération du code:", error);
+    throw error;
+  }
+}
+
+/**
+ * Rejoint un foyer en cherchant le document qui possède le code actif
+ */
+export async function joinHouseholdByCode(userId: string, code: string) {
+  if (!code) throw new Error("Le code est vide.");
+
+  const cleanCode = code.trim().toUpperCase();
+  const householdsRef = collection(db, "households");
+
+  const q = query(
+    householdsRef,
+    where("invitationCode", "==", cleanCode),
+    limit(1)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.empty) {
+    throw new Error("Code invalide ou inexistant.");
+  }
+
+  const householdDoc = querySnapshot.docs[0];
+  const householdData = householdDoc.data();
+  const householdId = householdDoc.id;
+
+  if (
+    householdData.invitationExpiresAt &&
+    dayjs().isAfter(dayjs(householdData.invitationExpiresAt))
+  ) {
+    throw new Error("Ce code a expiré. Demandez-en un nouveau.");
+  }
+
+  const currentMembers = householdData.members || [];
+  if (currentMembers.includes(userId)) {
+    return householdId;
+  }
+
+  const batch = writeBatch(db);
+
+  batch.update(householdDoc.ref, {
+    members: arrayUnion(userId),
+  });
+
+  const userRef = doc(db, "users", userId);
+  batch.update(userRef, {
+    households: arrayUnion(householdId),
+  });
+
+  await batch.commit();
+  return householdId;
+}
+
+/**
+ * Renommer un foyer
+ */
+export async function updateHouseholdName(
+  householdId: string,
+  newName: string
+) {
+  const householdRef = doc(db, "households", householdId);
+  await updateDoc(householdRef, { name: newName });
+}
+
+/**
+ * Quitter un foyer
+ */
+export async function leaveHousehold(userId: string, householdId: string) {
+  const userRef = doc(db, "users", userId);
+  const userSnap = await getDoc(userRef);
+  const isActiveHousehold =
+    userSnap.exists() && userSnap.data().activeHouseholdId === householdId;
+
+  const batch = writeBatch(db);
+
+  const householdRef = doc(db, "households", householdId);
+  batch.update(householdRef, { members: arrayRemove(userId) });
+
+  const updateData: any = { households: arrayRemove(householdId) };
+  if (isActiveHousehold) {
+    updateData.activeHouseholdId = userId;
+  }
+
+  batch.update(userRef, updateData);
+
+  await batch.commit();
+}
