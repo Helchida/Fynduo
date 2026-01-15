@@ -28,6 +28,7 @@ import {
   IUser,
   ICategorie,
 } from "../../types";
+import { DEFAULT_CATEGORIES } from "constants/categories";
 
 const SUB_COLLECTIONS = {
   COMPTES_MENSUELS: "comptes_mensuels",
@@ -70,6 +71,8 @@ export async function createUserProfile(
       ...data,
       id: uid,
     });
+
+    await createDefaultCategories(uid);
   } catch (error) {
     console.error("Erreur lors de la création du profil utilisateur:", error);
     throw error;
@@ -544,6 +547,8 @@ export async function createHousehold(userId: string, name: string) {
     });
 
     await batch.commit();
+
+    await createDefaultCategories(householdRef.id);
     return householdRef.id;
   } catch (error) {
     console.error("Erreur createHousehold:", error);
@@ -656,6 +661,22 @@ export async function leaveHousehold(userId: string, householdId: string) {
   }
 
   batch.update(userRef, updateData);
+
+  await batch.commit();
+}
+
+export async function createDefaultCategories(householdId: string) {
+  const categoriesCollection = getCollectionRef(
+    householdId,
+    SUB_COLLECTIONS.CATEGORIES
+  );
+
+  const batch = writeBatch(db);
+
+  DEFAULT_CATEGORIES.forEach((category) => {
+    const categoryRef = doc(categoriesCollection);
+    batch.set(categoryRef, category);
+  });
 
   await batch.commit();
 }
