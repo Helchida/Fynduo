@@ -40,7 +40,7 @@ const SUB_COLLECTIONS = {
 // Fonction pour obtenir la référence de la sous-collection d'un foyer
 function getCollectionRef(
   householdId: string,
-  subCollection: string
+  subCollection: string,
 ): CollectionReference<DocumentData> {
   return collection(db, "households", householdId, subCollection);
 }
@@ -63,7 +63,7 @@ export async function createUserProfile(
     displayName: string;
     activeHouseholdId: string;
     households: string[];
-  }
+  },
 ) {
   try {
     const userRef = doc(db, "users", uid);
@@ -116,26 +116,28 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
   try {
     const householdRef = doc(db, "households", householdId);
     const householdSnap = await getDoc(householdRef);
-    
+
     if (!householdSnap.exists()) {
       return [];
     }
-    
+
     const householdData = householdSnap.data();
     const memberIds = householdData.members || [];
-    
+
     if (memberIds.length === 0) {
       return [];
     }
-    
+
     const usersPromises = memberIds.map(async (uid: string) => {
       const userRef = doc(db, "users", uid);
       const userSnap = await getDoc(userRef);
-      return userSnap.exists() ? mapDocToType<IUser>(userSnap as QueryDocumentSnapshot<DocumentData>) : null;
+      return userSnap.exists()
+        ? mapDocToType<IUser>(userSnap as QueryDocumentSnapshot<DocumentData>)
+        : null;
     });
-    
+
     const users = await Promise.all(usersPromises);
-    
+
     return users.filter((u): u is IUser => u !== null);
   } catch (error) {
     console.error("Erreur getHouseholdMembers:", error);
@@ -148,12 +150,12 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
  */
 export async function createCompteMensuel(
   householdId: string,
-  data: ICompteMensuel
+  data: ICompteMensuel,
 ): Promise<void> {
   try {
     const docRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.COMPTES_MENSUELS),
-      data.id
+      data.id,
     );
     await setDoc(docRef, data);
   } catch (error) {
@@ -167,11 +169,11 @@ export async function createCompteMensuel(
  */
 export async function getCompteMensuel(
   householdId: string,
-  moisAnnee: string
+  moisAnnee: string,
 ): Promise<ICompteMensuel | null> {
   const docRef = doc(
     getCollectionRef(householdId, SUB_COLLECTIONS.COMPTES_MENSUELS),
-    moisAnnee
+    moisAnnee,
   );
   const snap = await getDoc(docRef);
 
@@ -188,11 +190,11 @@ export async function updateLoyerApl(
   compteDocId: string,
   loyerTotal: number,
   apportsAPL: Record<string, number>,
-  loyerPayeurUid: string
+  loyerPayeurUid: string,
 ) {
   const compteRef = doc(
     getCollectionRef(householdId, SUB_COLLECTIONS.COMPTES_MENSUELS),
-    compteDocId
+    compteDocId,
   );
   await updateDoc(compteRef, { loyerTotal, apportsAPL, loyerPayeurUid });
 }
@@ -202,11 +204,11 @@ export async function updateLoyerApl(
  */
 export async function setMoisFinalise(
   householdId: string,
-  compteDocId: string
+  compteDocId: string,
 ) {
   const compteRef = doc(
     getCollectionRef(householdId, SUB_COLLECTIONS.COMPTES_MENSUELS),
-    compteDocId
+    compteDocId,
   );
   await updateDoc(compteRef, {
     statut: "finalisé",
@@ -217,11 +219,11 @@ export async function setMoisFinalise(
  * Récupère toutes les charges fixes (Élec, Gaz, Internet...).
  */
 export async function getChargesFixes(
-  householdId: string
+  householdId: string,
 ): Promise<IChargeFixe[]> {
   const chargesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_FIXES
+    SUB_COLLECTIONS.CHARGES_FIXES,
   );
   const snapshot = await getDocs(chargesCollection);
 
@@ -234,11 +236,11 @@ export async function getChargesFixes(
 export async function updateChargeFixeAmount(
   householdId: string,
   chargeId: string,
-  newAmount: number
+  newAmount: number,
 ) {
   const chargeRef = doc(
     getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_FIXES),
-    chargeId
+    chargeId,
   );
   await updateDoc(chargeRef, {
     montantMensuel: newAmount,
@@ -251,11 +253,11 @@ export async function updateChargeFixeAmount(
  */
 export async function addChargeFixe(
   householdId: string,
-  charge: Omit<IChargeFixe, "id" | "householdId">
+  charge: Omit<IChargeFixe, "id" | "householdId">,
 ): Promise<string> {
   const chargesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_FIXES
+    SUB_COLLECTIONS.CHARGES_FIXES,
   );
   const docRef = await addDoc(chargesCollection, {
     ...charge,
@@ -271,14 +273,14 @@ export async function addChargeFixe(
 export const updateChargeFixePayeur = async (
   householdId: string,
   chargeId: string,
-  newPayeurId: string
+  newPayeurId: string,
 ) => {
   const chargeRef = doc(
     db,
     "households",
     householdId,
     "charges_fixes",
-    chargeId
+    chargeId,
   );
   await updateDoc(chargeRef, {
     payeur: newPayeurId,
@@ -291,20 +293,20 @@ export const updateChargeFixePayeur = async (
 export async function deleteChargeFixe(householdId: string, chargeId: string) {
   const chargeRef = doc(
     getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_FIXES),
-    chargeId
+    chargeId,
   );
   await deleteDoc(chargeRef);
 }
 
 /**
- * Récupère toutes les charges variables (Courses, restaurants, loisirs...)
+ * Récupère toutes les charges variables (Courses, restaurants, loisirs...) d'un foyer
  */
 export async function getChargesVariables(
-  householdId: string
+  householdId: string,
 ): Promise<IChargeVariable[]> {
   const chargesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_VARIABLES
+    SUB_COLLECTIONS.CHARGES_VARIABLES,
   );
   const snapshot = await getDocs(chargesCollection);
 
@@ -312,15 +314,40 @@ export async function getChargesVariables(
 }
 
 /**
+ * Récupère toutes les charges variables (Courses, restaurants, loisirs...) d'un utilisateur en mode solo (solo + beneficiaire dans un partagé)
+ */
+export async function getSoloChargesVariables(
+  householdIds: string[],
+  userId: string,
+) {
+  let chargesVariables: IChargeVariable[] = [];
+
+  for (const id of householdIds) {
+    const q = query(
+      getCollectionRef(id, SUB_COLLECTIONS.CHARGES_VARIABLES),
+      where("beneficiaires", "array-contains", userId),
+    );
+    const snap = await getDocs(q);
+    const charges = snap.docs.map((doc) => ({
+      ...mapDocToType<IChargeVariable>(doc),
+    }));
+    chargesVariables = [...chargesVariables, ...charges];
+  }
+  return chargesVariables.sort((a, b) =>
+    b.dateStatistiques.localeCompare(a.dateStatistiques),
+  );
+}
+
+/**
  * Ajoute une nouvelle charge variable dans la base.
  */
 export async function addChargeVariable(
   householdId: string,
-  depense: Omit<IChargeVariable, "id" | "householdId">
+  depense: Omit<IChargeVariable, "id">,
 ) {
   const depensesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_VARIABLES
+    SUB_COLLECTIONS.CHARGES_VARIABLES,
   );
 
   const docRef = await addDoc(depensesCollection, depense);
@@ -333,12 +360,14 @@ export async function addChargeVariable(
 export async function updateChargeVariable(
   householdId: string,
   chargeId: string,
-  updateData: Partial<Omit<IChargeVariable, "id" | "householdId" | "moisAnnee">>
+  updateData: Partial<
+    Omit<IChargeVariable, "id" | "householdId" | "moisAnnee">
+  >,
 ) {
   try {
     const chargeRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES),
-      chargeId
+      chargeId,
     );
     await updateDoc(chargeRef, {
       ...updateData,
@@ -355,12 +384,12 @@ export async function updateChargeVariable(
  */
 export async function deleteChargeVariable(
   householdId: string,
-  chargeId: string
+  chargeId: string,
 ) {
   try {
     const chargeRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES),
-      chargeId
+      chargeId,
     );
     await deleteDoc(chargeRef);
   } catch (error) {
@@ -375,7 +404,7 @@ export async function deleteChargeVariable(
 export async function addChargeVariableRegularisation(
   householdId: string,
   moisAnnee: string,
-  dettes: IDette[]
+  dettes: IDette[],
 ) {
   const dateRegul = dayjs().toISOString();
   const dettesPositives = dettes.filter((d) => d.montant > 0);
@@ -389,6 +418,7 @@ export async function addChargeVariableRegularisation(
       dateComptes: dateRegul,
       moisAnnee: moisAnnee,
       categorie: "Remboursement",
+      householdId: householdId,
     });
   }
 
@@ -402,12 +432,12 @@ export async function updateRegularisationDettes(
   householdId: string,
   moisAnnee: string,
   dettes: IDette[],
-  chargesFixesSnapshot: IChargeFixeSnapshot[]
+  chargesFixesSnapshot: IChargeFixeSnapshot[],
 ): Promise<void> {
   try {
     const docRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.COMPTES_MENSUELS),
-      moisAnnee
+      moisAnnee,
     );
     await updateDoc(docRef, {
       dettes: dettes,
@@ -423,11 +453,11 @@ export async function updateRegularisationDettes(
  * Récupère tous les comptes mensuels dont le statut est 'finalisé' (historique).
  */
 export async function getHistoryMonths(
-  householdId: string
+  householdId: string,
 ): Promise<ICompteMensuel[]> {
   const comptesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.COMPTES_MENSUELS
+    SUB_COLLECTIONS.COMPTES_MENSUELS,
   );
 
   const q = query(comptesCollection, where("statut", "==", "finalisé"));
@@ -438,7 +468,7 @@ export async function getHistoryMonths(
   } catch (error) {
     console.error(
       "Erreur lors de la récupération de l'historique des comptes mensuels:",
-      error
+      error,
     );
     throw error;
   }
@@ -448,11 +478,11 @@ export async function getHistoryMonths(
  * Récupère toutes les catégories personnalisées d'un foyer.
  */
 export async function getHouseholdCategories(
-  householdId: string
+  householdId: string,
 ): Promise<ICategorie[]> {
   const categoriesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CATEGORIES
+    SUB_COLLECTIONS.CATEGORIES,
   );
 
   try {
@@ -466,11 +496,11 @@ export async function getHouseholdCategories(
 
 export async function addCategory(
   householdId: string,
-  category: Omit<ICategorie, "id">
+  category: Omit<ICategorie, "id">,
 ) {
   const categorieCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CATEGORIES
+    SUB_COLLECTIONS.CATEGORIES,
   );
   const docRef = await addDoc(categorieCollection, category);
   return docRef.id;
@@ -479,12 +509,12 @@ export async function addCategory(
 export async function updateCategory(
   householdId: string,
   categoryId: string,
-  updateData: Partial<ICategorie>
+  updateData: Partial<ICategorie>,
 ) {
   try {
     const categoryRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.CATEGORIES),
-      categoryId
+      categoryId,
     );
     await updateDoc(categoryRef, {
       ...updateData,
@@ -499,7 +529,7 @@ export async function deleteCategory(householdId: string, categoryId: string) {
   try {
     const categoryRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.CATEGORIES),
-      categoryId
+      categoryId,
     );
     await deleteDoc(categoryRef);
   } catch (error) {
@@ -511,12 +541,12 @@ export async function deleteCategory(householdId: string, categoryId: string) {
 export async function migrateChargesOnDelete(
   householdId: string,
   oldCategoryId: string,
-  defaultCategoryId: string
+  defaultCategoryId: string,
 ) {
   const batch = writeBatch(db);
   const chargesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_VARIABLES
+    SUB_COLLECTIONS.CHARGES_VARIABLES,
   );
   const q = query(chargesCollection, where("categorie", "==", oldCategoryId));
   const snapshot = await getDocs(q);
@@ -528,7 +558,7 @@ export async function migrateChargesOnDelete(
 
 export async function switchActiveHousehold(
   userId: string,
-  newHouseholdId: string
+  newHouseholdId: string,
 ) {
   try {
     const userRef = doc(db, "users", userId);
@@ -602,7 +632,7 @@ export async function joinHouseholdByCode(userId: string, code: string) {
   const q = query(
     householdsRef,
     where("invitationCode", "==", cleanCode),
-    limit(1)
+    limit(1),
   );
 
   const querySnapshot = await getDocs(q);
@@ -647,7 +677,7 @@ export async function joinHouseholdByCode(userId: string, code: string) {
  */
 export async function updateHouseholdName(
   householdId: string,
-  newName: string
+  newName: string,
 ) {
   const householdRef = doc(db, "households", householdId);
   await updateDoc(householdRef, { name: newName });
@@ -680,7 +710,7 @@ export async function leaveHousehold(userId: string, householdId: string) {
 export async function createDefaultCategories(householdId: string) {
   const categoriesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CATEGORIES
+    SUB_COLLECTIONS.CATEGORIES,
   );
 
   const batch = writeBatch(db);

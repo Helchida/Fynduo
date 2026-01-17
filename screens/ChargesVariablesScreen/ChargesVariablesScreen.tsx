@@ -64,12 +64,12 @@ const ChargesVariablesScreen: React.FC = () => {
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState(
-    defaultCategory?.id || "Autre"
+    defaultCategory?.id || "Autre",
   );
   const [selectedDateStatistiques, setSelectedDateStatistiques] =
     useState<Date>(new Date());
   const [selectedDateComptes, setSelectedDateComptes] = useState<Date>(
-    new Date()
+    new Date(),
   );
   const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] =
     useState(false);
@@ -102,7 +102,7 @@ const ChargesVariablesScreen: React.FC = () => {
         description: charge.description,
       });
     },
-    [navigation]
+    [navigation],
   );
 
   const suggestionsVirements = useMemo(() => {
@@ -118,13 +118,13 @@ const ChargesVariablesScreen: React.FC = () => {
 
     if (filterMois) {
       filtered = filtered.filter(
-        (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois
+        (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois,
       );
     }
 
     if (filterAnnee) {
       filtered = filtered.filter(
-        (c) => dayjs(c.dateStatistiques).format("YYYY") === filterAnnee
+        (c) => dayjs(c.dateStatistiques).format("YYYY") === filterAnnee,
       );
     }
 
@@ -135,21 +135,24 @@ const ChargesVariablesScreen: React.FC = () => {
     const sortedCharges = filtered.sort(
       (a, b) =>
         dayjs(b.dateStatistiques).valueOf() -
-        dayjs(a.dateStatistiques).valueOf()
+        dayjs(a.dateStatistiques).valueOf(),
     );
 
-    const groupedData = sortedCharges.reduce((acc, charge) => {
-      const dateKey = dayjs(charge.dateStatistiques).format("YYYY-MM-DD");
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(charge);
-      return acc;
-    }, {} as Record<string, IChargeVariable[]>);
+    const groupedData = sortedCharges.reduce(
+      (acc, charge) => {
+        const dateKey = dayjs(charge.dateStatistiques).format("YYYY-MM-DD");
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(charge);
+        return acc;
+      },
+      {} as Record<string, IChargeVariable[]>,
+    );
 
     const groupedArray: GroupedChargesVariables[] = [];
     const sortedDateKeys = Object.keys(groupedData).sort(
-      (a, b) => dayjs(b).valueOf() - dayjs(a).valueOf()
+      (a, b) => dayjs(b).valueOf() - dayjs(a).valueOf(),
     );
 
     sortedDateKeys.forEach((dateKey) => {
@@ -168,7 +171,7 @@ const ChargesVariablesScreen: React.FC = () => {
     if (!payeurUid || !currentMonthData) {
       toast.error(
         "Erreur",
-        "Le payeur ou les données mensuelles sont manquantes."
+        "Le payeur ou les données mensuelles sont manquantes.",
       );
       return;
     }
@@ -176,7 +179,7 @@ const ChargesVariablesScreen: React.FC = () => {
     if (beneficiairesUid.length === 0) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez sélectionner au moins un bénéficiaire."
+        "Veuillez sélectionner au moins un bénéficiaire.",
       );
       return;
     }
@@ -184,7 +187,7 @@ const ChargesVariablesScreen: React.FC = () => {
     if (!description.trim() || isNaN(montantTotal) || montantTotal <= 0) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez vérifier la description et un montant valide (> 0)."
+        "Veuillez vérifier la description et un montant valide (> 0).",
       );
       return;
     }
@@ -233,8 +236,13 @@ const ChargesVariablesScreen: React.FC = () => {
     householdUsers,
   ]);
 
+  const isSoloHousehold = user.activeHouseholdId === user.id;
+
   useEffect(() => {
-    if (householdUsers.length > 0) {
+    if (isSoloHousehold) {
+      setPayeurUid(user.id);
+      setBeneficiairesUid([user.id]);
+    } else if (householdUsers.length > 0) {
       if (beneficiairesUid.length === 0) {
         setBeneficiairesUid(householdUsers.map((u) => u.id));
       }
@@ -242,7 +250,7 @@ const ChargesVariablesScreen: React.FC = () => {
         setPayeurUid(user.id);
       }
     }
-  }, [householdUsers, beneficiairesUid.length, user.id, payeurUid]);
+  }, [householdUsers, isSoloHousehold, user.id]);
 
   if (isLoadingComptes) {
     return <Text style={styles.loading}>Chargement des dépenses...</Text>;
@@ -250,7 +258,7 @@ const ChargesVariablesScreen: React.FC = () => {
 
   const benefCount = beneficiairesUid.length;
   const currentCategoryData = categories.find(
-    (c) => c.id === selectedCategorie
+    (c) => c.id === selectedCategorie,
   );
 
   return (
@@ -384,37 +392,40 @@ const ChargesVariablesScreen: React.FC = () => {
               />
             </View>
 
-            <TouchableOpacity
-              style={styles.selectorButton}
-              onPress={() => setIsPayeurModalVisible(true)}
-            >
-              <Text style={styles.selectorLabel}>Payé par</Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text>{getDisplayName(payeurUid || "")}</Text>
-                <ChevronsUpDown size={14} color="#8E8E93" />
-              </View>
-            </TouchableOpacity>
-
-            <BeneficiariesSelector
-              users={householdUsers}
-              selectedUids={beneficiairesUid}
-              totalAmount={montant}
-              onToggle={(uid) =>
-                setBeneficiairesUid((prev) =>
-                  prev.includes(uid)
-                    ? prev.filter((i) => i !== uid)
-                    : [...prev, uid]
-                )
-              }
-              getDisplayName={getDisplayName}
-              currentUserId={user.id}
-            />
+            {!isSoloHousehold && (
+              <>
+                <TouchableOpacity
+                  style={styles.selectorButton}
+                  onPress={() => setIsPayeurModalVisible(true)}
+                >
+                  <Text style={styles.selectorLabel}>Payé par</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text>{getDisplayName(payeurUid || "")}</Text>
+                    <ChevronsUpDown size={14} color="#8E8E93" />
+                  </View>
+                </TouchableOpacity>
+                <BeneficiariesSelector
+                  users={householdUsers}
+                  selectedUids={beneficiairesUid}
+                  totalAmount={montant}
+                  onToggle={(uid) =>
+                    setBeneficiairesUid((prev) =>
+                      prev.includes(uid)
+                        ? prev.filter((i) => i !== uid)
+                        : [...prev, uid],
+                    )
+                  }
+                  getDisplayName={getDisplayName}
+                  currentUserId={user.id}
+                />
+              </>
+            )}
             <TouchableOpacity
               style={[
                 styles.saveButton,
@@ -440,26 +451,32 @@ const ChargesVariablesScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balanceTitle}>Equilibrer ?</Text>
-          {suggestionsVirements.length === 0 ? (
-            <Text style={styles.emptyText}>Tout est déjà équilibré ! ✨</Text>
-          ) : (
-            suggestionsVirements.map((virement, index) => (
-              <View key={index} style={styles.virementRow}>
-                <Text style={styles.virementText}>
-                  <Text style={styles.bold}>{getDisplayName(virement.de)}</Text>{" "}
-                  doit envoyer{" "}
-                  <Text style={styles.amountText}>
-                    {virement.montant.toFixed(2)}€
-                  </Text>{" "}
-                  à{" "}
-                  <Text style={styles.bold}>{getDisplayName(virement.a)}</Text>
-                </Text>
-              </View>
-            ))
-          )}
-        </View>
+        {!isSoloHousehold && (
+          <View style={styles.balanceContainer}>
+            <Text style={styles.balanceTitle}>Equilibrer ?</Text>
+            {suggestionsVirements.length === 0 ? (
+              <Text style={styles.emptyText}>Tout est déjà équilibré ! ✨</Text>
+            ) : (
+              suggestionsVirements.map((virement, index) => (
+                <View key={index} style={styles.virementRow}>
+                  <Text style={styles.virementText}>
+                    <Text style={styles.bold}>
+                      {getDisplayName(virement.de)}
+                    </Text>{" "}
+                    doit envoyer{" "}
+                    <Text style={styles.amountText}>
+                      {virement.montant.toFixed(2)}€
+                    </Text>{" "}
+                    à{" "}
+                    <Text style={styles.bold}>
+                      {getDisplayName(virement.a)}
+                    </Text>
+                  </Text>
+                </View>
+              ))
+            )}
+          </View>
+        )}
         <Text style={styles.filtersLabel}>Filtrer :</Text>
         <View style={styles.filtersContainer}>
           <TouchableOpacity
@@ -479,24 +496,29 @@ const ChargesVariablesScreen: React.FC = () => {
               {filterMois
                 ? dayjs(filterMois).format("MMM YYYY")
                 : filterAnnee
-                ? filterAnnee
-                : "Période"}
+                  ? filterAnnee
+                  : "Période"}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.filterChip, filterPayeur && styles.filterChipActive]}
-            onPress={() => setIsFilterPayeurModalVisible(true)}
-          >
-            <Text
+          {!isSoloHousehold && (
+            <TouchableOpacity
               style={[
-                styles.filterChipText,
-                filterPayeur && styles.filterChipTextActive,
+                styles.filterChip,
+                filterPayeur && styles.filterChipActive,
               ]}
+              onPress={() => setIsFilterPayeurModalVisible(true)}
             >
-              👤 {filterPayeur ? getDisplayName(filterPayeur) : "Payeur"}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.filterChipText,
+                  filterPayeur && styles.filterChipTextActive,
+                ]}
+              >
+                👤 {filterPayeur ? getDisplayName(filterPayeur) : "Payeur"}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[

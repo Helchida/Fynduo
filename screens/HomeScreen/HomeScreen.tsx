@@ -242,43 +242,22 @@ const HomeScreen: React.FC = () => {
 
           {isSolo ||
           (householdsDetails[user.activeHouseholdId]?.count ?? 0) <= 1 ? (
-            <View style={styles.soloInfoCard}>
-              {isSolo ? (
-                <>
-                  <Text style={styles.soloTitle}>Mode Solo actif</Text>
-                  <Text style={styles.soloDescription}>
-                    Les fonctionnalités de gestion de foyer (partage des
-                    charges, régularisation) seront disponibles dès que vous
-                    rejoindrez ou créerez un foyer partagé.
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.inviteButton}
-                    onPress={() => navigation.navigate("Households")}
-                  >
-                    <Text style={styles.inviteButtonText}>
-                      Gérer mes foyers
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.soloTitle}>Invitez des personnes</Text>
-                  <Text style={styles.soloDescription}>
-                    Les fonctionnalités de gestion de foyer (partage des
-                    charges, régularisation) seront disponibles dès que vous
-                    serez plusieurs dans le foyer partagé. Partagez le code
-                    d'accès à votre foyer depuis l'écran de gestion des foyers.
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.inviteButton}
-                    onPress={() => navigation.navigate("Households")}
-                  >
-                    <Text style={styles.inviteButtonText}>
-                      Gérer mes foyers
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
+            <View style={styles.actionsContainer}>
+              <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
+                onPress={() => navigation.navigate("ChargesVariables")}
+              >
+                <Text style={styles.actionText}>Charges variables</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
+                onPress={() =>
+                  toast.info("Info", "Fonctionnalité de statistiques à venir !")
+                }
+              >
+                <Text style={styles.actionText}>Statistiques</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.actionsContainer}>

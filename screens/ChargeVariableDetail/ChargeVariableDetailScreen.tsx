@@ -24,6 +24,7 @@ import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVaria
 import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
+import BadgeHouseholdMode from "components/fynduo/BadgeHouseholdMode/BadgeHouseholdMode";
 dayjs.locale("fr");
 
 type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
@@ -52,22 +53,22 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const initialCharge = chargesVariables.find((c) => c.id === chargeId);
 
   const [charge, setCharge] = useState<IChargeVariable | undefined>(
-    initialCharge
+    initialCharge,
   );
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editDescription, setEditDescription] = useState(
-    charge?.description || ""
+    charge?.description || "",
   );
   const [editMontant, setEditMontant] = useState(
-    charge?.montantTotal.toFixed(2).replace(".", ",") || ""
+    charge?.montantTotal.toFixed(2).replace(".", ",") || "",
   );
   const [editPayeurUid, setEditPayeurUid] = useState<string | null>(
-    charge?.payeur || null
+    charge?.payeur || null,
   );
   const [editBeneficiairesUid, setEditBeneficiairesUid] = useState<string[]>(
-    charge?.beneficiaires || []
+    charge?.beneficiaires || [],
   );
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] =
@@ -76,13 +77,13 @@ const ChargeVariableDetailScreen: React.FC = () => {
     useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [editDateStatistiques, setEditDateStatistiques] = useState<Date>(
-    charge?.dateStatistiques ? new Date(charge.dateStatistiques) : new Date()
+    charge?.dateStatistiques ? new Date(charge.dateStatistiques) : new Date(),
   );
   const [editDateComptes, setEditDateComptes] = useState<Date>(
-    charge?.dateComptes ? new Date(charge.dateComptes) : new Date()
+    charge?.dateComptes ? new Date(charge.dateComptes) : new Date(),
   );
   const [editCategorie, setEditCategorie] = useState<string>(
-    charge?.categorie || ""
+    charge?.categorie || "",
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
@@ -118,7 +119,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditBeneficiairesUid(initialCharge.beneficiaires);
 
       const categoryExists = categories.some(
-        (c) => c.id === initialCharge.categorie
+        (c) => c.id === initialCharge.categorie,
       );
 
       if (categoryExists) {
@@ -132,12 +133,12 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditDateStatistiques(
         initialCharge.dateStatistiques
           ? new Date(initialCharge.dateStatistiques)
-          : new Date()
+          : new Date(),
       );
       setEditDateComptes(
         initialCharge.dateComptes
           ? new Date(initialCharge.dateComptes)
-          : new Date()
+          : new Date(),
       );
     } else if (!isLoadingComptes) {
       toast.success("Succès", "Charge supprimée.");
@@ -213,7 +214,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
         if (prev.length === 1) {
           toast.warning(
             "Attention",
-            "Il doit y avoir au moins un bénéficiaire."
+            "Il doit y avoir au moins un bénéficiaire.",
           );
           return prev;
         }
@@ -251,7 +252,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   };
 
   const dateStatistiquesFormatted = dayjs(charge.dateStatistiques).format(
-    "DD MMMM YYYY"
+    "DD MMMM YYYY",
   );
   const dateComptesFormatted = dayjs(charge.dateComptes).format("DD MMMM YYYY");
 
@@ -259,6 +260,19 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const nbBeneficiaires = benefUids.length;
   const currentCategoryData = categories.find((c) => c.id === charge.categorie);
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
+
+  const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
+  const isFromSharedHousehold = charge.householdId !== user.id;
+
+  const displayAmountTotal = useMemo(() => {
+    if (!initialCharge) return "0,00";
+    const amount =
+      isActiveHouseholdSolo && isFromSharedHousehold
+        ? initialCharge.montantTotal /
+          (initialCharge.beneficiaires?.length || 1)
+        : initialCharge.montantTotal;
+    return amount.toFixed(2).replace(".", ",");
+  }, [initialCharge, isActiveHouseholdSolo, isFromSharedHousehold]);
 
   return (
     <ScrollView style={styles.detailContainer}>
@@ -301,64 +315,90 @@ const ChargeVariableDetailScreen: React.FC = () => {
           <View style={styles.detailHeaderContainer}>
             <Text style={styles.iconText}>{categoryIcon}</Text>
             <Text style={styles.detailTitle}>{charge.description}</Text>
+            {isActiveHouseholdSolo && (
+              <BadgeHouseholdMode isFromSharedHousehold={isFromSharedHousehold} />
+            )}
             <Text style={styles.detailDateText}>
               Dépense du {dateStatistiquesFormatted}
             </Text>
-            <Text
-              style={[styles.detailDateText, { fontSize: 12, color: "#999" }]}
-            >
-              Ajoutée le {dateComptesFormatted}
+            <Text style={styles.detailDateText}>
+              Ajouté le {dateComptesFormatted}
             </Text>
           </View>
 
           <View style={styles.cardSection}>
-            <Text style={styles.sectionTitle}>Payé par</Text>
+            <Text style={styles.sectionTitle}>
+              {isActiveHouseholdSolo && !isFromSharedHousehold
+                ? "Payé"
+                : "Payé par"}
+            </Text>
             <UserDisplayCard
-              name={payeurItem.name}
-              amount={charge.montantTotal.toFixed(2).replace(".", ",")}
+              name={isActiveHouseholdSolo ? user.displayName : payeurItem.name}
+              amount={displayAmountTotal}
               isPayeur={true}
               isMe={payeurItem.userId === user.id}
             />
           </View>
 
-          <View style={styles.cardSection}>
-            <Text style={styles.sectionTitle}>
-              Pour {nbBeneficiaires} participant{nbBeneficiaires > 1 ? "s" : ""}
-              {nbBeneficiaires > 0 && benefUids.includes(user.id)
-                ? ", y compris toi"
-                : ""}
-            </Text>
+          {!isActiveHouseholdSolo && (
+            <View style={styles.cardSection}>
+              <Text style={styles.sectionTitle}>
+                Pour {nbBeneficiaires} participant
+                {nbBeneficiaires > 1 ? "s" : ""}
+                {nbBeneficiaires > 0 && benefUids.includes(user.id)
+                  ? ", y compris toi"
+                  : ""}
+              </Text>
 
-            {calculatedSplit.map((item) => (
-              <UserDisplayCard
-                key={item.userId + "-split"}
-                name={item.name}
-                amount={item.amountPerPerson.toFixed(2).replace(".", ",")}
-                isMe={item.userId === user.id}
-              />
-            ))}
-          </View>
+              {calculatedSplit.map((item) => (
+                <UserDisplayCard
+                  key={item.userId + "-split"}
+                  name={item.name}
+                  amount={item.amountPerPerson.toFixed(2).replace(".", ",")}
+                  isMe={item.userId === user.id}
+                />
+              ))}
+            </View>
+          )}
 
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[
-                styles.addButton,
-                { backgroundColor: "#3498DB", flex: 1, marginRight: 5 },
-              ]}
-              onPress={() => setIsEditing(true)}
-            >
-              <Text style={styles.addButtonText}>Modifier</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.addButton,
-                { backgroundColor: "#E74C3C", flex: 1, marginLeft: 5 },
-              ]}
-              onPress={() => setIsDeleteModalVisible(true)}
-            >
-              <Text style={styles.addButtonText}>Supprimer</Text>
-            </TouchableOpacity>
-          </View>
+          {(!isActiveHouseholdSolo ||
+            (!isFromSharedHousehold && isActiveHouseholdSolo)) && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.addButton,
+                  { backgroundColor: "#3498DB", flex: 1, marginRight: 5 },
+                ]}
+                onPress={() => setIsEditing(true)}
+              >
+                <Text style={styles.addButtonText}>Modifier</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.addButton,
+                  { backgroundColor: "#E74C3C", flex: 1, marginLeft: 5 },
+                ]}
+                onPress={() => setIsDeleteModalVisible(true)}
+              >
+                <Text style={styles.addButtonText}>Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {isActiveHouseholdSolo && isFromSharedHousehold && (
+            <View style={{ padding: 20, alignItems: "center" }}>
+              <Text
+                style={{
+                  color: "#7f8c8d",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                }}
+              >
+                Cette dépense provient d'un foyer partagé. Pour la modifier,
+                rendez-vous dans l'espace concerné.
+              </Text>
+            </View>
+          )}
 
           <ConfirmModal
             visible={isDeleteModalVisible}

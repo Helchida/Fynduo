@@ -8,6 +8,8 @@ import { EditChargeVariableFormProps } from "./EditChargeVariableForm.type";
 import { CategoryPickerModal } from "./CategoryPickerModal/CategoryPickerModal";
 import { CategoryType } from "@/types";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
+import { useAuth } from "hooks/useAuth";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 export const EditChargeVariableForm = ({
   editDescription,
@@ -42,6 +44,10 @@ export const EditChargeVariableForm = ({
   isCategoryModalVisible,
   categories,
 }: EditChargeVariableFormProps) => {
+  const { user } = useAuth();
+  if (!user) {
+    return <NoAuthenticatedUser />;
+  }
   const currentCategory = categories.find((c) => c.id === editCategorie);
   const isInvalid =
     isSubmitting ||
@@ -49,6 +55,8 @@ export const EditChargeVariableForm = ({
     !editDescription.trim() ||
     isNaN(parseFloat(editMontant)) ||
     parseFloat(editMontant) <= 0;
+
+  const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
   return (
     <View style={styles.editFormContainer}>
       <View style={[styles.userCard, styles.payorCard, { marginBottom: 12 }]}>
@@ -110,22 +118,24 @@ export const EditChargeVariableForm = ({
       </TouchableOpacity>
 
       <View style={styles.editRow}>
-        <TouchableOpacity
-          style={[
-            styles.editSectionCard,
-            styles.payorCard,
-            { flex: 1, marginRight: 8 },
-          ]}
-          onPress={() => setIsPayeurModalVisible(true)}
-        >
-          <Text style={styles.editLabel}>Payé par</Text>
-          <View style={styles.selectorContainer}>
-            <Text style={styles.miniUserText} numberOfLines={1}>
-              {getDisplayName(editPayeurUid || "")}
-            </Text>
-            <ChevronsUpDown size={16} color="#8E8E93" />
-          </View>
-        </TouchableOpacity>
+        {!isActiveHouseholdSolo && (
+          <TouchableOpacity
+            style={[
+              styles.editSectionCard,
+              styles.payorCard,
+              { flex: 1, marginRight: 8 },
+            ]}
+            onPress={() => setIsPayeurModalVisible(true)}
+          >
+            <Text style={styles.editLabel}>Payé par</Text>
+            <View style={styles.selectorContainer}>
+              <Text style={styles.miniUserText} numberOfLines={1}>
+                {getDisplayName(editPayeurUid || "")}
+              </Text>
+              <ChevronsUpDown size={16} color="#8E8E93" />
+            </View>
+          </TouchableOpacity>
+        )}
 
         <UniversalDatePicker
           date={editDateStatistiques}
@@ -138,7 +148,6 @@ export const EditChargeVariableForm = ({
           containerStyle={{ flex: 1, marginLeft: 0 }}
         />
       </View>
-
       <View style={[styles.editRow, { marginTop: 0 }]}>
         <UniversalDatePicker
           date={editDateComptes}
@@ -151,7 +160,6 @@ export const EditChargeVariableForm = ({
           containerStyle={{ flex: 1, marginLeft: 0, marginRight: 0 }}
         />
       </View>
-
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}
         onClose={() => setIsCategoryModalVisible(false)}
@@ -162,7 +170,6 @@ export const EditChargeVariableForm = ({
         }}
         categories={categories}
       />
-
       <PayeurPickerModal
         isVisible={isPayeurModalVisible}
         onClose={() => setIsPayeurModalVisible(false)}
@@ -174,16 +181,16 @@ export const EditChargeVariableForm = ({
         }}
         getDisplayName={getDisplayName}
       />
-
-      <BeneficiariesSelector
-        users={householdUsers}
-        selectedUids={editBeneficiairesUid}
-        totalAmount={editMontant}
-        onToggle={handleToggleEditBeneficiaire}
-        getDisplayName={getDisplayName}
-        currentUserId={currentUserId}
-      />
-
+      {!isActiveHouseholdSolo && (
+        <BeneficiariesSelector
+          users={householdUsers}
+          selectedUids={editBeneficiairesUid}
+          totalAmount={editMontant}
+          onToggle={handleToggleEditBeneficiaire}
+          getDisplayName={getDisplayName}
+          currentUserId={currentUserId}
+        />
+      )}
       <TouchableOpacity
         style={[
           styles.saveButton,
@@ -198,7 +205,6 @@ export const EditChargeVariableForm = ({
           {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
         </Text>
       </TouchableOpacity>
-
       <TouchableOpacity
         onPress={() => setIsEditing(false)}
         style={{ marginTop: 15, alignItems: "center" }}

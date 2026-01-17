@@ -4,10 +4,9 @@ export const styles = StyleSheet.create({
   depenseItem: {
     backgroundColor: "#fff",
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 10,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     borderLeftWidth: 5,
     borderLeftColor: "#2ecc71",
@@ -17,20 +16,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  depenseInfo: { flex: 3 },
-  depenseDetails: { flex: 2, alignItems: "flex-end" },
-  depenseDesc: { fontSize: 17, fontWeight: "600", color: "#333" },
-  depenseAmount: { fontSize: 18, fontWeight: "bold", color: "#e67e22" },
-  depensePayer: {
-    fontSize: 13,
-    color: "#27ae60",
-    marginTop: 3,
-    fontWeight: "500",
-  },
   avatarBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: "#f0f2f5",
     justifyContent: "center",
     alignItems: "center",
@@ -39,8 +28,31 @@ export const styles = StyleSheet.create({
     borderColor: "#e1e4e8",
   },
   avatarText: {
+    fontSize: 20,
+  },
+  depenseInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  depenseDesc: {
     fontSize: 16,
+    fontWeight: "600",
+    color: "#2c3e50",
+  },
+  depensePayer: {
+    fontSize: 12,
+    color: "#7f8c8d",
+    marginTop: 2,
+  },
+  depenseMontantContainer: {
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 4,
+    marginLeft: 10,
+  },
+  depenseMontant: {
+    fontSize: 17,
     fontWeight: "bold",
-    color: "#57606a",
+    color: "#2c3e50",
   },
 });
