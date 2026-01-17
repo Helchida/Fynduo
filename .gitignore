@@ -50,3 +50,5 @@ yarn-error.*
 # Script migration
 scripts/serviceAccountKey.json
 scripts/migrateDataChargesVariables.ts
+scripts/migrateAllChargeVariableAddingHouseholdId.ts
+scripts/migrationSoloCharges.ts
