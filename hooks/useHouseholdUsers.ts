@@ -9,7 +9,9 @@ export const useHouseholdUsers = () => {
   const userMap = new Map(householdUsers.map((u) => [u.id, u]));
 
   const getDisplayName = (uid: string): string => {
-    return userMap.get(uid)?.displayName ?? uid;
+    const foundUser = userMap.get(uid);
+    if (foundUser) return foundUser.displayName;
+    return "Utilisateur";
   };
 
   const getOtherUsers = () => {

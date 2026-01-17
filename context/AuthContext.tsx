@@ -68,7 +68,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             if (docSnap.exists()) {
               const userData = docSnap.data() as IUser;
               const token = await firebaseUser.getIdToken();
-              const activeId = userData.activeHouseholdId; //
+              const activeId = userData.activeHouseholdId;
+
+              if (user && user.activeHouseholdId !== activeId) {
+                setHouseholdUsers([]);
+              }
 
               setUser({
                 id: firebaseUser.uid,
@@ -96,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                   (error) => {
                     console.error("Erreur listener household:", error);
                     setHouseholdUsers([]);
-                  }
+                  },
                 );
               }
             }
@@ -105,7 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           (error: any) => {
             console.error("Erreur listener profil:", error);
             setIsLoading(false);
-          }
+          },
         );
       } else {
         setUser(null);
@@ -171,7 +175,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       updateLocalUser,
       updateLocalActiveHousehold,
     }),
-    [user, isLoading, householdUsers, isAwaitingVerification]
+    [user, isLoading, householdUsers, isAwaitingVerification],
   );
 
   return (

@@ -19,6 +19,8 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
   }
 
   const { categories } = useCategories();
+
+  
   const payeurName = getDisplayNameUserInHousehold(
     charge.payeur,
     householdUsers
