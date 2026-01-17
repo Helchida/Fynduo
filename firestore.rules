@@ -19,18 +19,24 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
+    // Helper function: Vérifie si deux utilisateurs partagent au moins un foyer
+    function shareHousehold(userId) {
+      let currentUserHouseholds = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households;
+      let targetUserHouseholds = resource.data.households;
+      return currentUserHouseholds.hasAny(targetUserHouseholds);
+    }
+    
     // RÈGLES POUR LES UTILISATEURS
     match /users/{userId} {
-      // Lecture: seulement son propre profil
+      // Lecture: son propre profil OU si vous partagez au moins un foyer
       allow read: if isSignedIn() && (
         isOwner(userId) || 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.activeHouseholdId == resource.data.activeHouseholdId
+        shareHousehold(userId)
       );
       
       allow create: if isOwner(userId) && 
                       request.resource.data.keys().hasAll(['email', 'displayName', 'activeHouseholdId']);
       
-      // MODIFICATION ICI : Permettre la mise à jour du champ households
       allow update: if isOwner(userId) && 
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'email']);
       
@@ -39,13 +45,13 @@ service cloud.firestore {
     
     // RÈGLES POUR LES FOYERS (HOUSEHOLDS)
     match /households/{householdId} {
-      // MODIFICATION ICI : Permettre la lecture si l'utilisateur recherche par code d'invitation
+      // Lecture si membre OU si recherche par code d'invitation
       allow get: if isSignedIn() && (
         belongsToHousehold(householdId) || 
         resource.data.invitationCode != null
       );
       
-      // MODIFICATION ICI : Permettre list avec filtre sur invitationCode
+      // List avec limite pour recherche de code
       allow list: if isSignedIn() && (
         belongsToHousehold(householdId) || 
         request.query.limit <= 1
@@ -53,7 +59,7 @@ service cloud.firestore {
       
       allow create: if isSignedIn();
       
-      // MODIFICATION ICI : Permettre update si on ajoute seulement son propre userId aux members
+      // Update pour rejoindre un foyer OU si déjà membre
       allow update: if isSignedIn() && (
         belongsToHousehold(householdId) ||
         (
@@ -98,8 +104,10 @@ service cloud.firestore {
       }
       
       // SOUS-COLLECTION: charges_variables
+      // MODIFICATION CRITIQUE : Permettre la lecture si membre DU FOYER OU si bénéficiaire de la charge
       match /charges_variables/{chargeId} {
-        allow read: if belongsToHousehold(householdId);
+        allow read: if belongsToHousehold(householdId) || 
+                       (isSignedIn() && request.auth.uid in resource.data.beneficiaires);
         
         allow create: if belongsToHousehold(householdId) &&
                         request.resource.data.keys().hasAll(['description', 'montantTotal', 'payeur', 'beneficiaires', 'dateStatistiques', 'dateComptes', 'moisAnnee']) &&

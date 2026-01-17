@@ -113,20 +113,32 @@ export async function deleteUserInfo(uid: string) {
  * Récupère tous les utilisateurs appartenant à un HouseholdId donné.
  */
 export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
-  const usersCollection = collection(db, "users");
-  const q = query(
-    usersCollection,
-    where("activeHouseholdId", "==", householdId)
-  );
-
   try {
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => mapDocToType<IUser>(doc));
+    const householdRef = doc(db, "households", householdId);
+    const householdSnap = await getDoc(householdRef);
+    
+    if (!householdSnap.exists()) {
+      return [];
+    }
+    
+    const householdData = householdSnap.data();
+    const memberIds = householdData.members || [];
+    
+    if (memberIds.length === 0) {
+      return [];
+    }
+    
+    const usersPromises = memberIds.map(async (uid: string) => {
+      const userRef = doc(db, "users", uid);
+      const userSnap = await getDoc(userRef);
+      return userSnap.exists() ? mapDocToType<IUser>(userSnap as QueryDocumentSnapshot<DocumentData>) : null;
+    });
+    
+    const users = await Promise.all(usersPromises);
+    
+    return users.filter((u): u is IUser => u !== null);
   } catch (error) {
-    console.error(
-      "Erreur lors de la récupération des utilisateurs du foyer:",
-      error
-    );
+    console.error("Erreur getHouseholdMembers:", error);
     throw error;
   }
 }
