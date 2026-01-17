@@ -93,7 +93,7 @@ const HomeScreen: React.FC = () => {
               }));
             }
           },
-          (error) => console.error(`Erreur foyer ${hId}:`, error)
+          (error) => console.error(`Erreur foyer ${hId}:`, error),
         );
         unsubscribes.push(unsubscribe);
       }
@@ -122,6 +122,12 @@ const HomeScreen: React.FC = () => {
 
   const isFinalized = currentMonthData?.statut === "finalisé";
   const isSolo = user.activeHouseholdId === user.id;
+
+  const sortedHouseholds = [...(user.households || [])].sort((a, b) => {
+    if (a === user.id) return -1;
+    if (b === user.id) return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <>
@@ -234,7 +240,8 @@ const HomeScreen: React.FC = () => {
             </View>
           </View>
 
-          {isSolo || (householdsDetails[user.activeHouseholdId]?.count ?? 0) <= 1 ? (
+          {isSolo ||
+          (householdsDetails[user.activeHouseholdId]?.count ?? 0) <= 1 ? (
             <View style={styles.soloInfoCard}>
               {isSolo ? (
                 <>
@@ -337,7 +344,7 @@ const HomeScreen: React.FC = () => {
               <View style={styles.householdMenuDropdown}>
                 <Text style={styles.householdMenuTitle}>Mes Espaces</Text>
 
-                {user.households?.map((hId) => {
+                {sortedHouseholds.map((hId) => {
                   const isSoloItem = hId === user.id;
                   const isActive = hId === user.activeHouseholdId;
                   const details = householdsDetails[hId];
@@ -351,7 +358,7 @@ const HomeScreen: React.FC = () => {
                       ]}
                       onPress={() => handleSwitchHousehold(hId)}
                     >
-                      {isSolo ? (
+                      {isSoloItem ? (
                         <Home
                           size={18}
                           color={isActive ? "#3498db" : "#2c3e50"}
