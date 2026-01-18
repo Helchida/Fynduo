@@ -125,10 +125,13 @@ service cloud.firestore {
       match /categories/{categorieId} {
         allow read: if belongsToHousehold(householdId);
         
-        allow create: if belongsToHousehold(householdId) &&
-                        request.resource.data.keys().hasAll(['label', 'icon']);
-        
-        allow update: if belongsToHousehold(householdId);
+      allow create, update: if belongsToHousehold(householdId) || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(householdId)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households.hasAny(
+          get(/databases/$(database)/documents/users/$(householdId)).data.households
+        )
+      );
         
         allow delete: if belongsToHousehold(householdId) &&
                         !resource.data.isDefault;

@@ -351,6 +351,44 @@ export async function addChargeVariable(
   );
 
   const docRef = await addDoc(depensesCollection, depense);
+
+  try {
+    const catRef = doc(
+      db,
+      "households",
+      householdId,
+      "categories",
+      depense.categorie,
+    );
+    const catSnap = await getDoc(catRef);
+
+    if (catSnap.exists()) {
+      const categoryData = catSnap.data();
+      const targetUserIds = depense.beneficiaires.filter(
+        (uid) => uid !== householdId,
+      );
+
+      if (targetUserIds.length > 0) {
+        const batch = writeBatch(db);
+
+        targetUserIds.forEach((uid) => {
+          const soloCatRef = doc(
+            db,
+            "households",
+            uid,
+            "categories",
+            depense.categorie,
+          );
+          batch.set(soloCatRef, categoryData, { merge: true });
+        });
+
+        await batch.commit();
+      }
+    }
+  } catch (error) {
+    console.error("Erreur lors de la propagation de la catégorie:", error);
+  }
+
   return docRef.id;
 }
 
@@ -512,15 +550,35 @@ export async function updateCategory(
   updateData: Partial<ICategorie>,
 ) {
   try {
+    const batch = writeBatch(db);
     const categoryRef = doc(
       getCollectionRef(householdId, SUB_COLLECTIONS.CATEGORIES),
       categoryId,
     );
-    await updateDoc(categoryRef, {
-      ...updateData,
-    });
+    batch.update(categoryRef, updateData);
+    const householdRef = doc(db, "households", householdId);
+    const householdSnap = await getDoc(householdRef);
+
+    if (householdSnap.exists()) {
+      const members = householdSnap.data().members || [];
+
+      members.forEach((uid: string) => {
+        if (uid !== householdId) {
+          const soloCatRef = doc(
+            db,
+            "households",
+            uid,
+            "categories",
+            categoryId,
+          );
+          batch.set(soloCatRef, updateData, { merge: true });
+        }
+      });
+    }
+
+    await batch.commit();
   } catch (error) {
-    console.error("Erreur updateCategory:", error);
+    console.error("Erreur updateCategory avec propagation:", error);
     throw error;
   }
 }
@@ -716,8 +774,10 @@ export async function createDefaultCategories(householdId: string) {
   const batch = writeBatch(db);
 
   DEFAULT_CATEGORIES.forEach((category) => {
-    const categoryRef = doc(categoriesCollection);
-    batch.set(categoryRef, category);
+    const { id, ...categoryData } = category;
+    const categoryRef = doc(categoriesCollection, id);
+
+    batch.set(categoryRef, categoryData);
   });
 
   await batch.commit();
