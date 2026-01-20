@@ -53,8 +53,14 @@ export const CategoryPickerModal = ({
 
   const handleEmojiInput = (text: string) => {
     if (text.length > 0) {
-      const lastChar = Array.from(text).pop();
-      if (lastChar) setNewIcon(lastChar);
+      const emojis = Array.from(text);
+      const lastEmoji = emojis[emojis.length - 1];
+      if (lastEmoji) {
+        setNewIcon(lastEmoji);
+        setTimeout(() => {
+          emojiInputRef.current?.blur();
+        }, 100);
+      }
     }
   };
   return (
@@ -67,6 +73,11 @@ export const CategoryPickerModal = ({
             value=""
             onChangeText={handleEmojiInput}
             keyboardType="default"
+            autoCorrect={false}
+            autoCapitalize="none"
+            disableFullscreenUI={true}
+            textContentType="none"
+            spellCheck={false}
           />
           <View style={styles.modalHeaderContainer}>
             <Text style={styles.modalHeader}>Choisir une catégorie</Text>
