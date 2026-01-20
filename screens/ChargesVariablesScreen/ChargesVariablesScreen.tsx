@@ -213,7 +213,11 @@ const ChargesVariablesScreen: React.FC = () => {
       setSelectedDateComptes(new Date());
       setSelectedCategorie(defaultCategory?.label || "Autre");
       setPayeurUid(user.id || null);
-      setBeneficiairesUid(householdUsers.map((u) => u.id));
+      if (isSoloHousehold) {
+        setBeneficiairesUid([user.id]);
+      } else {
+        setBeneficiairesUid(householdUsers.map((u) => u.id));
+      }
       setShowForm(false);
       toast.success("Succès", "Dépense enregistrée.");
     } catch (error) {
@@ -240,17 +244,18 @@ const ChargesVariablesScreen: React.FC = () => {
 
   useEffect(() => {
     if (isSoloHousehold) {
-      setPayeurUid(user.id);
-      setBeneficiairesUid([user.id]);
+      if (
+        beneficiairesUid.length === 0 ||
+        !beneficiairesUid.includes(user.id)
+      ) {
+        setBeneficiairesUid([user.id]);
+      }
     } else if (householdUsers.length > 0) {
       if (beneficiairesUid.length === 0) {
         setBeneficiairesUid(householdUsers.map((u) => u.id));
       }
-      if (user.id && !payeurUid) {
-        setPayeurUid(user.id);
-      }
     }
-  }, [householdUsers, isSoloHousehold, user.id]);
+  }, [householdUsers.length, isSoloHousehold, user.id]);
 
   if (isLoadingComptes) {
     return <Text style={styles.loading}>Chargement des dépenses...</Text>;
