@@ -26,6 +26,15 @@ service cloud.firestore {
       return currentUserHouseholds.hasAny(targetUserHouseholds);
     }
     
+    // Helper function: Vérifie si le householdId correspond à un userId qui partage un foyer avec l'utilisateur connecté
+    function sharesHouseholdWithUser(householdId) {
+      // Vérifie si householdId est un document user qui existe
+      return exists(/databases/$(database)/documents/users/$(householdId)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households.hasAny(
+               get(/databases/$(database)/documents/users/$(householdId)).data.households
+             );
+    }
+    
     // RÈGLES POUR LES UTILISATEURS
     match /users/{userId} {
       // Lecture: son propre profil OU si vous partagez au moins un foyer
@@ -104,7 +113,7 @@ service cloud.firestore {
       }
       
       // SOUS-COLLECTION: charges_variables
-      // MODIFICATION CRITIQUE : Permettre la lecture si membre DU FOYER OU si bénéficiaire de la charge
+      // Permettre la lecture si membre du foyer OU si bénéficiaire de la charge
       match /charges_variables/{chargeId} {
         allow read: if belongsToHousehold(householdId) || 
                        (isSignedIn() && request.auth.uid in resource.data.beneficiaires);
@@ -123,15 +132,17 @@ service cloud.firestore {
       
       // SOUS-COLLECTION: categories
       match /categories/{categorieId} {
-        allow read: if belongsToHousehold(householdId);
+        // Lecture autorisée si:
+        // 1. Membre du foyer OU
+        // 2. Le householdId est un userId qui partage un foyer avec moi
+        allow read: if belongsToHousehold(householdId) || 
+                       (isSignedIn() && sharesHouseholdWithUser(householdId));
         
-      allow create, update: if belongsToHousehold(householdId) || (
-        isSignedIn() && 
-        exists(/databases/$(database)/documents/users/$(householdId)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households.hasAny(
-          get(/databases/$(database)/documents/users/$(householdId)).data.households
-        )
-      );
+        // Création/update autorisée si:
+        // 1. Membre du foyer OU
+        // 2. Le householdId est un userId qui partage un foyer avec moi
+        allow create, update: if belongsToHousehold(householdId) || 
+                                 (isSignedIn() && sharesHouseholdWithUser(householdId));
         
         allow delete: if belongsToHousehold(householdId) &&
                         !resource.data.isDefault;

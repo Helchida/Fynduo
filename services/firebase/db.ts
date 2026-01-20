@@ -362,28 +362,62 @@ export async function addChargeVariable(
     );
     const catSnap = await getDoc(catRef);
 
-    if (catSnap.exists()) {
-      const categoryData = catSnap.data();
-      const targetUserIds = depense.beneficiaires.filter(
-        (uid) => uid !== householdId,
-      );
+    if (!catSnap.exists()) {
+      console.warn(`Catégorie ${depense.categorie} introuvable, propagation annulée`);
+      return docRef.id;
+    }
 
-      if (targetUserIds.length > 0) {
-        const batch = writeBatch(db);
+    const categoryData = catSnap.data();
+    
+    const householdRef = doc(db, "households", householdId);
+    const householdSnap = await getDoc(householdRef);
+    
+    if (!householdSnap.exists()) {
+      console.warn("Foyer introuvable");
+      return docRef.id;
+    }
+    
+    const householdMembers = householdSnap.data().members || [];
 
-        targetUserIds.forEach((uid) => {
-          const soloCatRef = doc(
-            db,
-            "households",
-            uid,
-            "categories",
-            depense.categorie,
-          );
+    const realUserBeneficiaires = depense.beneficiaires.filter(
+      (uid) => householdMembers.includes(uid) && uid !== householdId
+    );
+
+    if (realUserBeneficiaires.length === 0) {
+      console.log("Aucun bénéficiaire à propager");
+      return docRef.id;
+    }
+
+    const batch = writeBatch(db);
+    let propagationCount = 0;
+
+    for (const userId of realUserBeneficiaires) {
+      try {
+        const soloCatRef = doc(
+          db,
+          "households",
+          userId,
+          "categories",
+          depense.categorie,
+        );
+        
+        const existingCat = await getDoc(soloCatRef);
+        
+        if (!existingCat.exists()) {
           batch.set(soloCatRef, categoryData, { merge: true });
-        });
-
-        await batch.commit();
+          propagationCount++;
+          console.log(`Catégorie propagée au foyer solo de ${userId}`);
+        } else {
+          console.log(`Catégorie déjà existante dans le foyer solo de ${userId}`);
+        }
+      } catch (error) {
+        console.warn(`Impossible de propager la catégorie au foyer solo ${userId}:`, error);
       }
+    }
+
+    if (propagationCount > 0) {
+      await batch.commit();
+      console.log(`✅ Catégorie "${categoryData.label}" propagée à ${propagationCount} foyer(s) solo`);
     }
   } catch (error) {
     console.error("Erreur lors de la propagation de la catégorie:", error);
