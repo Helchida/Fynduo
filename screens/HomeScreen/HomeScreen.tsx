@@ -252,9 +252,7 @@ const HomeScreen: React.FC = () => {
 
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
-                onPress={() =>
-                  toast.info("Info", "Fonctionnalité de statistiques à venir !")
-                }
+                onPress={() => navigation.navigate("Stats")}
               >
                 <Text style={styles.actionText}>Statistiques</Text>
               </TouchableOpacity>
@@ -293,9 +291,7 @@ const HomeScreen: React.FC = () => {
 
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
-                onPress={() =>
-                  toast.info("Info", "Fonctionnalité de statistiques à venir !")
-                }
+                onPress={() => navigation.navigate("Stats")}
               >
                 <Text style={styles.actionText}>Statistiques</Text>
               </TouchableOpacity>

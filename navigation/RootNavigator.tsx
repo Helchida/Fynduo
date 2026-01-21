@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../hooks/useAuth";
 import { RootStackParamList } from "@/types";
-import { Text, TouchableOpacity } from "react-native";
+import { TouchableOpacity } from "react-native";
 
 import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import LoyerScreen from "../screens/LoyerScreen/LoyerScreen";
@@ -21,6 +21,7 @@ import { navigationRef } from "./RootNavigation";
 import EmailVerificationScreen from "screens/EmailVerificationScreen/EmailVerificationScreen";
 import UserSettingsScreen from "../screens/UserSettingsScreen/UserSettingsScreen";
 import HouseholdsScreen from "../screens/HouseholdsScreen/HouseholdsScreen";
+import StatsScreen from "screens/StatsScreen/StatsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -110,6 +111,11 @@ const AppStack = () => (
       options={({ route }) => ({
         title: `Détail de ${route.params.moisAnnee}`,
       })}
+    />
+    <Stack.Screen
+      name="Stats"
+      component={StatsScreen}
+      options={{ title: "Statistiques" }}
     />
   </Stack.Navigator>
 );

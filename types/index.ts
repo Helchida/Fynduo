@@ -123,6 +123,15 @@ export interface Toast {
   duration?: number;
 }
 
+export type StatPeriod = "mois" | "annee" | "tout";
+
+export interface StatDataItem {
+  categoryId: string;
+  montant: number;
+  label: string;
+  icon: string;
+}
+
 // NAVIGATION TYPES
 export type RootStackParamList = {
   Home: undefined;
@@ -137,6 +146,7 @@ export type RootStackParamList = {
   UserSettings: undefined;
   Households: undefined;
   History: undefined;
+  Stats: undefined;
   HistoryDetail: { moisAnnee: string };
   ChargeVariableDetail: { chargeId: string; description: string };
 };
