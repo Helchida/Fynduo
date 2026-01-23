@@ -17,6 +17,7 @@ import { PeriodPickerModal } from "../../components/ui/PeriodPickerModal/PeriodP
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { StatPeriod } from "@/types";
+import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 
 dayjs.locale("fr");
 
@@ -26,6 +27,7 @@ const StatsScreen: React.FC = () => {
   const { chargesVariables } = useComptes();
   const { categories } = useCategories();
   const { user } = useAuth();
+  const { householdUsers } = useHouseholdUsers();
 
   const [period, setPeriod] = useState<StatPeriod>("mois");
   const [selectedMonth, setSelectedMonth] = useState<string>(
@@ -36,6 +38,7 @@ const StatsScreen: React.FC = () => {
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [focusedSlice, setFocusedSlice] = useState<number | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const scaleAnim = useState(new Animated.Value(1))[0];
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
@@ -50,6 +53,29 @@ const StatsScreen: React.FC = () => {
     user?.id,
     isSoloMode,
   );
+
+  const filteredCharges = useMemo(() => {
+    return chargesVariables.filter((c) => {
+      if (period === "tout") return true;
+
+      const chargeMoisAnnee =
+        c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
+
+      if (period === "mois") return chargeMoisAnnee === referenceDate;
+      if (period === "annee") return chargeMoisAnnee.startsWith(referenceDate);
+      return true;
+    });
+  }, [chargesVariables, period, referenceDate]);
+
+  const chargesByCategory = useMemo(() => {
+    const grouped: Record<string, typeof chargesVariables> = {};
+    filteredCharges.forEach((charge) => {
+      const catId = charge.categorie || "cat_autre";
+      if (!grouped[catId]) grouped[catId] = [];
+      grouped[catId].push(charge);
+    });
+    return grouped;
+  }, [filteredCharges]);
 
   const colorScale = [
     "#4E79A7",
@@ -109,6 +135,11 @@ const StatsScreen: React.FC = () => {
     if (period !== "tout") {
       setIsModalVisible(true);
     }
+  };
+
+  const getDisplayName = (uid: string) => {
+    const user = householdUsers.find((u) => u.id === uid);
+    return user ? user.displayName : "Inconnu";
   };
 
   return (
@@ -197,28 +228,83 @@ const StatsScreen: React.FC = () => {
             const rounded = Math.round(percentValue * 10) / 10;
             const percent =
               rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+            const isExpanded = expandedCategory === item.categoryId;
+            const categoryCharges = chargesByCategory[item.categoryId] || [];
 
             return (
-              <View key={item.categoryId} style={styles.legendItem}>
-                <View
-                  style={[styles.iconBox, { backgroundColor: `${color}15` }]}
+              <View key={item.categoryId}>
+                <TouchableOpacity
+                  style={styles.legendItem}
+                  onPress={() =>
+                    setExpandedCategory(isExpanded ? null : item.categoryId)
+                  }
                 >
-                  <Text style={{ fontSize: 18 }}>{item.icon}</Text>
-                </View>
-
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.catName}>{item.label}</Text>
-                  <Text style={styles.catPercent}>{percent}% des dépenses</Text>
-                </View>
-
-                <View style={{ alignItems: "flex-end" }}>
-                  <Text style={styles.catValue}>
-                    {item.montant.toFixed(2)}€
-                  </Text>
                   <View
-                    style={[styles.indicator, { backgroundColor: color }]}
-                  />
-                </View>
+                    style={[styles.iconBox, { backgroundColor: `${color}15` }]}
+                  >
+                    <Text style={{ fontSize: 18 }}>{item.icon}</Text>
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.catName}>{item.label}</Text>
+                    <Text style={styles.catPercent}>
+                      {percent}% des dépenses
+                    </Text>
+                  </View>
+
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text style={styles.catValue}>
+                      {item.montant.toFixed(2)}€
+                    </Text>
+                    <View
+                      style={[styles.indicator, { backgroundColor: color }]}
+                    />
+                  </View>
+                </TouchableOpacity>
+
+                {isExpanded && categoryCharges.length > 0 && (
+                  <View style={styles.chargesList}>
+                    {categoryCharges.map((charge, idx) => {
+                      const payeurName = getDisplayName(charge.payeur);
+                      const montantAffiche =
+                        isSoloMode &&
+                        charge.beneficiaires &&
+                        charge.beneficiaires.length > 0
+                          ? (
+                              Number(charge.montantTotal) /
+                              charge.beneficiaires.length
+                            ).toFixed(2)
+                          : Number(charge.montantTotal).toFixed(2);
+
+                      return (
+                        <View
+                          key={`${charge.id}-${idx}`}
+                          style={styles.chargeItem}
+                        >
+                          <View style={styles.chargeInfo}>
+                            <Text style={styles.chargeLabel}>
+                              {charge.description}
+                            </Text>
+                            {!isSoloMode && (
+                              <Text style={styles.chargePayeur}>
+                                Payé par {payeurName}
+                              </Text>
+                            )}
+                          </View>
+
+                          <View style={styles.chargeMontantContainer}>
+                            <Text style={styles.chargeMontant}>
+                              {montantAffiche}€
+                            </Text>
+                            <Text style={styles.chargeDate}>
+                              {dayjs(charge.dateStatistiques).format("DD/MM")}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
               </View>
             );
           })}
