@@ -178,4 +178,22 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: "#007AFF",
   },
+  focusedCategory: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    marginTop: 4,
+  },
+  focusedPercentage: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#9b59b6",
+    marginTop: 4,
+  },
+  focusedAmount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6C757D",
+    marginTop: 2,
+  },
 });

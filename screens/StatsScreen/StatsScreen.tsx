@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from "react-native";
 import { styles } from "./StatsScreen.style";
 import { useComptes } from "../../hooks/useComptes";
@@ -34,6 +35,8 @@ const StatsScreen: React.FC = () => {
     dayjs().format("YYYY"),
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [focusedSlice, setFocusedSlice] = useState<number | null>(null);
+  const scaleAnim = useState(new Animated.Value(1))[0];
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
 
@@ -63,6 +66,9 @@ const StatsScreen: React.FC = () => {
           value: item.montant,
           color: colorScale[index % colorScale.length],
           label: item.label,
+          focused: focusedSlice === index,
+          onPress: () => handleSlicePress(index),
+          onLongPress: () => handleSlicePress(index),
         }))
       : [{ value: 1, color: "#F1F3F5" }];
 
@@ -79,6 +85,24 @@ const StatsScreen: React.FC = () => {
   const handleSelectYear = (year: string) => {
     setSelectedYear(year);
     setIsModalVisible(false);
+  };
+
+  const handleSlicePress = (index: number) => {
+    if (focusedSlice === index) {
+      setFocusedSlice(null);
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      setFocusedSlice(index);
+      Animated.sequence([
+        Animated.spring(scaleAnim, {
+          toValue: 1.15,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   };
 
   const handleOpenPeriodPicker = () => {
@@ -124,27 +148,55 @@ const StatsScreen: React.FC = () => {
 
       <View style={styles.chartCard}>
         <View style={styles.chartWrapper}>
-          <PieChart
-            donut
-            radius={width * 0.35}
-            innerRadius={width * 0.22}
-            data={pieData}
-            centerLabelComponent={() => (
-              <View style={{ alignItems: "center", justifyContent: "center" }}>
-                <Text style={styles.totalAmount}>{total.toFixed(2)}€</Text>
-                <Text style={styles.totalLabel}>
-                  {isSoloMode ? "Ma Part" : "Total Foyer"}
-                </Text>
-              </View>
-            )}
-          />
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <PieChart
+              donut
+              radius={width * 0.35}
+              innerRadius={width * 0.22}
+              data={pieData}
+              focusOnPress
+              centerLabelComponent={() => {
+                if (focusedSlice !== null && statsParCategorie[focusedSlice]) {
+                  const item = statsParCategorie[focusedSlice];
+                  const percent =
+                    total > 0 ? ((item.montant / total) * 100).toFixed(1) : 0;
+                  return (
+                    <View
+                      style={{ alignItems: "center", justifyContent: "center" }}
+                    >
+                      <Text style={{ fontSize: 24, marginBottom: 4 }}>
+                        {item.icon}
+                      </Text>
+                      <Text style={styles.focusedCategory}>{item.label}</Text>
+                      <Text style={styles.focusedPercentage}>{percent}%</Text>
+                      <Text style={styles.focusedAmount}>
+                        {item.montant.toFixed(2)}€
+                      </Text>
+                    </View>
+                  );
+                }
+                return (
+                  <View
+                    style={{ alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Text style={styles.totalAmount}>{total.toFixed(2)}€</Text>
+                    <Text style={styles.totalLabel}>
+                      {isSoloMode ? "Ma Part" : "Total Foyer"}
+                    </Text>
+                  </View>
+                );
+              }}
+            />
+          </Animated.View>
         </View>
 
         <View style={styles.legendWrapper}>
           {statsParCategorie.map((item, index) => {
             const color = colorScale[index % colorScale.length];
+            const percentValue = total > 0 ? (item.montant / total) * 100 : 0;
+            const rounded = Math.round(percentValue * 10) / 10;
             const percent =
-              total > 0 ? ((item.montant / total) * 100).toFixed(0) : 0;
+              rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
 
             return (
               <View key={item.categoryId} style={styles.legendItem}>
