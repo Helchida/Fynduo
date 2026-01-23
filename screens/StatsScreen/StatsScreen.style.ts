@@ -187,7 +187,7 @@ export const styles = StyleSheet.create({
   focusedPercentage: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#007AFF",
+    color: "#9b59b6",
     marginTop: 4,
   },
   focusedAmount: {
