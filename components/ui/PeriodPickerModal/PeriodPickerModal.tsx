@@ -8,8 +8,11 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import dayjs from "dayjs";
+import "dayjs/locale/fr";
 import { styles } from "./PeriodPickerModal.style";
 import { PeriodPickerModalProps } from "./PeriodPickerModal.type";
+
+dayjs.locale("fr");
 
 export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
   isVisible,
@@ -19,10 +22,12 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
   onSelectMonth,
   onSelectYear,
   chargesVariables,
+  mode = "both",
 }) => {
   const [activeTab, setActiveTab] = useState<"month" | "year">(
-    selectedYear ? "year" : "month"
+    mode === "year" ? "year" : "month",
   );
+
   const options = useMemo(() => {
     const months = new Set<string>();
     const years = new Set<string>();
@@ -39,6 +44,11 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
     };
   }, [chargesVariables]);
 
+  const formatMonth = (monthStr: string) => {
+    const formatted = dayjs(monthStr).format("MMMM YYYY");
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <TouchableWithoutFeedback onPress={onClose}>
@@ -46,46 +56,57 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
           <TouchableWithoutFeedback>
             <View style={styles.container}>
               <View style={styles.header}>
-                <Text style={styles.title}>Sélectionner la période</Text>
+                <Text style={styles.title}>
+                  {mode === "both"
+                    ? "Sélectionner la période"
+                    : mode === "month"
+                      ? "Sélectionner le mois"
+                      : "Sélectionner l'année"}
+                </Text>
                 <TouchableOpacity onPress={onClose}>
                   <Text style={styles.closeButton}>Fermer</Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.tabBar}>
-                <TouchableOpacity
-                  style={[
-                    styles.tab,
-                    activeTab === "month" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("month")}
-                >
-                  <Text
+              {mode === "both" && (
+                <View style={styles.tabBar}>
+                  <TouchableOpacity
                     style={[
-                      styles.tabText,
-                      activeTab === "month" && styles.activeTabText,
+                      styles.tab,
+                      activeTab === "month" && styles.activeTab,
                     ]}
+                    onPress={() => setActiveTab("month")}
                   >
-                    Mois
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.tab, activeTab === "year" && styles.activeTab]}
-                  onPress={() => setActiveTab("year")}
-                >
-                  <Text
+                    <Text
+                      style={[
+                        styles.tabText,
+                        activeTab === "month" && styles.activeTabText,
+                      ]}
+                    >
+                      Mois
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={[
-                      styles.tabText,
-                      activeTab === "year" && styles.activeTabText,
+                      styles.tab,
+                      activeTab === "year" && styles.activeTab,
                     ]}
+                    onPress={() => setActiveTab("year")}
                   >
-                    Année
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        activeTab === "year" && styles.activeTabText,
+                      ]}
+                    >
+                      Année
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
               <ScrollView contentContainerStyle={styles.scrollContent}>
-                {activeTab === "month"
+                {(mode === "both" ? activeTab === "month" : mode === "month")
                   ? options.months.map((m) => (
                       <TouchableOpacity
                         key={m}
@@ -101,7 +122,7 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
                             selectedMonth === m && styles.selectedItemText,
                           ]}
                         >
-                          {dayjs(m).format("MMMM YYYY")}
+                          {formatMonth(m)}
                         </Text>
                       </TouchableOpacity>
                     ))

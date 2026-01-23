@@ -8,4 +8,5 @@ export interface PeriodPickerModalProps {
   onSelectMonth: (month: string) => void;
   onSelectYear: (year: string) => void;
   chargesVariables: IChargeVariable[];
+  mode?: "both" | "month" | "year";
 }

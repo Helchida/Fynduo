@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Platform,
 } from "react-native";
 import { styles } from "./StatsScreen.style";
 import { useComptes } from "../../hooks/useComptes";
@@ -13,8 +12,12 @@ import { useCategories } from "../../hooks/useCategories";
 import { useStats } from "../../hooks/useStats";
 import { useAuth } from "../../hooks/useAuth";
 import { PieChart } from "react-native-gifted-charts";
+import { PeriodPickerModal } from "../../components/ui/PeriodPickerModal/PeriodPickerModal";
 import dayjs from "dayjs";
+import "dayjs/locale/fr";
 import { StatPeriod } from "@/types";
+
+dayjs.locale("fr");
 
 const { width } = Dimensions.get("window");
 
@@ -27,14 +30,20 @@ const StatsScreen: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(
     dayjs().format("YYYY-MM"),
   );
+  const [selectedYear, setSelectedYear] = useState<string>(
+    dayjs().format("YYYY"),
+  );
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
+
+  const referenceDate = period === "annee" ? selectedYear : selectedMonth;
 
   const { statsParCategorie, total } = useStats(
     chargesVariables,
     categories,
     period,
-    selectedMonth,
+    referenceDate,
     user?.id,
     isSoloMode,
   );
@@ -57,6 +66,27 @@ const StatsScreen: React.FC = () => {
         }))
       : [{ value: 1, color: "#F1F3F5" }];
 
+  const formatMonth = (monthStr: string) => {
+    const formatted = dayjs(monthStr).format("MMMM YYYY");
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
+  const handleSelectMonth = (month: string) => {
+    setSelectedMonth(month);
+    setIsModalVisible(false);
+  };
+
+  const handleSelectYear = (year: string) => {
+    setSelectedYear(year);
+    setIsModalVisible(false);
+  };
+
+  const handleOpenPeriodPicker = () => {
+    if (period !== "tout") {
+      setIsModalVisible(true);
+    }
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -74,15 +104,23 @@ const StatsScreen: React.FC = () => {
             <Text
               style={[styles.tabText, period === p && styles.activeTabText]}
             >
-              {p === "mois"
-                ? "Ce mois"
-                : p === "annee"
-                  ? "Cette année"
-                  : "Total"}
+              {p === "mois" ? "Mois" : p === "annee" ? "Année" : "Total"}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      {period !== "tout" && (
+        <TouchableOpacity
+          style={styles.periodButton}
+          onPress={handleOpenPeriodPicker}
+        >
+          <Text style={styles.periodButtonText}>
+            {period === "mois" ? formatMonth(selectedMonth) : selectedYear}
+          </Text>
+          <Text style={styles.periodButtonIcon}>▼</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.chartCard}>
         <View style={styles.chartWrapper}>
@@ -140,6 +178,17 @@ const StatsScreen: React.FC = () => {
           )}
         </View>
       </View>
+
+      <PeriodPickerModal
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        selectedMonth={period === "mois" ? selectedMonth : null}
+        selectedYear={period === "annee" ? selectedYear : null}
+        onSelectMonth={handleSelectMonth}
+        onSelectYear={handleSelectYear}
+        chargesVariables={chargesVariables}
+        mode={period === "mois" ? "month" : "year"}
+      />
     </ScrollView>
   );
 };

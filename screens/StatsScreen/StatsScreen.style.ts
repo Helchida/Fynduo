@@ -78,4 +78,104 @@ export const styles = StyleSheet.create({
     marginVertical: 20,
     fontSize: 15,
   },
+  monthSelector: {
+    marginBottom: 20,
+  },
+  monthScrollContent: {
+    paddingHorizontal: 4,
+  },
+  monthButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginHorizontal: 4,
+    borderRadius: 12,
+    backgroundColor: "#E9ECEF",
+  },
+  monthButtonActive: {
+    backgroundColor: "#007AFF",
+    elevation: 2,
+    ...Platform.select({
+      web: { boxShadow: "0px 2px 6px rgba(0, 122, 255, 0.3)" },
+      default: {
+        shadowColor: "#007AFF",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  monthButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6C757D",
+  },
+  monthButtonTextActive: {
+    color: "#FFFFFF",
+  },
+  yearSelector: {
+    marginBottom: 20,
+  },
+  yearButtonsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  yearButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#E9ECEF",
+    minWidth: 80,
+    alignItems: "center",
+  },
+  yearButtonActive: {
+    backgroundColor: "#007AFF",
+    elevation: 2,
+    ...Platform.select({
+      web: { boxShadow: "0px 2px 6px rgba(0, 122, 255, 0.3)" },
+      default: {
+        shadowColor: "#007AFF",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  yearButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#6C757D",
+  },
+  yearButtonTextActive: {
+    color: "#FFFFFF",
+  },
+  periodButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginBottom: 20,
+    elevation: 2,
+    ...Platform.select({
+      web: { boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.08)" },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  periodButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  periodButtonIcon: {
+    fontSize: 12,
+    color: "#007AFF",
+  },
 });

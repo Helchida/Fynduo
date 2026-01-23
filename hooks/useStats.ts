@@ -18,8 +18,9 @@ export const useStats = (
         c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
 
       if (period === "mois") return chargeMoisAnnee === referenceDate;
-      if (period === "annee")
-        return chargeMoisAnnee.startsWith(referenceDate.split("-")[0]);
+      if (period === "annee") {
+        return chargeMoisAnnee.startsWith(referenceDate);
+      }
       return true;
     });
 
