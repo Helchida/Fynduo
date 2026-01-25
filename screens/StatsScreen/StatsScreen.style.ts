@@ -1,13 +1,13 @@
 import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FB", padding: 16 },
+  container: { flex: 1, backgroundColor: "#f4f7f9", padding: 20 },
   header: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#1A1A1A",
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#2c3e50",
     marginBottom: 20,
-    marginTop: 10,
+    textAlign: "left",
   },
   tabContainer: {
     flexDirection: "row",
