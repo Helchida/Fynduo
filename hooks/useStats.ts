@@ -63,7 +63,7 @@ export const useStats = (
           icon: catInfo?.icon || "📦",
         };
       })
-      .filter((item) => item.montant > 0)
+      .filter((item) => item.montant > 0 && item.categoryId !== "cat_remboursement")
       .sort((a, b) => b.montant - a.montant);
   }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
 
