@@ -63,7 +63,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#2c3e50",
-    marginBottom: 20,
+    marginBottom: 30,
     textAlign: "center",
   },
   historyCard: {
@@ -300,5 +300,17 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#3498db",
+  },
+  navArrowDisabled: {
+    opacity: 0.3,
+  },
+  navArrowTextDisabled: {
+    color: "#bdc3c7",
+  },
+  historyYearLabel: {
+    fontSize: 10,
+    color: "#95a5a6",
+    marginTop: 2,
+    fontWeight: "500",
   },
 });

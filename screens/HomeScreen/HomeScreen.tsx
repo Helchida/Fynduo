@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -25,29 +25,31 @@ import {
 import { useToast } from "hooks/useToast";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "services/firebase/config";
+import dayjs from "dayjs";
+import "dayjs/locale/fr";
 
-const MOCK_HISTORY = [
-  { month: "Sept", total: 1250.0 },
-  { month: "Oct", total: 1180.5 },
-  { month: "Nov", total: 1320.8 },
-];
+dayjs.locale("fr");
 
 const HistogramPlaceholder = ({
   month,
+  year,
   total,
+  maxTotal,
 }: {
   month: string;
+  year: string;
   total: number;
+  maxTotal: number;
 }) => {
-  const MAX_TOTAL = 1500;
   const MAX_BAR_HEIGHT = 120;
-  const barHeight = (total / MAX_TOTAL) * MAX_BAR_HEIGHT;
+  const barHeight = maxTotal > 0 ? (total / maxTotal) * MAX_BAR_HEIGHT : 0;
 
   return (
     <View style={styles.historyColumn}>
-      <Text style={styles.historyTotalLabel}>{total.toFixed(0)}€</Text>
-      <View style={[styles.bar, { height: barHeight }]} />
+      <Text style={styles.historyTotalLabel}>{total.toFixed(2)}€</Text>
+      <View style={[styles.bar, { height: Math.max(barHeight, 5) }]} />
       <Text style={styles.historyMonthLabel}>{month}</Text>
+      <Text style={styles.historyYearLabel}>{year}</Text>
     </View>
   );
 };
@@ -61,6 +63,7 @@ const HomeScreen: React.FC = () => {
   >({});
   const [menuVisible, setMenuVisible] = useState(false);
   const [householdMenuVisible, setHouseholdMenuVisible] = useState(false);
+  const [monthOffset, setMonthOffset] = useState(0);
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -102,7 +105,86 @@ const HomeScreen: React.FC = () => {
     return () => unsubscribes.forEach((unsub) => unsub());
   }, [user?.households]);
 
-  const { isLoadingComptes, currentMonthData } = useComptes();
+  const { isLoadingComptes, currentMonthData, chargesVariables } = useComptes();
+  const { monthsData, canGoNext, canGoPrevious, availableMonths } =
+    useMemo(() => {
+      if (!chargesVariables)
+        return {
+          monthsData: [],
+          canGoNext: false,
+          canGoPrevious: false,
+          availableMonths: [],
+        };
+
+      const isSoloMode = user.activeHouseholdId === user.id;
+
+      const allMonthsSet = new Set<string>();
+      chargesVariables.forEach((c) => {
+        if (c.categorie === "cat_remboursement") return;
+        const chargeMoisAnnee =
+          c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
+        allMonthsSet.add(chargeMoisAnnee);
+      });
+
+      const sortedMonths = Array.from(allMonthsSet).sort((a, b) =>
+        b.localeCompare(a),
+      );
+
+      const startIndex = Math.abs(monthOffset);
+      const endIndex = startIndex + 3;
+      const displayMonths = sortedMonths.slice(startIndex, endIndex);
+
+      const monthsData = displayMonths.reverse().map((monthKey) => {
+        const monthCharges = chargesVariables.filter((c) => {
+          if (c.categorie === "cat_remboursement") return false;
+          const chargeMoisAnnee =
+            c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
+          return chargeMoisAnnee === monthKey;
+        });
+
+        let total = 0;
+        monthCharges.forEach((charge) => {
+          const montantTotal = Number(charge.montantTotal) || 0;
+
+          if (
+            isSoloMode &&
+            charge.beneficiaires &&
+            charge.beneficiaires.length > 0
+          ) {
+            const estBeneficiaire = charge.beneficiaires.includes(user.id);
+            if (estBeneficiaire) {
+              total += montantTotal / charge.beneficiaires.length;
+            }
+          } else {
+            total += montantTotal;
+          }
+        });
+
+        const monthDate = dayjs(monthKey);
+        return {
+          month:
+            monthDate.format("MMM").charAt(0).toUpperCase() +
+            monthDate.format("MMM").slice(1),
+          year: monthDate.format("YYYY"),
+          total,
+          fullDate: monthKey,
+        };
+      });
+
+      const canGoPrevious = endIndex < sortedMonths.length;
+      const canGoNext = monthOffset < 0;
+
+      return {
+        monthsData,
+        canGoNext,
+        canGoPrevious,
+        availableMonths: sortedMonths,
+      };
+    }, [chargesVariables, user?.activeHouseholdId, user?.id, monthOffset]);
+
+  const maxTotal = useMemo(() => {
+    return Math.max(...monthsData.map((d) => d.total), 1);
+  }, [monthsData]);
 
   if (isLoadingComptes || isLoading) {
     return <Text style={styles.loading}>Chargement...</Text>;
@@ -215,27 +297,48 @@ const HomeScreen: React.FC = () => {
 
             <View style={styles.historyNavigator}>
               <TouchableOpacity
-                style={styles.navArrow}
-                onPress={() =>
-                  toast.info("Info", "Navigation des mois à venir !")
-                }
+                style={[
+                  styles.navArrow,
+                  !canGoPrevious && styles.navArrowDisabled,
+                ]}
+                onPress={() => canGoPrevious && setMonthOffset(monthOffset - 3)}
+                disabled={!canGoPrevious}
               >
-                <Text style={styles.navArrowText}>{"<"}</Text>
+                <Text
+                  style={[
+                    styles.navArrowText,
+                    !canGoPrevious && styles.navArrowTextDisabled,
+                  ]}
+                >
+                  {"<"}
+                </Text>
               </TouchableOpacity>
 
               <View style={styles.chartArea}>
-                {MOCK_HISTORY.map((data, index) => (
-                  <HistogramPlaceholder key={index} {...data} />
+                {monthsData.map((data, index) => (
+                  <HistogramPlaceholder
+                    key={`${data.fullDate}-${index}`}
+                    month={data.month}
+                    year={data.year}
+                    total={data.total}
+                    maxTotal={maxTotal}
+                  />
                 ))}
               </View>
 
               <TouchableOpacity
-                style={styles.navArrow}
-                onPress={() =>
-                  toast.info("Info", "Navigation des mois à venir !")
-                }
+                style={[styles.navArrow, !canGoNext && styles.navArrowDisabled]}
+                onPress={() => canGoNext && setMonthOffset(monthOffset + 3)}
+                disabled={!canGoNext}
               >
-                <Text style={styles.navArrowText}>{">"}</Text>
+                <Text
+                  style={[
+                    styles.navArrowText,
+                    !canGoNext && styles.navArrowTextDisabled,
+                  ]}
+                >
+                  {">"}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
