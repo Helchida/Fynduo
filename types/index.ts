@@ -74,6 +74,13 @@ export interface IDette {
   montant: number;
 }
 
+export interface ILoyerConfig extends FirestoreDocument {
+  loyerTotal: number;
+  apportsAPL: Record<string, number>;
+  loyerPayeurUid: string;
+  dateModification: string;
+}
+
 export interface ICompteMensuel extends FirestoreDocument {
   moisAnnee: string;
   loyerTotal: number;

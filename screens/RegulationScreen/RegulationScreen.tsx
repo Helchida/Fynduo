@@ -12,6 +12,7 @@ import {
   IDette,
   IReglementData,
   ChargeFixeForm,
+  ILoyerConfig,
 } from "../../types";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -26,6 +27,7 @@ import { useToast } from "hooks/useToast";
 import ChargesVariablesSection from "./ChargesVariablesSection/ChargesVariablesSection";
 import { useMultiUserBalance } from "hooks/useMultiUserBalance";
 import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
+import * as DB from "../../services/firebase/db";
 
 const RegulationScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
@@ -56,6 +58,8 @@ const RegulationScreen: React.FC = () => {
     return calculSimplifiedTransfers(balances);
   }, [balances]);
 
+  const [loyerConfig, setLoyerConfig] = useState<ILoyerConfig | null>(null);
+  const [isLoadingLoyerConfig, setIsLoadingLoyerConfig] = useState(true);
   const [loyerTotal, setLoyerTotal] = useState("");
   const [apportsAPLForm, setApportsAPLForm] = useState<Record<string, string>>(
     {}
@@ -84,8 +88,37 @@ const RegulationScreen: React.FC = () => {
   }, [currentMonthData, navigation]);
 
   useEffect(() => {
+    const loadLoyerConfig = async () => {
+      if (activeHouseholdId) {
+        try {
+          let config = await DB.getLoyerConfig(activeHouseholdId);
+
+          if (!config && householdUsers.length > 0) {
+            await DB.initLoyerConfig(
+              activeHouseholdId,
+              householdUsers.map((u) => u.id)
+            );
+            config = await DB.getLoyerConfig(activeHouseholdId);
+          }
+
+          setLoyerConfig(config);
+        } catch (error) {
+          console.error("Erreur chargement config loyer:", error);
+          toast.error("Erreur", "Impossible de charger la configuration du loyer.");
+        } finally {
+          setIsLoadingLoyerConfig(false);
+        }
+      }
+    };
+
+    if (householdUsers.length > 0) {
+      loadLoyerConfig();
+    }
+  }, [activeHouseholdId, householdUsers]);
+
+  useEffect(() => {
     if (
-      !currentMonthData ||
+      !loyerConfig ||
       chargesFixes.length === 0 ||
       householdUsers.length === 0
     )
@@ -95,8 +128,6 @@ const RegulationScreen: React.FC = () => {
     if (isInitialized) return;
 
     const initialChargesMap: Record<string, ChargeFixeForm[]> = {};
-    const initialApl: Record<string, string> = {};
-
     householdUsers.forEach((u) => {
       const userCharges = chargesFixes
         .filter((c) => c.payeur === u.id)
@@ -107,16 +138,18 @@ const RegulationScreen: React.FC = () => {
         }));
 
       initialChargesMap[u.id] = userCharges;
+    });
+    setChargesFormMap(initialChargesMap);
+    setLoyerTotal(loyerConfig.loyerTotal.toString());
 
-      const aplAmount = currentMonthData.apportsAPL[u.id] || 0;
+    const initialApl: Record<string, string> = {};
+    householdUsers.forEach((u) => {
+      const aplAmount = loyerConfig.apportsAPL[u.id] || 0;
       initialApl[u.id] = aplAmount.toString();
     });
-
-    setChargesFormMap(initialChargesMap);
     setApportsAPLForm(initialApl);
 
-    setLoyerTotal(currentMonthData.loyerTotal.toString());
-  }, [currentMonthData, chargesFixes, householdUsers]);
+  }, [loyerConfig, chargesFixes, householdUsers]);
 
   const handleAddCharge = useCallback(
     (targetUid: string) => {
@@ -190,7 +223,7 @@ const RegulationScreen: React.FC = () => {
     }));
   };
 
-  if (isLoadingComptes || !currentMonthData || householdUsers.length < 2) {
+  if (isLoadingComptes || isLoadingLoyerConfig || !currentMonthData || !loyerConfig || householdUsers.length < 2) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
@@ -307,7 +340,7 @@ const RegulationScreen: React.FC = () => {
         loyerTotal: parseFloat(loyerTotal) || 0,
         apportsAPL: apportsAPL,
         dettes: dettesToSubmit,
-        loyerPayeurUid: currentMonthData.loyerPayeurUid || user.id || uid1,
+        loyerPayeurUid: loyerConfig.loyerPayeurUid || user.id || uid1,
         chargesFixesSnapshot: chargesFixesSnapshot,
       };
 

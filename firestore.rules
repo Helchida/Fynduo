@@ -92,7 +92,8 @@ service cloud.firestore {
                         request.resource.data.loyerTotal >= 0;
         
         allow update: if belongsToHousehold(householdId) &&
-                        request.resource.data.moisAnnee == resource.data.moisAnnee;
+                        request.resource.data.moisAnnee == resource.data.moisAnnee &&
+                        resource.data.statut != "finalisé";
         
         allow delete: if belongsToHousehold(householdId) &&
                         resource.data.statut != "finalisé";
@@ -128,6 +129,20 @@ service cloud.firestore {
         allow update: if belongsToHousehold(householdId);
         
         allow delete: if belongsToHousehold(householdId);
+      }
+
+      // SOUS-COLLECTION: loyer_config
+      match /loyer_config/{docId} {
+        allow read: if belongsToHousehold(householdId);
+        
+        allow create, update: if belongsToHousehold(householdId) &&
+                                docId == "current" &&
+                                request.resource.data.loyerTotal is number &&
+                                request.resource.data.loyerTotal >= 0 &&
+                                request.resource.data.apportsAPL is map &&
+                                request.resource.data.loyerPayeurUid is string;
+        
+        allow delete: if false;
       }
       
       // SOUS-COLLECTION: categories

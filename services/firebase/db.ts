@@ -27,6 +27,7 @@ import {
   IDette,
   IUser,
   ICategorie,
+  ILoyerConfig,
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 
@@ -35,6 +36,7 @@ const SUB_COLLECTIONS = {
   CHARGES_FIXES: "charges_fixes",
   CHARGES_VARIABLES: "charges_variables",
   CATEGORIES: "categories",
+  LOYER_CONFIG: "loyer_config",
 };
 
 // Fonction pour obtenir la référence de la sous-collection d'un foyer
@@ -144,6 +146,68 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
     throw error;
   }
 }
+
+
+/**
+ * Récupère la configuration active du loyer
+ */
+export async function getLoyerConfig(
+  householdId: string,
+): Promise<ILoyerConfig | null> {
+  const docRef = doc(
+    getCollectionRef(householdId, SUB_COLLECTIONS.LOYER_CONFIG),
+    "current",
+  );
+  const snap = await getDoc(docRef);
+
+  return snap.exists()
+    ? mapDocToType<ILoyerConfig>(snap as QueryDocumentSnapshot<DocumentData>)
+    : null;
+}
+
+/**
+ * Met à jour la configuration du loyer (toujours modifiable)
+ */
+export async function updateLoyerConfig(
+  householdId: string,
+  loyerTotal: number,
+  apportsAPL: Record<string, number>,
+  loyerPayeurUid: string,
+): Promise<void> {
+  const docRef = doc(
+    getCollectionRef(householdId, SUB_COLLECTIONS.LOYER_CONFIG),
+    "current",
+  );
+
+  await setDoc(docRef, {
+    id: "current",
+    loyerTotal,
+    apportsAPL,
+    loyerPayeurUid,
+    dateModification: new Date().toISOString(),
+  });
+}
+
+/**
+ * Initialise la config loyer pour un nouveau foyer
+ */
+export async function initLoyerConfig(
+  householdId: string,
+  members: string[],
+): Promise<void> {
+  const apportsAPL: Record<string, number> = {};
+  members.forEach((uid) => {
+    apportsAPL[uid] = 0;
+  });
+
+  await updateLoyerConfig(
+    householdId,
+    0,
+    apportsAPL,
+    members[0] || "",
+  );
+}
+
 
 /**
  * Créer les données du compte mensuel.

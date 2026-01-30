@@ -9,10 +9,9 @@ import {
   Modal,
   FlatList,
 } from "react-native";
-import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./LoyerScreen.style";
-import { IUser } from "../../types";
+import { IUser, ILoyerConfig } from "../../types";
 import * as DB from "../../services/firebase/db";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
@@ -21,7 +20,6 @@ import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHouseho
 type ApportsAPLState = { [uid: string]: string };
 
 const LoyerScreen: React.FC = () => {
-  const { currentMonthData, updateLoyer, isLoadingComptes } = useComptes();
   const { user } = useAuth();
   const toast = useToast();
 
@@ -33,8 +31,10 @@ const LoyerScreen: React.FC = () => {
   const [apportsAPL, setApportsAPL] = useState<ApportsAPLState>({});
   const [loyerPayeurUid, setLoyerPayeurUid] = useState<string | null>(null);
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
+  const [loyerConfig, setLoyerConfig] = useState<ILoyerConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
 
   useEffect(() => {
@@ -60,20 +60,47 @@ const LoyerScreen: React.FC = () => {
   }, [user.activeHouseholdId]);
 
   useEffect(() => {
-    if (currentMonthData && householdUsers.length > 0) {
-      setLoyerTotal(currentMonthData.loyerTotal.toFixed(2));
-      setLoyerPayeurUid(currentMonthData.loyerPayeurUid || user.id || null);
+    const loadLoyerConfig = async () => {
+      if (user.activeHouseholdId && householdUsers.length > 0) {
+        try {
+          let config = await DB.getLoyerConfig(user.activeHouseholdId);
+
+          if (!config) {
+            await DB.initLoyerConfig(
+              user.activeHouseholdId,
+              householdUsers.map((u) => u.id)
+            );
+            config = await DB.getLoyerConfig(user.activeHouseholdId);
+          }
+
+          setLoyerConfig(config);
+        } catch (error) {
+          console.error("Erreur chargement config loyer:", error);
+          toast.error("Erreur", "Impossible de charger la configuration du loyer.");
+        } finally {
+          setIsLoadingConfig(false);
+        }
+      }
+    };
+
+    if (!isLoadingUsers && householdUsers.length > 0) {
+      loadLoyerConfig();
+    }
+  }, [user.activeHouseholdId, householdUsers, isLoadingUsers]);
+
+  useEffect(() => {
+    if (loyerConfig && householdUsers.length > 0) {
+      setLoyerTotal(loyerConfig.loyerTotal.toFixed(2));
+      setLoyerPayeurUid(loyerConfig.loyerPayeurUid || user.id || null);
 
       const initialApports: ApportsAPLState = {};
       householdUsers.forEach((u) => {
-        const aplAmount = currentMonthData.apportsAPL?.[u.id] ?? 0;
+        const aplAmount = loyerConfig.apportsAPL?.[u.id] ?? 0;
         initialApports[u.id] = aplAmount.toFixed(2);
       });
       setApportsAPL(initialApports);
-    } else if (!isLoadingUsers && householdUsers.length > 0 && user) {
-      setLoyerPayeurUid(user.id);
     }
-  }, [currentMonthData, householdUsers, user]);
+  }, [loyerConfig, householdUsers, user]);
 
   const selectPayeur = (uid: string) => {
     setLoyerPayeurUid(uid);
@@ -123,34 +150,38 @@ const LoyerScreen: React.FC = () => {
       finalApports[uid] = parseFloat(aplValue.toFixed(2));
     }
 
-    if (!currentMonthData) {
+    if (!user.activeHouseholdId) {
       toast.error(
         "Erreur",
-        "Données du mois non chargées. Impossible d'enregistrer."
+        "Foyer non identifié. Impossible d'enregistrer."
       );
       return;
     }
 
     setIsSaving(true);
     try {
-      await updateLoyer(
+      await DB.updateLoyerConfig(
+        user.activeHouseholdId,
         parseFloat(total.toFixed(2)),
         finalApports,
         loyerPayeurUid
       );
-      toast.success("Succès", "Loyer et APL mis à jour avec succès.");
+      toast.success("Succès", "Configuration du loyer mise à jour avec succès.");
+      
+      const updatedConfig = await DB.getLoyerConfig(user.activeHouseholdId);
+      setLoyerConfig(updatedConfig);
     } catch (error) {
-      console.error("Erreur Loyer:", error);
+      console.error("Erreur Config Loyer:", error);
       toast.error(
         "Erreur",
-        "Échec de l'enregistrement dans la base de données."
+        "Échec de l'enregistrement de la configuration."
       );
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isLoadingComptes) {
+  if (isLoadingConfig || isLoadingUsers) {
     return <Text style={styles.loading}>Chargement des données loyer...</Text>;
   }
 
@@ -162,7 +193,7 @@ const LoyerScreen: React.FC = () => {
   const loyerTotalFloat = parseFloat(loyerTotal.replace(",", ".") || "0");
   const loyerNet = loyerTotalFloat - totalApl;
 
-  const isDisabled = isLoadingComptes || isLoadingUsers || isSaving;
+  const isDisabled = isLoadingConfig || isLoadingUsers || isSaving;
 
   return (
     <ScrollView
@@ -170,6 +201,15 @@ const LoyerScreen: React.FC = () => {
       contentContainerStyle={styles.scrollContent}
     >
       <Text style={styles.header}>Gestion du loyer</Text>
+
+      <View style={{ backgroundColor: '#e3f2fd', padding: 15, marginBottom: 15, borderRadius: 8, borderWidth: 1, borderColor: '#2196f3' }}>
+        <Text style={{ color: '#1565c0', fontSize: 14, fontWeight: '600' }}>
+          ℹ️ Configuration active
+        </Text>
+        <Text style={{ color: '#1565c0', fontSize: 12, marginTop: 5 }}>
+          Ces données seront utilisées lors de la prochaine clôture mensuelle.
+        </Text>
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>💰 Loyer & Paiement</Text>
