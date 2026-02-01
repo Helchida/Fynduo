@@ -26,6 +26,7 @@ export interface IChargeFixe extends FirestoreDocument {
   nom: string;
   montantMensuel: number;
   payeur: string;
+  jourPrelevementMensuel: number;
   dateMiseAJour?: string;
   dateCreation?: string;
   moisAnnee?: string;

@@ -13,6 +13,8 @@ import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
+import { CalendarDays, User } from "lucide-react-native";
+import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -20,11 +22,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   onDelete,
   householdUsers,
   onUpdatePayeur,
+  onUpdateDay,
 }) => {
   const [amount, setAmount] = useState(charge.montantMensuel.toString());
   const [isSaving, setIsSaving] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isDayModalVisible, setIsDayModalVisible] = useState(false);
 
   const toast = useToast();
 
@@ -64,7 +68,23 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         setIsPayeurModalVisible(false);
       }
     },
-    [charge.payeur, charge.id, onUpdatePayeur]
+    [charge.payeur, charge.id, onUpdatePayeur],
+  );
+
+  const handleUpdateDay = useCallback(
+    async (newDay: number) => {
+      if (newDay !== charge.jourPrelevementMensuel) {
+        setIsSaving(true);
+        try {
+          await onUpdateDay(charge.id, newDay);
+        } catch (error) {
+          toast.error("Erreur", "Impossible de modifier le jour");
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    },
+    [charge.id, charge.jourPrelevementMensuel, onUpdateDay],
   );
 
   const isButtonDisabled =
@@ -81,16 +101,40 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           <Text style={styles.deleteButtonText}>X</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.payeurContainer}
-        onPress={() => setIsPayeurModalVisible(true)}
-        disabled={isSaving}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: 10,
+        }}
       >
-        <Text style={styles.payeurLabel}>Payé par: </Text>
-        <Text style={styles.payeurName}>
-          {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.payeurContainer}
+          onPress={() => setIsPayeurModalVisible(true)}
+          disabled={isSaving}
+        >
+          <User size={16} color="#666" style={{ marginRight: 4 }} />
+          <Text style={styles.payeurLabel}>Payé par: </Text>
+          <Text style={styles.payeurName}>
+            {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.payeurContainer,
+            { borderLeftWidth: 1, borderLeftColor: "#eee", paddingLeft: 10 },
+          ]}
+          onPress={() => setIsDayModalVisible(true)}
+          disabled={isSaving}
+        >
+          <CalendarDays size={16} color="#666" style={{ marginRight: 4 }} />
+          <Text style={styles.payeurLabel}>Le: </Text>
+          <Text style={styles.payeurName}>
+            {charge.jourPrelevementMensuel || "-"}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.inputRow}>
         <TextInput
           value={amount}
@@ -148,6 +192,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           </View>
         </View>
       </Modal>
+
+      <DayPickerModal
+        isVisible={isDayModalVisible}
+        onClose={() => setIsDayModalVisible(false)}
+        selectedDay={charge.jourPrelevementMensuel}
+        onSelectDay={handleUpdateDay}
+      />
 
       <ConfirmModal
         visible={isDeleteModalVisible}

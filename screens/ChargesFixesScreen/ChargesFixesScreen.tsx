@@ -17,6 +17,7 @@ import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthent
 import { Info } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
+import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -27,6 +28,7 @@ const ChargesFixesScreen: React.FC = () => {
     currentMonthData,
     addChargeFixe,
     updateChargeFixePayeur,
+    updateChargeFixeDay,
   } = useComptes();
 
   const { user } = useAuth();
@@ -44,6 +46,8 @@ const ChargesFixesScreen: React.FC = () => {
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
+  const [isDayModalVisible, setIsDayModalVisible] = useState(false);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -74,7 +78,7 @@ const ChargesFixesScreen: React.FC = () => {
         console.error("Erreur Charges:", error);
       }
     },
-    [updateChargeFixe]
+    [updateChargeFixe],
   );
 
   const handleChargeUpdatePayeur = useCallback(
@@ -87,7 +91,20 @@ const ChargesFixesScreen: React.FC = () => {
         console.error("Erreur update Payeur:", error);
       }
     },
-    [updateChargeFixePayeur]
+    [updateChargeFixePayeur],
+  );
+
+  const handleChargeUpdateDay = useCallback(
+    async (chargeId: string, newDay: number) => {
+      try {
+        await updateChargeFixeDay(chargeId, newDay);
+        toast.success("Succès", "Le jour de prélèvement a été mis à jour");
+      } catch (error) {
+        toast.error("Erreur", "Échec de la mise à jour du jour de prélèvement");
+        console.error("Erreur update Day:", error);
+      }
+    },
+    [updateChargeFixeDay],
   );
 
   const handleAddDepense = useCallback(async () => {
@@ -97,7 +114,7 @@ const ChargesFixesScreen: React.FC = () => {
     if (!payeur) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez sélectionner qui paie cette charge"
+        "Veuillez sélectionner qui paie cette charge",
       );
       return;
     }
@@ -105,7 +122,7 @@ const ChargesFixesScreen: React.FC = () => {
     if (!nom.trim()) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez saisir une description pour la charge"
+        "Veuillez saisir une description pour la charge",
       );
       return;
     }
@@ -113,7 +130,15 @@ const ChargesFixesScreen: React.FC = () => {
     if (isNaN(montantMensuel) || montantMensuel <= 0) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez saisir un montant supérieur à 0 pour la charge."
+        "Veuillez saisir un montant supérieur à 0 pour la charge.",
+      );
+      return;
+    }
+
+    if (!jourPrelevement) {
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez sélectionner un jour de prélèvement pour la charge.",
       );
       return;
     }
@@ -125,6 +150,7 @@ const ChargesFixesScreen: React.FC = () => {
       montantMensuel,
       payeur: payeur,
       moisAnnee: currentMonthData.moisAnnee,
+      jourPrelevementMensuel: jourPrelevement,
     };
 
     try {
@@ -140,7 +166,15 @@ const ChargesFixesScreen: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [nom, montant, payeur, user, addChargeFixe, currentMonthData]);
+  }, [
+    nom,
+    montant,
+    payeur,
+    user,
+    jourPrelevement,
+    addChargeFixe,
+    currentMonthData,
+  ]);
 
   const selectPayeur = (uid: string) => {
     setPayeur(uid);
@@ -205,6 +239,22 @@ const ChargesFixesScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Jour du mois (optionnel)</Text>
+            <TouchableOpacity
+              style={[styles.input, styles.dropdownInput]}
+              onPress={() => setIsDayModalVisible(true)}
+              disabled={isSubmitting}
+            >
+              <Text
+                style={
+                  !jourPrelevement ? styles.placeholderText : styles.inputText
+                }
+              >
+                {jourPrelevement ? `Le ${jourPrelevement}` : "Choisir un jour"}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             onPress={handleAddDepense}
             disabled={isSubmitting}
@@ -228,12 +278,18 @@ const ChargesFixesScreen: React.FC = () => {
             onDelete={deleteChargeFixe}
             householdUsers={householdUsers}
             onUpdatePayeur={handleChargeUpdatePayeur}
+            onUpdateDay={handleChargeUpdateDay}
           />
         )}
         style={styles.list}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
-
+      <DayPickerModal
+        isVisible={isDayModalVisible}
+        onClose={() => setIsDayModalVisible(false)}
+        selectedDay={jourPrelevement}
+        onSelectDay={setJourPrelevement}
+      />
       <Modal
         visible={isPayeurModalVisible}
         animationType="slide"

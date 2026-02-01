@@ -147,7 +147,6 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
   }
 }
 
-
 /**
  * Récupère la configuration active du loyer
  */
@@ -200,14 +199,8 @@ export async function initLoyerConfig(
     apportsAPL[uid] = 0;
   });
 
-  await updateLoyerConfig(
-    householdId,
-    0,
-    apportsAPL,
-    members[0] || "",
-  );
+  await updateLoyerConfig(householdId, 0, apportsAPL, members[0] || "");
 }
-
 
 /**
  * Créer les données du compte mensuel.
@@ -351,6 +344,23 @@ export const updateChargeFixePayeur = async (
   });
 };
 
+export const updateChargeFixeDay = async (
+  householdId: string,
+  chargeId: string,
+  newDay: number,
+) => {
+  const chargeRef = doc(
+    db,
+    "households",
+    householdId,
+    "charges_fixes",
+    chargeId,
+  );
+  await updateDoc(chargeRef, {
+    jourPrelevementMensuel: newDay,
+  });
+};
+
 /**
  * Supprime une charge fixe via son ID de document.
  */
@@ -427,24 +437,26 @@ export async function addChargeVariable(
     const catSnap = await getDoc(catRef);
 
     if (!catSnap.exists()) {
-      console.warn(`Catégorie ${depense.categorie} introuvable, propagation annulée`);
+      console.warn(
+        `Catégorie ${depense.categorie} introuvable, propagation annulée`,
+      );
       return docRef.id;
     }
 
     const categoryData = catSnap.data();
-    
+
     const householdRef = doc(db, "households", householdId);
     const householdSnap = await getDoc(householdRef);
-    
+
     if (!householdSnap.exists()) {
       console.warn("Foyer introuvable");
       return docRef.id;
     }
-    
+
     const householdMembers = householdSnap.data().members || [];
 
     const realUserBeneficiaires = depense.beneficiaires.filter(
-      (uid) => householdMembers.includes(uid) && uid !== householdId
+      (uid) => householdMembers.includes(uid) && uid !== householdId,
     );
 
     if (realUserBeneficiaires.length === 0) {
@@ -464,24 +476,31 @@ export async function addChargeVariable(
           "categories",
           depense.categorie,
         );
-        
+
         const existingCat = await getDoc(soloCatRef);
-        
+
         if (!existingCat.exists()) {
           batch.set(soloCatRef, categoryData, { merge: true });
           propagationCount++;
           console.log(`Catégorie propagée au foyer solo de ${userId}`);
         } else {
-          console.log(`Catégorie déjà existante dans le foyer solo de ${userId}`);
+          console.log(
+            `Catégorie déjà existante dans le foyer solo de ${userId}`,
+          );
         }
       } catch (error) {
-        console.warn(`Impossible de propager la catégorie au foyer solo ${userId}:`, error);
+        console.warn(
+          `Impossible de propager la catégorie au foyer solo ${userId}:`,
+          error,
+        );
       }
     }
 
     if (propagationCount > 0) {
       await batch.commit();
-      console.log(`✅ Catégorie "${categoryData.label}" propagée à ${propagationCount} foyer(s) solo`);
+      console.log(
+        `✅ Catégorie "${categoryData.label}" propagée à ${propagationCount} foyer(s) solo`,
+      );
     }
   } catch (error) {
     console.error("Erreur lors de la propagation de la catégorie:", error);

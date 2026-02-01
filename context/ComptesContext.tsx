@@ -149,6 +149,25 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
     [activeHouseholdId],
   );
 
+  const updateChargeFixeDay = useCallback(
+    async (chargeId: string, newDay: number) => {
+      if (!activeHouseholdId) return;
+      try {
+        await DB.updateChargeFixeDay(activeHouseholdId, chargeId, newDay);
+
+        setChargesFixes((prev) =>
+          prev.map((c) =>
+            c.id === chargeId ? { ...c, jourPrelevementMensuel: newDay } : c,
+          ),
+        );
+      } catch (error) {
+        console.error("Erreur updateChargeFixeDay:", error);
+        throw error;
+      }
+    },
+    [activeHouseholdId],
+  );
+
   const addChargeFixe = useCallback(
     async (charge: Omit<IChargeFixe, "id" | "householdId">) => {
       if (!activeHouseholdId) return;
@@ -358,6 +377,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       loadData,
       updateChargeFixe,
       updateChargeFixePayeur,
+      updateChargeFixeDay,
       updateLoyer,
       addChargeVariable,
       updateChargeVariable,
@@ -379,6 +399,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       loadData,
       updateChargeFixe,
       updateChargeFixePayeur,
+      updateChargeFixeDay,
       updateLoyer,
       addChargeVariable,
       updateChargeVariable,
