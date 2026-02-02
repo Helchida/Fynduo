@@ -52,3 +52,4 @@ scripts/serviceAccountKey.json
 scripts/migrateDataChargesVariables.ts
 scripts/migrateAllChargeVariableAddingHouseholdId.ts
 scripts/migrationSoloCharges.ts
+scripts/migrateChargesTypeAndScope.ts

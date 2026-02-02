@@ -6,7 +6,7 @@ import { useCategories } from "hooks/useCategories";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import BadgeHouseholdMode from "components/fynduo/BadgeHouseholdMode/BadgeHouseholdMode";
+import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
 
 const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
   charge,
@@ -56,7 +56,10 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
       </View>
 
       <View style={styles.depenseMontantContainer}>
-        <BadgeHouseholdMode isFromSharedHousehold={isFromSharedHousehold} />
+        <BadgeCharge
+          chargeScope={charge.scope}
+          chargeType={charge.type}
+        />
         <Text style={styles.depenseMontant}>{montantAffiche} €</Text>
       </View>
     </TouchableOpacity>

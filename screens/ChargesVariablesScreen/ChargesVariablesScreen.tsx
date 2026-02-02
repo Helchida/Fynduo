@@ -203,6 +203,8 @@ const ChargesVariablesScreen: React.FC = () => {
       dateComptes: selectedDateComptes.toISOString(),
       moisAnnee: dayjs(selectedDateComptes).format("YYYY-MM"),
       categorie: selectedCategorie,
+      type: "variable",
+      scope: ((beneficiairesUid.length > 1) && !isSoloHousehold) ? "partage" : "solo",
     };
 
     try {

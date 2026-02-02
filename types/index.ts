@@ -53,6 +53,8 @@ export type CategoryType =
   | "Remboursement"
   | "Autre";
 
+  export type ChargeScope = 'solo' | 'partage';
+  export type ChargeType = 'fixe' | 'variable';
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 export interface IChargeVariable extends FirestoreDocument {
   description: string;
@@ -64,6 +66,8 @@ export interface IChargeVariable extends FirestoreDocument {
   moisAnnee: string;
   categorie: ICategorie["id"];
   householdId: string;
+  type : ChargeType;
+  scope : ChargeScope;
 }
 
 // 3. Données du mois (Loyer et APL + Régularisation)

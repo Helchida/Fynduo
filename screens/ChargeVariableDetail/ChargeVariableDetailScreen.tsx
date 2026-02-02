@@ -24,7 +24,7 @@ import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVaria
 import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
-import BadgeHouseholdMode from "components/fynduo/BadgeHouseholdMode/BadgeHouseholdMode";
+import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
 dayjs.locale("fr");
 
 type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
@@ -316,7 +316,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
             <Text style={styles.iconText}>{categoryIcon}</Text>
             <Text style={styles.detailTitle}>{charge.description}</Text>
             {isActiveHouseholdSolo && (
-              <BadgeHouseholdMode isFromSharedHousehold={isFromSharedHousehold} />
+              <BadgeCharge
+                chargeScope={charge.scope}
+                chargeType={charge.type}
+              />
             )}
             <Text style={styles.detailDateText}>
               Dépense du {dateStatistiquesFormatted}
