@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
 } from "react";
 import {
   ICompteMensuel,
@@ -31,7 +32,7 @@ const TARGET_MOIS_ANNEE = getTargetMoisAnnee();
 export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useAuth();
+  const { user, householdUsers } = useAuth();
   const currentUserUid = user?.id;
   const activeHouseholdId = user?.activeHouseholdId;
 
@@ -50,6 +51,59 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
     chargesVariables,
     currentUserUid,
   );
+
+  const processingCharges = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+  const handleAutoAddFixedCharges = async () => {
+    if (isLoadingComptes || !activeHouseholdId) {
+      return;
+    }
+
+    const today = dayjs();
+    const currentMoisAnnee = today.format("YYYY-MM");
+    const currentDay = today.date();
+    const beneficiaryUids = householdUsers.map((u) => u.id);
+
+    for (const fixed of chargesFixes) {
+      const chargeKey = `${fixed.nom}-${currentMoisAnnee}`;
+      if (processingCharges.current.has(chargeKey)) continue;
+
+      if (fixed.jourPrelevementMensuel && currentDay >= fixed.jourPrelevementMensuel) {
+        const alreadyInState = chargesVariables.some((cv) => {
+          const sameName = cv.description === fixed.nom || cv.description === fixed.nom;
+          const sameMonth = cv.moisAnnee === currentMoisAnnee;
+          return sameName && sameMonth;
+        });
+
+        if (!alreadyInState) {
+          processingCharges.current.add(chargeKey);
+
+          try {
+            const nouvelleCharge = {
+              nom: fixed.nom,
+              description: fixed.nom,
+              montantTotal: fixed.montantMensuel,
+              payeur: fixed.payeur,
+              beneficiaires: beneficiaryUids,
+              dateComptes: today.date(fixed.jourPrelevementMensuel).toISOString(),
+              dateStatistiques: today.date(fixed.jourPrelevementMensuel).toISOString(),
+              categorie: "cat_maison",
+              householdId: activeHouseholdId,
+              moisAnnee: currentMoisAnnee,
+            };
+
+            await addChargeVariable(nouvelleCharge);
+          } catch (error) {
+            processingCharges.current.delete(chargeKey);
+          }
+        }
+      }
+    }
+  };
+
+  handleAutoAddFixedCharges();
+}, [isLoadingComptes, chargesFixes, chargesVariables, activeHouseholdId, householdUsers]);
 
   const loadData = useCallback(async () => {
     if (!activeHouseholdId || !currentUserUid) return;
