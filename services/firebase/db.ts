@@ -574,6 +574,8 @@ export async function addChargeVariableRegularisation(
       moisAnnee: moisAnnee,
       categorie: "Remboursement",
       householdId: householdId,
+      type: "variable",
+      scope: "partage",
     });
   }
 
