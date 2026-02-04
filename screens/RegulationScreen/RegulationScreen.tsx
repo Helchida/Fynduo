@@ -164,6 +164,7 @@ const RegulationScreen: React.FC = () => {
         montantForm: "0",
         payeur: targetUid,
         isNew: true,
+        jourPrelevementMensuel: 1,
       };
 
       setChargesFormMap((prev) => ({
@@ -278,6 +279,7 @@ const RegulationScreen: React.FC = () => {
               nom: charge.nom || `Charge ajoutée`,
               montantMensuel: parseFloat(charge.montantForm) || 0,
               payeur: charge.payeur,
+              jourPrelevementMensuel: charge.jourPrelevementMensuel || 1,
             })
           ),
         ...allChargesForm
