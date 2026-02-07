@@ -15,6 +15,8 @@ import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import { CalendarDays, User } from "lucide-react-native";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
+import { useAuth } from "hooks/useAuth";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -24,6 +26,12 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   onUpdatePayeur,
   onUpdateDay,
 }) => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <NoAuthenticatedUser />;
+  }
+
   const [amount, setAmount] = useState(charge.montantTotal.toString());
   const [isSaving, setIsSaving] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
@@ -31,6 +39,8 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
 
   const toast = useToast();
+
+  const isSoloMode = user.id === user.activeHouseholdId;
 
   const handleSave = useCallback(async () => {
     const newAmount = parseFloat(amount);
@@ -109,18 +119,6 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         }}
       >
         <TouchableOpacity
-          style={styles.payeurContainer}
-          onPress={() => setIsPayeurModalVisible(true)}
-          disabled={isSaving}
-        >
-          <User size={16} color="#666" style={{ marginRight: 4 }} />
-          <Text style={styles.payeurLabel}>Payé par: </Text>
-          <Text style={styles.payeurName}>
-            {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[
             styles.payeurContainer,
             { borderLeftWidth: 1, borderLeftColor: "#eee", paddingLeft: 10 },
@@ -134,6 +132,20 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
             {charge.jourPrelevementMensuel || "-"}
           </Text>
         </TouchableOpacity>
+
+        {!isSoloMode && (
+          <TouchableOpacity
+            style={styles.payeurContainer}
+            onPress={() => setIsPayeurModalVisible(true)}
+            disabled={isSaving}
+          >
+            <User size={16} color="#666" style={{ marginRight: 4 }} />
+            <Text style={styles.payeurLabel}>Payé par: </Text>
+            <Text style={styles.payeurName}>
+              {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.inputRow}>
         <TextInput

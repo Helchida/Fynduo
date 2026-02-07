@@ -74,6 +74,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                 setHouseholdUsers([]);
               }
 
+              const currentUserObj: IUser = {
+                id: firebaseUser.uid,
+                displayName: userData.displayName || "Moi",
+                email: firebaseUser.email || "",
+                households: userData.households || [],
+                activeHouseholdId: activeId,
+              };
+
               setUser({
                 id: firebaseUser.uid,
                 displayName: userData.displayName,
@@ -84,7 +92,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
               if (unsubscribeHousehold) unsubscribeHousehold();
               if (activeId === firebaseUser.uid) {
-                setHouseholdUsers([]);
+                setHouseholdUsers([currentUserObj]);
               } else {
                 const householdRef = doc(db, "households", activeId);
                 unsubscribeHousehold = onSnapshot(

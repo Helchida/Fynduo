@@ -33,7 +33,7 @@ const ChargesFixesScreen: React.FC = () => {
     deleteChargeFixeConfig,
   } = useChargesFixesConfigs();
 
-  const { user } = useAuth();
+  const { user, householdUsers } = useAuth();
   const toast = useToast();
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -44,35 +44,17 @@ const ChargesFixesScreen: React.FC = () => {
   const [payeur, setPayeur] = useState<string | null>(user.id);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
 
+  const isSoloMode = user.activeHouseholdId === user.id;
+
   useEffect(() => {
     loadConfigs();
   }, [loadConfigs]);
 
-  useEffect(() => {
-    const loadUsers = async () => {
-      if (user.activeHouseholdId) {
-        try {
-          const users = await DB.getHouseholdUsers(user.activeHouseholdId);
-          setHouseholdUsers(users);
-        } catch (error) {
-          console.error("Erreur chargement users:", error);
-          toast.error("Erreur", "Impossible de charger les utilisateurs");
-        } finally {
-          setIsLoadingUsers(false);
-        }
-      } else {
-        setIsLoadingUsers(false);
-      }
-    };
-    loadUsers();
-  }, [user.activeHouseholdId]);
 
   const handleChargeUpdate = useCallback(
     async (id: string, newAmount: number) => {
@@ -154,13 +136,13 @@ const ChargesFixesScreen: React.FC = () => {
       description: nom.trim(),
       montantTotal,
       payeur: payeur,
-      beneficiaires: householdUsers.map((u) => u.id),
+      beneficiaires: isSoloMode ? [user.id] : householdUsers.map((u) => u.id),
       moisAnnee: dayjs().format("YYYY-MM"),
       jourPrelevementMensuel: jourPrelevement,
       dateComptes: new Date().toISOString(),
       dateStatistiques: new Date().toISOString(),
       type: "fixe",
-      scope: householdUsers.length > 1 ? "partage" : "solo",
+      scope: isSoloMode ? "solo" : "partage",
     };
 
     try {
@@ -209,18 +191,20 @@ const ChargesFixesScreen: React.FC = () => {
       </TouchableOpacity>
       {showForm && (
         <View style={styles.formContainer}>
+          <Text style={styles.label}>Description</Text>
           <TextInput
             style={styles.input}
-            placeholder="Description (ex: Facture Internet)"
+            placeholder="Ex: Facture Internet"
             placeholderTextColor="#95a5a6"
             value={nom}
             onChangeText={setNom}
             maxLength={30}
             editable={!isSubmitting}
           />
+          <Text style={styles.label}>Montant mensuel</Text>
           <TextInput
             style={styles.input}
-            placeholder="Montant mensuel (ex: 80.50)"
+            placeholder="Ex: 80.50"
             placeholderTextColor="#95a5a6"
             value={montant}
             onChangeText={setMontant}
@@ -229,7 +213,7 @@ const ChargesFixesScreen: React.FC = () => {
             maxLength={8}
             editable={!isSubmitting}
           />
-          <View style={styles.inputGroup}>
+          {!isSoloMode && <View style={styles.inputGroup}>
             <Text style={styles.label}>Payée par</Text>
             <TouchableOpacity
               style={[styles.input, styles.dropdownInput]}
@@ -240,9 +224,9 @@ const ChargesFixesScreen: React.FC = () => {
                 {getDisplayNameUserInHousehold(payeur, householdUsers)}
               </Text>
             </TouchableOpacity>
-          </View>
+          </View>}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Jour du mois (optionnel)</Text>
+            <Text style={styles.label}>Jour de prélèvement</Text>
             <TouchableOpacity
               style={[styles.input, styles.dropdownInput]}
               onPress={() => setIsDayModalVisible(true)}
