@@ -95,11 +95,19 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       setChargesVariables(chargesVariablesData);
 
       if (activeHouseholdId === currentUserUid) {
-        const allCharges = await DB.getSoloChargesByType<IChargeVariable>(
+        const chargesVariablesSolo =
+          await DB.getSoloChargesByType<IChargeVariable>(
+            user.households,
+            currentUserUid,
+            "variable",
+          );
+
+        const chargesFixesSolo = await DB.getSoloChargesByType<IChargeFixe>(
           user.households,
           currentUserUid,
-          "variable",
+          "fixe",
         );
+        const allCharges = [...chargesVariablesSolo, ...chargesFixesSolo];
         setCharges(allCharges);
       } else {
         const charges = await DB.getAllCharges(activeHouseholdId);

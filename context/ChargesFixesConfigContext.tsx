@@ -34,6 +34,7 @@ export const ChargesFixesConfigProvider: React.FC<{
 }> = ({ children }) => {
   const { user, householdUsers } = useAuth();
   const activeHouseholdId = user?.activeHouseholdId;
+  const isSoloMode = user?.id === activeHouseholdId;
   const [chargesFixesConfigs, setChargesFixesConfigs] = useState<IChargeFixe[]>(
     [],
   );
@@ -61,7 +62,8 @@ export const ChargesFixesConfigProvider: React.FC<{
       const today = dayjs();
       const currentMoisAnnee = today.format("YYYY-MM");
       const currentDay = today.date();
-      const beneficiaryUids = householdUsers.map((u) => u.id);
+      const beneficiaryUids =
+        isSoloMode ? [user.id] : householdUsers.map((u) => u.id);
 
       for (const config of chargesFixesConfigs) {
         const chargeKey = `${config.description}-${currentMoisAnnee}`;
