@@ -22,27 +22,6 @@ export interface LoginAttempt {
 
 // DONNÉES FINANCIÈRES
 // 1. Charges fixes récurrentes (Electricité, Gaz, Internet...)
-export interface IChargeFixe extends FirestoreDocument {
-  nom: string;
-  montantMensuel: number;
-  payeur: string;
-  jourPrelevementMensuel: number;
-  dateMiseAJour?: string;
-  dateCreation?: string;
-  moisAnnee?: string;
-  householdId: string;
-}
-
-export interface ChargeFixeForm extends IChargeFixe {
-  montantForm: string;
-  isNew?: boolean;
-}
-
-export interface IChargeFixeSnapshot {
-  nom: string;
-  montantMensuel: number;
-  payeur: string;
-}
 
 export type CategoryType =
   | "Alimentation"
@@ -53,10 +32,11 @@ export type CategoryType =
   | "Remboursement"
   | "Autre";
 
-  export type ChargeScope = 'solo' | 'partage';
-  export type ChargeType = 'fixe' | 'variable';
+export type ChargeScope = "solo" | "partage";
+export type ChargeType = "fixe" | "variable";
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
-export interface IChargeVariable extends FirestoreDocument {
+
+export interface ICharge extends FirestoreDocument {
   description: string;
   montantTotal: number;
   payeur: string;
@@ -64,10 +44,29 @@ export interface IChargeVariable extends FirestoreDocument {
   dateStatistiques: string;
   dateComptes: string;
   moisAnnee: string;
-  categorie: ICategorie["id"];
   householdId: string;
-  type : ChargeType;
-  scope : ChargeScope;
+  type: ChargeType;
+  scope: ChargeScope;
+}
+
+export interface IChargeVariable extends ICharge {
+  type: "variable";
+  categorie: ICategorie["id"];
+}
+export interface IChargeFixe extends ICharge {
+  type: "fixe";
+  jourPrelevementMensuel: number;
+}
+
+export interface ChargeFixeForm extends IChargeFixe {
+  montantForm: string;
+  isNew?: boolean;
+}
+
+export interface IChargeFixeSnapshot {
+  description: string;
+  montantTotal: number;
+  payeur: string;
 }
 
 // 3. Données du mois (Loyer et APL + Régularisation)
@@ -110,13 +109,14 @@ export interface IReglementData {
   loyerTotal: number;
   apportsAPL: Record<string, number>;
   dettes: IDette[];
+  dettesRegularisation: IDette[];
   loyerPayeurUid: string;
   chargesFixesSnapshot?: IChargeFixeSnapshot[];
 }
 
 export interface IHistoricalData {
-  compte: ICompteMensuel;
-  chargesVariables: IChargeVariable[];
+  compteMensuel: ICompteMensuel;
+  charges: (IChargeVariable | IChargeFixe)[];
 }
 
 export interface ICategorie extends FirestoreDocument {
@@ -149,7 +149,7 @@ export type RootStackParamList = {
   Home: undefined;
   Loyer: undefined;
   ChargesFixes: undefined;
-  ChargesVariables: undefined;
+  Charges: undefined;
   Regulation: undefined;
   SummaryRegulation: undefined;
   Login: undefined;
@@ -160,7 +160,7 @@ export type RootStackParamList = {
   History: undefined;
   Stats: undefined;
   HistoryDetail: { moisAnnee: string };
-  ChargeVariableDetail: { chargeId: string; description: string };
+  ChargeDetail: { chargeId: string; description: string };
 };
 
 export type RootStackNavigationProp =

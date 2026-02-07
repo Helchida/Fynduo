@@ -1,9 +1,15 @@
 import { useMemo } from "react";
-import { IChargeVariable, ICategorie, StatPeriod, StatDataItem } from "@/types";
+import {
+  IChargeVariable,
+  ICategorie,
+  StatPeriod,
+  StatDataItem,
+  IChargeFixe,
+} from "@/types";
 import dayjs from "dayjs";
 
 export const useStats = (
-  charges: IChargeVariable[],
+  charges: (IChargeVariable | IChargeFixe)[],
   categories: ICategorie[],
   period: StatPeriod,
   referenceDate: string,
@@ -26,7 +32,8 @@ export const useStats = (
 
     const aggregation = filtered.reduce(
       (acc, charge) => {
-        const catId = charge.categorie || "cat_autre";
+        const catId =
+          charge.type === "variable" ? charge.categorie : "cat_autre";
         const montantTotal = Number(charge.montantTotal) || 0;
 
         let montantFinal = montantTotal;
@@ -63,7 +70,9 @@ export const useStats = (
           icon: catInfo?.icon || "📦",
         };
       })
-      .filter((item) => item.montant > 0 && item.categoryId !== "cat_remboursement")
+      .filter(
+        (item) => item.montant > 0 && item.categoryId !== "cat_remboursement",
+      )
       .sort((a, b) => b.montant - a.montant);
   }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
 

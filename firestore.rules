@@ -3,45 +3,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function: Vérifie si l'utilisateur est authentifié
+    // ==========================================
+    // HELPER FUNCTIONS
+    // ==========================================
+    
     function isSignedIn() {
       return request.auth != null;
     }
     
-    // Helper function: Vérifie si l'utilisateur appartient au foyer
     function belongsToHousehold(householdId) {
       return isSignedIn() && 
         householdId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households;
     }
     
-    // Helper function: Vérifie si c'est le propriétaire du document
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    // Helper function: Vérifie si deux utilisateurs partagent au moins un foyer
     function shareHousehold(userId) {
       let currentUserHouseholds = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households;
-      let targetUserHouseholds = resource.data.households;
+      let targetUserHouseholds = get(/databases/$(database)/documents/users/$(userId)).data.households;
       return currentUserHouseholds.hasAny(targetUserHouseholds);
     }
     
-    // Helper function: Vérifie si le householdId correspond à un userId qui partage un foyer avec l'utilisateur connecté
     function sharesHouseholdWithUser(householdId) {
-      // Vérifie si householdId est un document user qui existe
       return exists(/databases/$(database)/documents/users/$(householdId)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households.hasAny(
                get(/databases/$(database)/documents/users/$(householdId)).data.households
              );
     }
+
+    // ==========================================
+    // RÈGLES UTILISATEURS
+    // ==========================================
     
-    // RÈGLES POUR LES UTILISATEURS
     match /users/{userId} {
-      // Lecture: son propre profil OU si vous partagez au moins un foyer
-      allow read: if isSignedIn() && (
-        isOwner(userId) || 
-        shareHousehold(userId)
-      );
+      allow read: if isSignedIn() && (isOwner(userId) || shareHousehold(userId));
       
       allow create: if isOwner(userId) && 
                       request.resource.data.keys().hasAll(['email', 'displayName', 'activeHouseholdId']);
@@ -52,15 +49,17 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
     }
     
-    // RÈGLES POUR LES FOYERS (HOUSEHOLDS)
+    // ==========================================
+    // RÈGLES FOYERS (HOUSEHOLDS)
+    // ==========================================
+    
     match /households/{householdId} {
-      // Lecture si membre OU si recherche par code d'invitation
+      
       allow get: if isSignedIn() && (
         belongsToHousehold(householdId) || 
         resource.data.invitationCode != null
       );
       
-      // List avec limite pour recherche de code
       allow list: if isSignedIn() && (
         belongsToHousehold(householdId) || 
         request.query.limit <= 1
@@ -68,7 +67,6 @@ service cloud.firestore {
       
       allow create: if isSignedIn();
       
-      // Update pour rejoindre un foyer OU si déjà membre
       allow update: if isSignedIn() && (
         belongsToHousehold(householdId) ||
         (
@@ -80,87 +78,51 @@ service cloud.firestore {
       );
 
       allow delete: if false;
-      
-      // SOUS-COLLECTION: comptes_mensuels
-      match /comptes_mensuels/{compteId} {
-        allow read: if belongsToHousehold(householdId);
-        
-        allow create: if belongsToHousehold(householdId) &&
-                        request.resource.data.keys().hasAll(['moisAnnee', 'loyerTotal', 'apportsAPL', 'statut']) &&
-                        request.resource.data.moisAnnee is string &&
-                        request.resource.data.loyerTotal is number &&
-                        request.resource.data.loyerTotal >= 0;
-        
-        allow update: if belongsToHousehold(householdId) &&
-                        request.resource.data.moisAnnee == resource.data.moisAnnee &&
-                        resource.data.statut != "finalisé";
-        
-        allow delete: if belongsToHousehold(householdId) &&
-                        resource.data.statut != "finalisé";
-      }
-      
-      // SOUS-COLLECTION: charges_fixes
-      match /charges_fixes/{chargeId} {
-        allow read: if belongsToHousehold(householdId);
-        
-        allow create: if belongsToHousehold(householdId) &&
-                        request.resource.data.keys().hasAll(['nom', 'montantMensuel', 'payeur']) &&
-                        request.resource.data.montantMensuel is number &&
-                        request.resource.data.montantMensuel > 0;
-        
-        allow update: if belongsToHousehold(householdId);
-        
-        allow delete: if belongsToHousehold(householdId);
-      }
-      
-      // SOUS-COLLECTION: charges_variables
-      // Permettre la lecture si membre du foyer OU si bénéficiaire de la charge
-      match /charges_variables/{chargeId} {
+
+      // --- SOUS-COLLECTION UNIFIÉE: charges ---
+      match /charges/{chargeId} {
         allow read: if belongsToHousehold(householdId) || 
                        (isSignedIn() && request.auth.uid in resource.data.beneficiaires);
         
         allow create: if belongsToHousehold(householdId) &&
-                        request.resource.data.keys().hasAll(['description', 'montantTotal', 'payeur', 'beneficiaires', 'dateStatistiques', 'dateComptes', 'moisAnnee']) &&
+                        request.resource.data.keys().hasAll(['description', 'montantTotal', 'payeur', 'type']) &&
                         request.resource.data.montantTotal is number &&
                         request.resource.data.montantTotal > 0 &&
-                        request.resource.data.beneficiaires is list &&
-                        request.resource.data.beneficiaires.size() > 0;
+                        (
+                          (request.resource.data.type == "variable" && request.resource.data.keys().hasAll(['beneficiaires', 'categorie'])) ||
+                          (request.resource.data.type == "fixe" && request.resource.data.keys().hasAll(['jourPrelevementMensuel']))
+                        );
         
         allow update: if belongsToHousehold(householdId);
-        
         allow delete: if belongsToHousehold(householdId);
       }
 
-      // SOUS-COLLECTION: loyer_config
+      // --- SOUS-COLLECTION: comptes_mensuels ---
+      match /comptes_mensuels/{compteId} {
+        allow read: if belongsToHousehold(householdId);
+        allow create: if belongsToHousehold(householdId) &&
+                        request.resource.data.keys().hasAll(['moisAnnee', 'loyerTotal', 'apportsAPL', 'statut']) &&
+                        request.resource.data.loyerTotal is number;
+        allow update, delete: if belongsToHousehold(householdId) && resource.data.statut != "finalisé";
+      }
+      
+      // --- SOUS-COLLECTION: charges_fixes (Templates de configuration) ---
+      match /charges_fixes/{chargeId} {
+        allow read, write: if belongsToHousehold(householdId);
+      }
+      
+      // --- SOUS-COLLECTION: loyer_config ---
       match /loyer_config/{docId} {
         allow read: if belongsToHousehold(householdId);
-        
-        allow create, update: if belongsToHousehold(householdId) &&
-                                docId == "current" &&
-                                request.resource.data.loyerTotal is number &&
-                                request.resource.data.loyerTotal >= 0 &&
-                                request.resource.data.apportsAPL is map &&
-                                request.resource.data.loyerPayeurUid is string;
-        
+        allow create, update: if belongsToHousehold(householdId) && docId == "current";
         allow delete: if false;
       }
       
-      // SOUS-COLLECTION: categories
+      // --- SOUS-COLLECTION: categories ---
       match /categories/{categorieId} {
-        // Lecture autorisée si:
-        // 1. Membre du foyer OU
-        // 2. Le householdId est un userId qui partage un foyer avec moi
-        allow read: if belongsToHousehold(householdId) || 
-                       (isSignedIn() && sharesHouseholdWithUser(householdId));
-        
-        // Création/update autorisée si:
-        // 1. Membre du foyer OU
-        // 2. Le householdId est un userId qui partage un foyer avec moi
-        allow create, update: if belongsToHousehold(householdId) || 
-                                 (isSignedIn() && sharesHouseholdWithUser(householdId));
-        
-        allow delete: if belongsToHousehold(householdId) &&
-                        !resource.data.isDefault;
+        allow read, create, update: if belongsToHousehold(householdId) || 
+                                       (isSignedIn() && sharesHouseholdWithUser(householdId));
+        allow delete: if belongsToHousehold(householdId) && !resource.data.isDefault;
       }
     }
   }

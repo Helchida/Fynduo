@@ -1,6 +1,6 @@
 import { ICategorie, IUser } from "@/types";
 
-export interface EditChargeVariableFormProps {
+export interface EditChargeFormProps {
   editDescription: string;
   setEditDescription: (value: string) => void;
   editMontant: string;

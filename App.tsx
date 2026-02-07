@@ -12,6 +12,7 @@ import * as Linking from "expo-linking";
 import { navigate } from "navigation/RootNavigation";
 import { ToastProvider } from "./context/ToastContext";
 import { CategoriesProvider } from "context/CategoriesContext";
+import { ChargesFixesConfigProvider } from "context/ChargesFixesConfigContext";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
@@ -109,11 +110,13 @@ const App: React.FC = () => {
       <StatusBar style="dark" backgroundColor="#f4f7f9" translucent={false} />
       <AuthProvider>
         <CategoriesProvider>
-          <ComptesProvider>
-            <ToastProvider>
-              <AppContent />
-            </ToastProvider>
-          </ComptesProvider>
+          <ChargesFixesConfigProvider>
+            <ComptesProvider>
+              <ToastProvider>
+                <AppContent />
+              </ToastProvider>
+            </ComptesProvider>
+          </ChargesFixesConfigProvider>
         </CategoriesProvider>
       </AuthProvider>
     </GestureHandlerRootView>

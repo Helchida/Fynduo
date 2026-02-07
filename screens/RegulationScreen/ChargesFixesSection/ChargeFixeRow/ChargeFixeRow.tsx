@@ -15,7 +15,7 @@ const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({
       <TextInput
         style={[styles.input, styles.descriptionInput]}
         placeholder="Description (ex: Gaz)"
-        value={charge.nom}
+        value={charge.description}
         editable={charge.isNew}
         onChangeText={(text) => onUpdate(charge.id, "nom", text)}
       />
@@ -39,7 +39,7 @@ const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({
       <ConfirmModal
         visible={isDeleteModalVisible}
         title="Supprimer la charge"
-        message={`Voulez-vous vraiment supprimer "${charge.nom}" ? Cette action est irréversible.`}
+        message={`Voulez-vous vraiment supprimer "${charge.description}" ? Cette action est irréversible.`}
         confirmText="Supprimer"
         isDestructive={true}
         onConfirm={async () => {

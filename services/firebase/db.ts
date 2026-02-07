@@ -28,6 +28,7 @@ import {
   IUser,
   ICategorie,
   ILoyerConfig,
+  ICharge,
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 
@@ -35,6 +36,7 @@ const SUB_COLLECTIONS = {
   COMPTES_MENSUELS: "comptes_mensuels",
   CHARGES_FIXES: "charges_fixes",
   CHARGES_VARIABLES: "charges_variables",
+  CHARGES: "charges",
   CATEGORIES: "categories",
   LOYER_CONFIG: "loyer_config",
 };
@@ -273,9 +275,9 @@ export async function setMoisFinalise(
 }
 
 /**
- * Récupère toutes les charges fixes (Élec, Gaz, Internet...).
+ * Récupère les templates des charges fixes (Élec, Gaz, Internet...).
  */
-export async function getChargesFixes(
+export async function getChargesFixesConfigs(
   householdId: string,
 ): Promise<IChargeFixe[]> {
   const chargesCollection = getCollectionRef(
@@ -283,32 +285,13 @@ export async function getChargesFixes(
     SUB_COLLECTIONS.CHARGES_FIXES,
   );
   const snapshot = await getDocs(chargesCollection);
-
   return snapshot.docs.map((doc) => mapDocToType<IChargeFixe>(doc));
 }
 
 /**
- * Met à jour le montant d'une charge fixe via son ID de document.
+ * Ajoute un nouveau template de charge fixe dans la base.
  */
-export async function updateChargeFixeAmount(
-  householdId: string,
-  chargeId: string,
-  newAmount: number,
-) {
-  const chargeRef = doc(
-    getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_FIXES),
-    chargeId,
-  );
-  await updateDoc(chargeRef, {
-    montantMensuel: newAmount,
-    dateMiseAJour: new Date().toISOString(),
-  });
-}
-
-/**
- * Ajoute une nouvelle charge fixe dans la base.
- */
-export async function addChargeFixe(
+export async function addChargeFixeConfig(
   householdId: string,
   charge: Omit<IChargeFixe, "id" | "householdId">,
 ): Promise<string> {
@@ -318,53 +301,40 @@ export async function addChargeFixe(
   );
   const docRef = await addDoc(chargesCollection, {
     ...charge,
+    type: "fixe",
     householdId,
-    dateCreation: new Date().toISOString(),
   });
   return docRef.id;
 }
 
 /**
- * Met à jour le payeur d'une charge fixe via son ID.
+ * Met à jour n'importe quel paramètre d'un template de charge fixe
  */
-export const updateChargeFixePayeur = async (
+export async function updateChargeFixeConfig(
   householdId: string,
   chargeId: string,
-  newPayeurId: string,
-) => {
+  updates: Partial<Omit<IChargeFixe, "id">>,
+) {
   const chargeRef = doc(
     db,
     "households",
     householdId,
-    "charges_fixes",
+    SUB_COLLECTIONS.CHARGES_FIXES,
     chargeId,
   );
-  await updateDoc(chargeRef, {
-    payeur: newPayeurId,
-  });
-};
 
-export const updateChargeFixeDay = async (
-  householdId: string,
-  chargeId: string,
-  newDay: number,
-) => {
-  const chargeRef = doc(
-    db,
-    "households",
-    householdId,
-    "charges_fixes",
-    chargeId,
-  );
   await updateDoc(chargeRef, {
-    jourPrelevementMensuel: newDay,
+    ...updates,
   });
-};
+}
 
 /**
  * Supprime une charge fixe via son ID de document.
  */
-export async function deleteChargeFixe(householdId: string, chargeId: string) {
+export async function deleteChargeFixeConfig(
+  householdId: string,
+  chargeId: string,
+) {
   const chargeRef = doc(
     getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_FIXES),
     chargeId,
@@ -373,163 +343,192 @@ export async function deleteChargeFixe(householdId: string, chargeId: string) {
 }
 
 /**
- * Récupère toutes les charges variables (Courses, restaurants, loisirs...) d'un foyer
+ * Récupère toutes les charges (selon le type fixe ou variable) d'un foyer
  */
-export async function getChargesVariables(
+export async function getChargesByType<T extends ICharge>(
   householdId: string,
-): Promise<IChargeVariable[]> {
+  type: "fixe" | "variable",
+): Promise<T[]> {
   const chargesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_VARIABLES,
+    SUB_COLLECTIONS.CHARGES,
+  );
+  const q = query(chargesCollection, where("type", "==", type));
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => mapDocToType<T>(doc));
+}
+
+/**
+ * Récupère toutes les charges d'un foyer
+ */
+export async function getAllCharges(
+  householdId: string,
+): Promise<(IChargeFixe | IChargeVariable)[]> {
+  const chargesCollection = getCollectionRef(
+    householdId,
+    SUB_COLLECTIONS.CHARGES,
   );
   const snapshot = await getDocs(chargesCollection);
 
-  return snapshot.docs.map((doc) => mapDocToType<IChargeVariable>(doc));
+  return snapshot.docs.map((doc) =>
+    mapDocToType<IChargeFixe | IChargeVariable>(doc),
+  );
 }
 
 /**
- * Récupère toutes les charges variables (Courses, restaurants, loisirs...) d'un utilisateur en mode solo (solo + beneficiaire dans un partagé)
+ * Récupère toutes les charges d'un type précis où l'utilisateur est bénéficiaire
+ * à travers plusieurs foyers (solo + partagé)
  */
-export async function getSoloChargesVariables(
+export async function getSoloChargesByType<T extends ICharge>(
   householdIds: string[],
   userId: string,
-) {
-  let chargesVariables: IChargeVariable[] = [];
+  type: "fixe" | "variable",
+): Promise<T[]> {
+  let allCharges: T[] = [];
 
   for (const id of householdIds) {
     const q = query(
-      getCollectionRef(id, SUB_COLLECTIONS.CHARGES_VARIABLES),
+      getCollectionRef(id, SUB_COLLECTIONS.CHARGES),
+      where("type", "==", type),
       where("beneficiaires", "array-contains", userId),
     );
+
     const snap = await getDocs(q);
-    const charges = snap.docs.map((doc) => ({
-      ...mapDocToType<IChargeVariable>(doc),
-    }));
-    chargesVariables = [...chargesVariables, ...charges];
+    const charges = snap.docs.map((doc) => mapDocToType<T>(doc));
+
+    allCharges = [...allCharges, ...charges];
   }
-  return chargesVariables.sort((a, b) =>
-    b.dateStatistiques.localeCompare(a.dateStatistiques),
-  );
+
+  return allCharges.sort((a, b) => {
+    const dateA = (a as any).dateStatistiques;
+    const dateB = (b as any).dateStatistiques;
+    return dateB.localeCompare(dateA);
+  });
 }
 
 /**
- * Ajoute une nouvelle charge variable dans la base.
+ * Ajoute une nouvelle charge dans la base.
  */
-export async function addChargeVariable(
+export async function addCharge(
   householdId: string,
-  depense: Omit<IChargeVariable, "id">,
+  charge:
+    | Omit<IChargeFixe, "id" | "householdId">
+    | Omit<IChargeVariable, "id" | "householdId">,
 ) {
   const depensesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_VARIABLES,
+    SUB_COLLECTIONS.CHARGES,
   );
 
-  const docRef = await addDoc(depensesCollection, depense);
+  const chargeComplete = {
+    ...charge,
+    householdId,
+    dateCreation: new Date().toISOString(),
+  };
 
-  try {
-    const catRef = doc(
-      db,
-      "households",
-      householdId,
-      "categories",
-      depense.categorie,
-    );
-    const catSnap = await getDoc(catRef);
+  const docRef = await addDoc(depensesCollection, chargeComplete);
 
-    if (!catSnap.exists()) {
-      console.warn(
-        `Catégorie ${depense.categorie} introuvable, propagation annulée`,
-      );
-      return docRef.id;
-    }
+  const householdRef = doc(db, "households", householdId);
+  const householdSnap = await getDoc(householdRef);
 
-    const categoryData = catSnap.data();
-
-    const householdRef = doc(db, "households", householdId);
-    const householdSnap = await getDoc(householdRef);
-
-    if (!householdSnap.exists()) {
-      console.warn("Foyer introuvable");
-      return docRef.id;
-    }
-
-    const householdMembers = householdSnap.data().members || [];
-
-    const realUserBeneficiaires = depense.beneficiaires.filter(
-      (uid) => householdMembers.includes(uid) && uid !== householdId,
-    );
-
-    if (realUserBeneficiaires.length === 0) {
-      console.log("Aucun bénéficiaire à propager");
-      return docRef.id;
-    }
-
-    const batch = writeBatch(db);
-    let propagationCount = 0;
-
-    for (const userId of realUserBeneficiaires) {
-      try {
-        const soloCatRef = doc(
-          db,
-          "households",
-          userId,
-          "categories",
-          depense.categorie,
-        );
-
-        const existingCat = await getDoc(soloCatRef);
-
-        if (!existingCat.exists()) {
-          batch.set(soloCatRef, categoryData, { merge: true });
-          propagationCount++;
-          console.log(`Catégorie propagée au foyer solo de ${userId}`);
-        } else {
-          console.log(
-            `Catégorie déjà existante dans le foyer solo de ${userId}`,
-          );
-        }
-      } catch (error) {
-        console.warn(
-          `Impossible de propager la catégorie au foyer solo ${userId}:`,
-          error,
-        );
-      }
-    }
-
-    if (propagationCount > 0) {
-      await batch.commit();
-      console.log(
-        `✅ Catégorie "${categoryData.label}" propagée à ${propagationCount} foyer(s) solo`,
-      );
-    }
-  } catch (error) {
-    console.error("Erreur lors de la propagation de la catégorie:", error);
+  if (!householdSnap.exists()) {
+    console.warn("Foyer introuvable");
+    return docRef.id;
   }
 
+  if (charge.type === "variable") {
+    try {
+      const categoryId = charge.categorie;
+      const catRef = doc(
+        db,
+        "households",
+        householdId,
+        "categories",
+        categoryId,
+      );
+      const catSnap = await getDoc(catRef);
+
+      if (!catSnap.exists()) {
+        console.warn(
+          `Catégorie ${charge.categorie} introuvable, propagation annulée`,
+        );
+        return docRef.id;
+      }
+
+      const categoryData = catSnap.data();
+
+      const householdMembers = householdSnap.data().members || [];
+
+      const realUserBeneficiaires = charge.beneficiaires.filter(
+        (uid) => householdMembers.includes(uid) && uid !== householdId,
+      );
+
+      if (realUserBeneficiaires.length === 0) {
+        console.log("Aucun bénéficiaire à propager");
+        return docRef.id;
+      }
+
+      const batch = writeBatch(db);
+      let propagationCount = 0;
+
+      for (const userId of realUserBeneficiaires) {
+        try {
+          const soloCatRef = doc(
+            db,
+            "households",
+            userId,
+            "categories",
+            charge.categorie,
+          );
+
+          const existingCat = await getDoc(soloCatRef);
+
+          if (!existingCat.exists()) {
+            batch.set(soloCatRef, categoryData, { merge: true });
+            propagationCount++;
+            console.log(`Catégorie propagée au foyer solo de ${userId}`);
+          } else {
+            console.log(
+              `Catégorie déjà existante dans le foyer solo de ${userId}`,
+            );
+          }
+        } catch (error) {
+          console.warn(
+            `Impossible de propager la catégorie au foyer solo ${userId}:`,
+            error,
+          );
+        }
+      }
+
+      if (propagationCount > 0) {
+        await batch.commit();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération de la catégorie:", error);
+    }
+  }
   return docRef.id;
 }
 
 /**
  * Met à jour une charge variable via son ID.
  */
-export async function updateChargeVariable(
+export async function updateCharge(
   householdId: string,
   chargeId: string,
-  updateData: Partial<
-    Omit<IChargeVariable, "id" | "householdId" | "moisAnnee">
-  >,
+  updateData: Partial<Omit<ICharge, "id" | "householdId" | "moisAnnee">>,
 ) {
   try {
     const chargeRef = doc(
-      getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES),
+      getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES),
       chargeId,
     );
     await updateDoc(chargeRef, {
       ...updateData,
-      dateMiseAJour: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Erreur updateChargeVariable:", error);
+    console.error("Erreur updateCharge:", error);
     throw error;
   }
 }
@@ -537,18 +536,15 @@ export async function updateChargeVariable(
 /**
  * Supprime une charge variable via son ID.
  */
-export async function deleteChargeVariable(
-  householdId: string,
-  chargeId: string,
-) {
+export async function deleteCharge(householdId: string, chargeId: string) {
   try {
     const chargeRef = doc(
-      getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES_VARIABLES),
+      getCollectionRef(householdId, SUB_COLLECTIONS.CHARGES),
       chargeId,
     );
     await deleteDoc(chargeRef);
   } catch (error) {
-    console.error("Erreur deleteChargeVariable:", error);
+    console.error("Erreur deleteCharge:", error);
     throw error;
   }
 }
@@ -559,21 +555,22 @@ export async function deleteChargeVariable(
 export async function addChargeVariableRegularisation(
   householdId: string,
   moisAnnee: string,
-  dettes: IDette[],
+  dettesRegularisation: IDette[],
 ) {
   const dateRegul = dayjs().toISOString();
-  const dettesPositives = dettes.filter((d) => d.montant > 0);
-  for (const dette of dettesPositives) {
-    await addChargeVariable(householdId, {
+  const dettesRegularisationPositives = dettesRegularisation.filter(
+    (d) => d.montant > 0,
+  );
+  for (const detteRegularisation of dettesRegularisationPositives) {
+    await addCharge(householdId, {
       description: "Régularisation Trésorerie",
-      montantTotal: dette.montant,
-      payeur: dette.debiteurUid,
-      beneficiaires: [dette.creancierUid],
+      montantTotal: detteRegularisation.montant,
+      payeur: detteRegularisation.debiteurUid,
+      beneficiaires: [detteRegularisation.creancierUid],
       dateStatistiques: dateRegul,
       dateComptes: dateRegul,
       moisAnnee: moisAnnee,
       categorie: "Remboursement",
-      householdId: householdId,
       type: "variable",
       scope: "partage",
     });

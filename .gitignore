@@ -53,3 +53,5 @@ scripts/migrateDataChargesVariables.ts
 scripts/migrateAllChargeVariableAddingHouseholdId.ts
 scripts/migrationSoloCharges.ts
 scripts/migrateChargesTypeAndScope.ts
+scripts/migrateChargesVariablesToCharges.ts
+scripts/migrateTemplates.ts

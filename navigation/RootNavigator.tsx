@@ -8,13 +8,12 @@ import { TouchableOpacity } from "react-native";
 import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import LoyerScreen from "../screens/LoyerScreen/LoyerScreen";
 import ChargesFixesScreen from "../screens/ChargesFixesScreen/ChargesFixesScreen";
-import ChargesVariablesScreen from "../screens/ChargesVariablesScreen/ChargesVariablesScreen";
+import ChargesScreen from "../screens/ChargesScreen/ChargesScreen";
 import LoginScreen from "../screens/LoginScreen/LoginScreen";
 import Regulation from "../screens/RegulationScreen/RegulationScreen";
 import SummaryRegulationScreen from "../screens/SummaryRegulationScreen/SummaryRegulationScreen";
 import HistoryScreen from "../screens/HistoryScreen/HistoryScreen";
 import HistoryDetailScreen from "../screens/HistoryDetailScreen/HistoryDetailScreen";
-import ChargeVariableDetailScreen from "screens/ChargeVariableDetail/ChargeVariableDetailScreen";
 import { ChevronLeft } from "lucide-react-native";
 import RegisterScreen from "screens/RegisterScreen/RegisterScreen";
 import { navigationRef } from "./RootNavigation";
@@ -22,6 +21,7 @@ import EmailVerificationScreen from "screens/EmailVerificationScreen/EmailVerifi
 import UserSettingsScreen from "../screens/UserSettingsScreen/UserSettingsScreen";
 import HouseholdsScreen from "../screens/HouseholdsScreen/HouseholdsScreen";
 import StatsScreen from "screens/StatsScreen/StatsScreen";
+import ChargeDetailScreen from "screens/ChargeDetail/ChargeDetailScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -79,13 +79,13 @@ const AppStack = () => (
       options={{ title: "Charges Fixes" }}
     />
     <Stack.Screen
-      name="ChargesVariables"
-      component={ChargesVariablesScreen}
-      options={{ title: "Charges Variables" }}
+      name="Charges"
+      component={ChargesScreen}
+      options={{ title: "Charges" }}
     />
     <Stack.Screen
-      name="ChargeVariableDetail"
-      component={ChargeVariableDetailScreen}
+      name="ChargeDetail"
+      component={ChargeDetailScreen}
       options={({ route }) => ({
         title: `Détail de ${route.params.description}`,
       })}

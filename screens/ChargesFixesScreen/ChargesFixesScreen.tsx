@@ -18,18 +18,20 @@ import { Info } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
+import { useChargesFixesConfigs } from "hooks/useChargesFixesConfigs";
+import dayjs from "dayjs";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
-    chargesFixes,
     isLoadingComptes,
-    updateChargeFixe,
-    deleteChargeFixe,
-    currentMonthData,
-    addChargeFixe,
-    updateChargeFixePayeur,
-    updateChargeFixeDay,
-  } = useComptes();
+    chargesFixesConfigs,
+    loadConfigs,
+    updateChargeFixeConfig,
+    updateChargeFixeConfigPayeur,
+    updateChargeFixeConfigDay,
+    addChargeFixeConfig,
+    deleteChargeFixeConfig,
+  } = useChargesFixesConfigs();
 
   const { user } = useAuth();
   const toast = useToast();
@@ -48,6 +50,10 @@ const ChargesFixesScreen: React.FC = () => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
+
+  useEffect(() => {
+    loadConfigs();
+  }, [loadConfigs]);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -71,45 +77,44 @@ const ChargesFixesScreen: React.FC = () => {
   const handleChargeUpdate = useCallback(
     async (id: string, newAmount: number) => {
       try {
-        await updateChargeFixe(id, newAmount);
+        await updateChargeFixeConfig(id, newAmount);
         toast.success("Succès", "Charge mise à jour");
       } catch (error) {
         toast.error("Erreur", "Échec de la mise à jour des charges");
         console.error("Erreur Charges:", error);
       }
     },
-    [updateChargeFixe],
+    [updateChargeFixeConfig],
   );
 
   const handleChargeUpdatePayeur = useCallback(
     async (chargeId: string, newPayeurUid: string) => {
       try {
-        await updateChargeFixePayeur(chargeId, newPayeurUid);
+        await updateChargeFixeConfigPayeur(chargeId, newPayeurUid);
         toast.success("Succès", "Le payeur a été mis à jour");
       } catch (error) {
         toast.error("Erreur", "Échec de la mise à jour du payeur");
         console.error("Erreur update Payeur:", error);
       }
     },
-    [updateChargeFixePayeur],
+    [updateChargeFixeConfigPayeur],
   );
 
   const handleChargeUpdateDay = useCallback(
     async (chargeId: string, newDay: number) => {
       try {
-        await updateChargeFixeDay(chargeId, newDay);
+        await updateChargeFixeConfigDay(chargeId, newDay);
         toast.success("Succès", "Le jour de prélèvement a été mis à jour");
       } catch (error) {
         toast.error("Erreur", "Échec de la mise à jour du jour de prélèvement");
         console.error("Erreur update Day:", error);
       }
     },
-    [updateChargeFixeDay],
+    [updateChargeFixeConfigDay],
   );
 
   const handleAddDepense = useCallback(async () => {
-    if (!currentMonthData) return;
-    const montantMensuel = parseFloat(montant.replace(",", "."));
+    const montantTotal = parseFloat(montant.replace(",", "."));
 
     if (!payeur) {
       toast.warning(
@@ -127,7 +132,7 @@ const ChargesFixesScreen: React.FC = () => {
       return;
     }
 
-    if (isNaN(montantMensuel) || montantMensuel <= 0) {
+    if (isNaN(montantTotal) || montantTotal <= 0) {
       toast.warning(
         "Erreur de saisie",
         "Veuillez saisir un montant supérieur à 0 pour la charge.",
@@ -146,15 +151,20 @@ const ChargesFixesScreen: React.FC = () => {
     setIsSubmitting(true);
 
     const chargeFixeToAdd: Omit<IChargeFixe, "id" | "householdId"> = {
-      nom: nom.trim(),
-      montantMensuel,
+      description: nom.trim(),
+      montantTotal,
       payeur: payeur,
-      moisAnnee: currentMonthData.moisAnnee,
+      beneficiaires: householdUsers.map((u) => u.id),
+      moisAnnee: dayjs().format("YYYY-MM"),
       jourPrelevementMensuel: jourPrelevement,
+      dateComptes: new Date().toISOString(),
+      dateStatistiques: new Date().toISOString(),
+      type: "fixe",
+      scope: householdUsers.length > 1 ? "partage" : "solo",
     };
 
     try {
-      await addChargeFixe(chargeFixeToAdd);
+      await addChargeFixeConfig(chargeFixeToAdd);
       setNom("");
       setMontant("");
       setPayeur(user?.id || null);
@@ -166,15 +176,7 @@ const ChargesFixesScreen: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [
-    nom,
-    montant,
-    payeur,
-    user,
-    jourPrelevement,
-    addChargeFixe,
-    currentMonthData,
-  ]);
+  }, [nom, montant, payeur, user, jourPrelevement, addChargeFixeConfig]);
 
   const selectPayeur = (uid: string) => {
     setPayeur(uid);
@@ -269,13 +271,13 @@ const ChargesFixesScreen: React.FC = () => {
         </View>
       )}
       <FlatList
-        data={chargesFixes}
+        data={chargesFixesConfigs}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ChargeFixeItem
             charge={item}
             onUpdate={handleChargeUpdate}
-            onDelete={deleteChargeFixe}
+            onDelete={deleteChargeFixeConfig}
             householdUsers={householdUsers}
             onUpdatePayeur={handleChargeUpdatePayeur}
             onUpdateDay={handleChargeUpdateDay}

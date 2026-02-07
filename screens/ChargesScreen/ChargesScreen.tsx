@@ -8,18 +8,18 @@ import {
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
-import { IChargeVariable, RootStackNavigationProp } from "@/types";
+import { IChargeFixe, IChargeVariable, RootStackNavigationProp } from "@/types";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
-import { styles } from "./ChargesVariablesScreen.style";
+import { styles } from "./ChargesScreen.style";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
-import ChargeVariableItem from "./ChargeVariableItem/ChargeVariableItem";
+import ChargeItem from "./ChargeItem/ChargeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useNavigation } from "@react-navigation/native";
 import { useCategories } from "../../hooks/useCategories";
-import { CategoryPickerModal } from "../ChargeVariableDetail/EditChargeVariableForm/CategoryPickerModal/CategoryPickerModal";
-import { PayeurPickerModal } from "../ChargeVariableDetail/EditChargeVariableForm/PayeurPickerModal/PayeurPickerModal";
-import { BeneficiariesSelector } from "../ChargeVariableDetail/EditChargeVariableForm/BeneficiariesSelector/BeneficiariesSelector";
+import { CategoryPickerModal } from "../ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
+import { PayeurPickerModal } from "../ChargeDetail/EditChargeForm/PayeurPickerModal/PayeurPickerModal";
+import { BeneficiariesSelector } from "../ChargeDetail/EditChargeForm/BeneficiariesSelector/BeneficiariesSelector";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { ChevronsUpDown } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
@@ -30,20 +30,16 @@ import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 
 dayjs.locale("fr");
 
-interface GroupedChargesVariables {
+interface GroupedCharges {
   date: string;
-  charges: IChargeVariable[];
+  charges: (IChargeVariable | IChargeFixe)[];
 }
 
-const ChargesVariablesScreen: React.FC = () => {
+const ChargesScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
 
-  const {
-    chargesVariables,
-    isLoadingComptes,
-    addChargeVariable,
-    currentMonthData,
-  } = useComptes();
+  const { charges, isLoadingComptes, addChargeVariable, currentMonthData } =
+    useComptes();
   const { user } = useAuth();
   const toast = useToast();
 
@@ -53,7 +49,7 @@ const ChargesVariablesScreen: React.FC = () => {
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
   const { categories, getCategoryLabel, defaultCategory } = useCategories();
-  const balances = useMultiUserBalance(chargesVariables, householdUsers);
+  const balances = useMultiUserBalance(charges, householdUsers);
 
   const [description, setDescription] = useState("");
   const [montant, setMontant] = useState("");
@@ -96,8 +92,8 @@ const ChargesVariablesScreen: React.FC = () => {
   }, [categories]);
 
   const handleOpenDetail = useCallback(
-    (charge: IChargeVariable) => {
-      navigation.navigate("ChargeVariableDetail", {
+    (charge: IChargeVariable | IChargeFixe) => {
+      navigation.navigate("ChargeDetail", {
         chargeId: charge.id,
         description: charge.description,
       });
@@ -110,7 +106,7 @@ const ChargesVariablesScreen: React.FC = () => {
   }, [balances]);
 
   const groupedCharges = useMemo(() => {
-    let filtered = chargesVariables.slice();
+    let filtered = charges.slice();
 
     if (filterPayeur) {
       filtered = filtered.filter((c) => c.payeur === filterPayeur);
@@ -129,7 +125,9 @@ const ChargesVariablesScreen: React.FC = () => {
     }
 
     if (filterCategory) {
-      filtered = filtered.filter((c) => c.categorie === filterCategory);
+      filtered = filtered.filter(
+        (c) => c.type === "variable" && c.categorie === filterCategory,
+      );
     }
 
     const sortedCharges = filtered.sort(
@@ -147,10 +145,10 @@ const ChargesVariablesScreen: React.FC = () => {
         acc[dateKey].push(charge);
         return acc;
       },
-      {} as Record<string, IChargeVariable[]>,
+      {} as Record<string, (IChargeVariable | IChargeFixe)[]>,
     );
 
-    const groupedArray: GroupedChargesVariables[] = [];
+    const groupedArray: GroupedCharges[] = [];
     const sortedDateKeys = Object.keys(groupedData).sort(
       (a, b) => dayjs(b).valueOf() - dayjs(a).valueOf(),
     );
@@ -163,7 +161,7 @@ const ChargesVariablesScreen: React.FC = () => {
     });
 
     return groupedArray;
-  }, [chargesVariables, filterPayeur, filterMois, filterAnnee, filterCategory]);
+  }, [charges, filterPayeur, filterMois, filterAnnee, filterCategory]);
 
   const handleAddDepense = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
@@ -204,7 +202,8 @@ const ChargesVariablesScreen: React.FC = () => {
       moisAnnee: dayjs(selectedDateComptes).format("YYYY-MM"),
       categorie: selectedCategorie,
       type: "variable",
-      scope: ((beneficiairesUid.length > 1) && !isSoloHousehold) ? "partage" : "solo",
+      scope:
+        beneficiairesUid.length > 1 && !isSoloHousehold ? "partage" : "solo",
     };
 
     try {
@@ -569,7 +568,7 @@ const ChargesVariablesScreen: React.FC = () => {
             <View key={group.date}>
               <Text style={styles.dateSeparator}>{group.date}</Text>
               {group.charges.map((charge) => (
-                <ChargeVariableItem
+                <ChargeItem
                   key={charge.id}
                   charge={charge}
                   householdUsers={householdUsers}
@@ -596,7 +595,7 @@ const ChargesVariablesScreen: React.FC = () => {
         }}
         selectedMonth={filterMois}
         selectedYear={filterAnnee}
-        chargesVariables={chargesVariables}
+        charges={charges}
       />
 
       <PayeurPickerModal
@@ -682,4 +681,4 @@ const ChargesVariablesScreen: React.FC = () => {
   );
 };
 
-export default ChargesVariablesScreen;
+export default ChargesScreen;

@@ -105,10 +105,10 @@ const HomeScreen: React.FC = () => {
     return () => unsubscribes.forEach((unsub) => unsub());
   }, [user?.households]);
 
-  const { isLoadingComptes, currentMonthData, chargesVariables } = useComptes();
+  const { isLoadingComptes, currentMonthData, charges } = useComptes();
   const { monthsData, canGoNext, canGoPrevious, availableMonths } =
     useMemo(() => {
-      if (!chargesVariables)
+      if (!charges)
         return {
           monthsData: [],
           canGoNext: false,
@@ -119,8 +119,9 @@ const HomeScreen: React.FC = () => {
       const isSoloMode = user.activeHouseholdId === user.id;
 
       const allMonthsSet = new Set<string>();
-      chargesVariables.forEach((c) => {
-        if (c.categorie === "cat_remboursement") return;
+      charges.forEach((c) => {
+        if (c.type === "variable" && c.categorie === "cat_remboursement")
+          return;
         const chargeMoisAnnee =
           c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
         allMonthsSet.add(chargeMoisAnnee);
@@ -135,8 +136,9 @@ const HomeScreen: React.FC = () => {
       const displayMonths = sortedMonths.slice(startIndex, endIndex);
 
       const monthsData = displayMonths.reverse().map((monthKey) => {
-        const monthCharges = chargesVariables.filter((c) => {
-          if (c.categorie === "cat_remboursement") return false;
+        const monthCharges = charges.filter((c) => {
+          if (c.type === "variable" && c.categorie === "cat_remboursement")
+            return false;
           const chargeMoisAnnee =
             c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
           return chargeMoisAnnee === monthKey;
@@ -180,7 +182,7 @@ const HomeScreen: React.FC = () => {
         canGoPrevious,
         availableMonths: sortedMonths,
       };
-    }, [chargesVariables, user?.activeHouseholdId, user?.id, monthOffset]);
+    }, [charges, user?.activeHouseholdId, user?.id, monthOffset]);
 
   const maxTotal = useMemo(() => {
     return Math.max(...monthsData.map((d) => d.total), 1);
@@ -348,7 +350,7 @@ const HomeScreen: React.FC = () => {
             <View style={styles.actionsContainer}>
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
-                onPress={() => navigation.navigate("ChargesVariables")}
+                onPress={() => navigation.navigate("Charges")}
               >
                 <Text style={styles.actionText}>Charges variables</Text>
               </TouchableOpacity>
@@ -387,9 +389,9 @@ const HomeScreen: React.FC = () => {
 
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
-                onPress={() => navigation.navigate("ChargesVariables")}
+                onPress={() => navigation.navigate("Charges")}
               >
-                <Text style={styles.actionText}>Charges variables</Text>
+                <Text style={styles.actionText}>Dépenses</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

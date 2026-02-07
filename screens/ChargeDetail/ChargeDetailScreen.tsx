@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
+  IChargeFixe,
   IChargeVariable,
   RootStackNavigationProp,
   RootStackRouteProp,
 } from "../../types";
 import dayjs from "dayjs";
-import { styles } from "./ChargeVariableDetailScreen.style";
+import { styles } from "./ChargeDetailScreen.style";
 import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -20,17 +21,17 @@ import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 import { useComptes } from "hooks/useComptes";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { UserDisplayCard } from "./UserDisplayCard/UserDisplayCard";
-import { EditChargeVariableForm } from "./EditChargeVariableForm/EditChargeVariableForm";
+import { EditChargeVariableForm } from "./EditChargeForm/EditChargeForm";
 import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
 import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
 dayjs.locale("fr");
 
-type ChargeVariableDetailRouteProp = RootStackRouteProp<"ChargeVariableDetail">;
+type ChargeDetailRouteProp = RootStackRouteProp<"ChargeDetail">;
 
 const ChargeVariableDetailScreen: React.FC = () => {
-  const route = useRoute<ChargeVariableDetailRouteProp>();
+  const route = useRoute<ChargeDetailRouteProp>();
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user } = useAuth();
   const toast = useToast();
@@ -41,20 +42,16 @@ const ChargeVariableDetailScreen: React.FC = () => {
 
   const { chargeId } = route.params;
 
-  const {
-    chargesVariables,
-    isLoadingComptes,
-    updateChargeVariable,
-    deleteChargeVariable,
-  } = useComptes();
+  const { charges, isLoadingComptes, updateCharge, deleteCharge } =
+    useComptes();
   const { householdUsers } = useHouseholdUsers();
   const { categories, defaultCategory } = useCategories();
 
-  const initialCharge = chargesVariables.find((c) => c.id === chargeId);
+  const initialCharge = charges.find((c) => c.id === chargeId);
 
-  const [charge, setCharge] = useState<IChargeVariable | undefined>(
-    initialCharge,
-  );
+  const [charge, setCharge] = useState<
+    (IChargeVariable | IChargeFixe) | undefined
+  >(initialCharge);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -83,7 +80,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     charge?.dateComptes ? new Date(charge.dateComptes) : new Date(),
   );
   const [editCategorie, setEditCategorie] = useState<string>(
-    charge?.categorie || "",
+    charge?.type === "variable" ? charge?.categorie : "cat_autre",
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
@@ -119,10 +116,11 @@ const ChargeVariableDetailScreen: React.FC = () => {
       setEditBeneficiairesUid(initialCharge.beneficiaires);
 
       const categoryExists = categories.some(
-        (c) => c.id === initialCharge.categorie,
+        (c) =>
+          initialCharge.type === "variable" && c.id === initialCharge.categorie,
       );
 
-      if (categoryExists) {
+      if (categoryExists && initialCharge.type === "variable") {
         setEditCategorie(initialCharge.categorie);
       } else if (defaultCategory) {
         setEditCategorie(defaultCategory.id);
@@ -177,18 +175,22 @@ const ChargeVariableDetailScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const updatedData: Partial<IChargeVariable> = {
+    const updatedDataBase = {
       description: editDescription.trim(),
       montantTotal,
       payeur: editPayeurUid,
       beneficiaires: editBeneficiairesUid,
       dateStatistiques: editDateStatistiques.toISOString(),
       dateComptes: editDateComptes.toISOString(),
-      categorie: editCategorie,
     };
 
+    const updatedData: Partial<IChargeVariable & IChargeFixe> = {
+      ...updatedDataBase,
+      ...(charge.type === "variable" ? { categorie: editCategorie } : {}),
+    } as Partial<IChargeVariable & IChargeFixe>;
+
     try {
-      await updateChargeVariable(charge.id, updatedData);
+      await updateCharge(charge.id, updatedData);
       toast.success("Succès", "Dépense modifiée.");
       setIsEditing(false);
     } catch (error) {
@@ -204,7 +206,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     editBeneficiairesUid,
     editDateStatistiques,
     editDateComptes,
-    updateChargeVariable,
+    updateCharge,
     editCategorie,
   ]);
 
@@ -258,7 +260,9 @@ const ChargeVariableDetailScreen: React.FC = () => {
 
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
-  const currentCategoryData = categories.find((c) => c.id === charge.categorie);
+  const currentCategoryData = categories.find(
+    (c) => charge.type === "variable" && c.id === charge.categorie,
+  );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
 
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
@@ -411,7 +415,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
             isDestructive={true}
             onConfirm={async () => {
               setIsDeleteModalVisible(false);
-              deleteChargeVariable(charge.id);
+              deleteCharge(charge.id);
             }}
             onCancel={() => setIsDeleteModalVisible(false)}
           />

@@ -1,15 +1,15 @@
-import { IChargeVariable, IUser } from "@/types";
+import { IChargeFixe, IChargeVariable, IUser } from "@/types";
 import { useMemo } from "react";
 
 export const useMultiUserBalance = (
-  chargesVariables: IChargeVariable[],
-  householdUsers: IUser[]
+  charges: (IChargeVariable | IChargeFixe)[],
+  householdUsers: IUser[],
 ) => {
   return useMemo(() => {
     const balances: Record<string, number> = {};
     householdUsers.forEach((u) => (balances[u.id] = 0));
 
-    chargesVariables.forEach((charge) => {
+    charges.forEach((charge) => {
       const montant = charge.montantTotal;
       const nbBeneficiaires = charge.beneficiaires.length;
       if (nbBeneficiaires === 0) return;
@@ -28,5 +28,5 @@ export const useMultiUserBalance = (
     });
 
     return balances;
-  }, [chargesVariables, householdUsers]);
+  }, [charges, householdUsers]);
 };

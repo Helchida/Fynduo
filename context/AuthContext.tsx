@@ -12,7 +12,7 @@ import {
   signOut,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { IUser } from "@/types";
 import * as DB from "../services/firebase/db";
 import { IAuthContext, IUserContext } from "./types/AuthContext.type";

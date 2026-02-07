@@ -1,15 +1,15 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { styles } from "./ChargesVariablesSection.style";
-import { ChargesVariablesSectionProps } from "./ChargesVariablesSection.type";
+import { styles } from "./ChargesSection.style";
+import { ChargesSectionProps } from "./ChargesSection.type";
 
-const ChargesVariablesSection: React.FC<ChargesVariablesSectionProps> = ({
+const ChargesSection: React.FC<ChargesSectionProps> = ({
   virements,
   getDisplayName,
 }) => {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>⚖️ Charges Variables (Trésorerie)</Text>
+      <Text style={styles.sectionTitle}>⚖️ Charges (Dépenses)</Text>
 
       <View style={styles.container}>
         {virements.length > 0 ? (
@@ -25,7 +25,7 @@ const ChargesVariablesSection: React.FC<ChargesVariablesSectionProps> = ({
         ) : (
           <View style={styles.noDetteBadge}>
             <Text style={styles.noDetteText}>
-              ✅ Tout est équilibré sur les variables.
+              ✅ Tout est équilibré sur les dépenses.
             </Text>
           </View>
         )}
@@ -34,4 +34,4 @@ const ChargesVariablesSection: React.FC<ChargesVariablesSectionProps> = ({
   );
 };
 
-export default ChargesVariablesSection;
+export default ChargesSection;

@@ -24,7 +24,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   onUpdatePayeur,
   onUpdateDay,
 }) => {
-  const [amount, setAmount] = useState(charge.montantMensuel.toString());
+  const [amount, setAmount] = useState(charge.montantTotal.toString());
   const [isSaving, setIsSaving] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -40,7 +40,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       return;
     }
 
-    if (newAmount !== charge.montantMensuel) {
+    if (newAmount !== charge.montantTotal) {
       setIsSaving(true);
       try {
         await onUpdate(charge.id, newAmount);
@@ -50,7 +50,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         setIsSaving(false);
       }
     }
-  }, [amount, charge.montantMensuel, charge.id, onUpdate]);
+  }, [amount, charge.montantTotal, charge.id, onUpdate]);
 
   const selectPayeur = useCallback(
     async (newPayeur: IUser) => {
@@ -88,12 +88,12 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   );
 
   const isButtonDisabled =
-    parseFloat(amount) === charge.montantMensuel || isSaving;
+    parseFloat(amount) === charge.montantTotal || isSaving;
 
   return (
     <View style={styles.chargeItem}>
       <View style={styles.inputRow}>
-        <Text style={styles.chargeName}>{charge.nom}</Text>
+        <Text style={styles.chargeName}>{charge.description}</Text>
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => setIsDeleteModalVisible(true)}
@@ -203,7 +203,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       <ConfirmModal
         visible={isDeleteModalVisible}
         title="Supprimer la charge"
-        message={`Voulez-vous vraiment supprimer "${charge.nom}" ? Cette action est irréversible.`}
+        message={`Voulez-vous vraiment supprimer "${charge.description}" ? Cette action est irréversible.`}
         confirmText="Supprimer"
         isDestructive={true}
         onConfirm={async () => {

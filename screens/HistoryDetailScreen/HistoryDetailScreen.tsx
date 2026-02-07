@@ -6,6 +6,7 @@ import {
   IUser,
   IResultatsCalcul,
   IHistoricalData,
+  IChargeVariable,
 } from "../../types";
 import { useCalculs } from "../../hooks/useCalculs";
 import * as DB from "../../services/firebase/db";
@@ -29,7 +30,7 @@ const HistoryDetailScreen: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [historicalData, setHistoricalData] = useState<IHistoricalData | null>(
-    null
+    null,
   );
   const [householdUsers, setHouseholdUsers] = useState<IUser[]>([]);
 
@@ -49,7 +50,7 @@ const HistoryDetailScreen: React.FC = () => {
 
         const compteMensuel = await DB.getCompteMensuel(
           user.activeHouseholdId,
-          moisAnnee
+          moisAnnee,
         );
 
         if (!compteMensuel) {
@@ -57,16 +58,19 @@ const HistoryDetailScreen: React.FC = () => {
           return;
         }
 
-        const variables = await DB.getChargesVariables(user.activeHouseholdId);
+        const variables = await DB.getChargesByType<IChargeVariable>(
+          user.activeHouseholdId,
+          "variable",
+        );
 
         setHistoricalData({
-          compte: compteMensuel,
-          chargesVariables: variables,
+          compteMensuel: compteMensuel,
+          charges: variables,
         });
       } catch (error) {
         console.error(
           `Erreur lors du chargement des détails pour ${moisAnnee}:`,
-          error
+          error,
         );
         setHistoricalData(null);
       } finally {
@@ -77,10 +81,9 @@ const HistoryDetailScreen: React.FC = () => {
   }, [moisAnnee, user.activeHouseholdId]);
 
   const calculs: IResultatsCalcul = useCalculs(
-    historicalData?.compte || null,
-    historicalData?.compte?.chargesFixesSnapshot || [],
-    historicalData?.chargesVariables || [],
-    currentUserId
+    historicalData?.compteMensuel || null,
+    historicalData?.charges || [],
+    currentUserId,
   );
 
   if (loading || householdUsers.length === 0 || !historicalData) {
@@ -95,35 +98,37 @@ const HistoryDetailScreen: React.FC = () => {
     householdUsers.find((u) => u.id !== currentUserId)?.displayName ||
     currentUserDisplay;
 
-  const { compte } = historicalData;
+  const { compteMensuel } = historicalData;
   const { totalChargesFixes, soldeFinal, detteLoyer, detteChargesFixes } =
     calculs;
 
-  const aplSomme = Object.values(compte.apportsAPL).reduce(
+  const aplSomme = Object.values(compteMensuel.apportsAPL).reduce(
     (sum, apl) => sum + apl,
-    0
+    0,
   );
-  const montantAVerserAgence = compte.loyerTotal - aplSomme;
+  const montantAVerserAgence = compteMensuel.loyerTotal - aplSomme;
   const loyerPayeurName = getDisplayNameUserInHousehold(
-    compte.loyerPayeurUid,
-    householdUsers
+    compteMensuel.loyerPayeurUid,
+    householdUsers,
   );
 
-  const formattedDateBuild = dayjs(compte.moisAnnee, "YYYY-MM").format(
-    "MMMM YYYY"
+  const formattedDateBuild = dayjs(compteMensuel.moisAnnee, "YYYY-MM").format(
+    "MMMM YYYY",
   );
 
   const formattedDate =
     formattedDateBuild.charAt(0).toUpperCase() + formattedDateBuild.slice(1);
 
   const detteVersAutre =
-    compte.dettes.find(
-      (d) => d.debiteurUid === currentUserId && d.creancierUid !== currentUserId
+    compteMensuel.dettes.find(
+      (d) =>
+        d.debiteurUid === currentUserId && d.creancierUid !== currentUserId,
     )?.montant ?? 0;
 
   const detteParAutre =
-    compte.dettes.find(
-      (d) => d.debiteurUid !== currentUserId && d.creancierUid === currentUserId
+    compteMensuel.dettes.find(
+      (d) =>
+        d.debiteurUid !== currentUserId && d.creancierUid === currentUserId,
     )?.montant ?? 0;
 
   const soldeVariableNet = detteVersAutre - detteParAutre;
@@ -139,16 +144,16 @@ const HistoryDetailScreen: React.FC = () => {
         <View style={styles.chargeRow}>
           <Text style={styles.chargeDescription}>• Loyer total</Text>
           <Text style={styles.chargeMontant}>
-            {compte.loyerTotal.toFixed(2)} €
+            {compteMensuel.loyerTotal.toFixed(2)} €
           </Text>
         </View>
-        {Object.keys(compte.apportsAPL).map((uid) => (
+        {Object.keys(compteMensuel.apportsAPL).map((uid) => (
           <View key={uid} style={styles.chargeRow}>
             <Text style={styles.chargeDescription}>
               • APL {getDisplayNameUserInHousehold(uid, householdUsers)}
             </Text>
             <Text style={styles.chargeMontant}>
-              {compte.apportsAPL[uid].toFixed(2)} €
+              {compteMensuel.apportsAPL[uid].toFixed(2)} €
             </Text>
           </View>
         ))}
@@ -188,18 +193,17 @@ const HistoryDetailScreen: React.FC = () => {
         <Text style={styles.sectionTitle}>
           ⚙️ Charges fixes (Total: {totalChargesFixes.toFixed(2)} €)
         </Text>
-        {compte.chargesFixesSnapshot &&
-          compte.chargesFixesSnapshot.map((charge, index) => (
+        {compteMensuel.chargesFixesSnapshot &&
+          compteMensuel.chargesFixesSnapshot.map((charge, index) => (
             <View key={index} style={styles.chargeRow}>
-              <Text style={styles.chargeDescription}>• {charge.nom}</Text>
+              <Text style={styles.chargeDescription}>
+                • {charge.description}
+              </Text>
               <Text style={styles.chargeMontant}>
-                {charge.montantMensuel.toFixed(2)} €
+                {charge.montantTotal.toFixed(2)} €
               </Text>
               <Text style={styles.chargePayeur}>
-                {getDisplayNameUserInHousehold(
-                  charge.payeur,
-                  householdUsers
-                )}
+                {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
               </Text>
             </View>
           ))}
@@ -226,19 +230,13 @@ const HistoryDetailScreen: React.FC = () => {
 
       <View style={[styles.section]}>
         <Text style={styles.sectionTitle}>🎯 Charges variables</Text>
-        {compte.dettes.map((dette, index) => (
+        {compteMensuel.dettes.map((dette, index) => (
           <Text key={index} style={styles.finalDetail}>
             Dette{" "}
-            {getDisplayNameUserInHousehold(
-              dette.debiteurUid,
-              householdUsers
-            )}{" "}
+            {getDisplayNameUserInHousehold(dette.debiteurUid, householdUsers)}{" "}
             vers{" "}
-            {getDisplayNameUserInHousehold(
-              dette.creancierUid,
-              householdUsers
-            )}
-            : {dette.montant.toFixed(2)} €
+            {getDisplayNameUserInHousehold(dette.creancierUid, householdUsers)}:{" "}
+            {dette.montant.toFixed(2)} €
           </Text>
         ))}
 

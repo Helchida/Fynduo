@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     elevation: 1,
   },
-    cardAmount: {
+  cardAmount: {
     fontSize: 17,
     fontWeight: "600",
     minWidth: 70,

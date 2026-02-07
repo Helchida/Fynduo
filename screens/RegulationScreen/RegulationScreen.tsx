@@ -24,7 +24,7 @@ import LoyerSection from "./LoyerSection/LoyerSection";
 import ChargesFixesSection from "./ChargesFixesSection/ChargesFixesSection";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
-import ChargesVariablesSection from "./ChargesVariablesSection/ChargesVariablesSection";
+import ChargesSection from "./ChargesSection/ChargesSection";
 import { useMultiUserBalance } from "hooks/useMultiUserBalance";
 import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 import * as DB from "../../services/firebase/db";
@@ -46,6 +46,7 @@ const RegulationScreen: React.FC = () => {
     currentMonthData,
     chargesFixes,
     chargesVariables,
+    charges,
     cloturerMois,
     updateChargeFixe,
     addChargeFixe,
@@ -53,23 +54,37 @@ const RegulationScreen: React.FC = () => {
     isLoadingComptes,
   } = useComptes();
 
-  const balances = useMultiUserBalance(chargesVariables, householdUsers);
-  const suggestionsVirements = useMemo(() => {
-    return calculSimplifiedTransfers(balances);
-  }, [balances]);
-
   const [loyerConfig, setLoyerConfig] = useState<ILoyerConfig | null>(null);
   const [isLoadingLoyerConfig, setIsLoadingLoyerConfig] = useState(true);
   const [loyerTotal, setLoyerTotal] = useState("");
   const [apportsAPLForm, setApportsAPLForm] = useState<Record<string, string>>(
-    {}
+    {},
   );
   const [chargesFormMap, setChargesFormMap] = useState<
     Record<string, ChargeFixeForm[]>
   >({});
-  const [dettesAjustements, setDettesAjustements] = useState<
-    Record<string, string>
-  >({});
+
+  const moisEnCoursDeCloture = currentMonthData?.moisAnnee;
+
+  const chargesPourBalanceAffichee = useMemo(() => {
+    return charges.filter((c) => {
+      if (c.type === "variable") return true;
+      return c.type === "fixe" && c.moisAnnee === moisEnCoursDeCloture;
+    });
+  }, [charges, moisEnCoursDeCloture]);
+
+  const balancesAffichees = useMultiUserBalance(
+    chargesPourBalanceAffichee,
+    householdUsers,
+  );
+  const virementsAffiches = useMemo(() => {
+    return calculSimplifiedTransfers(balancesAffichees);
+  }, [balancesAffichees]);
+
+  const balancesRegularisation = useMultiUserBalance(charges, householdUsers);
+  const virementsRegularisation = useMemo(() => {
+    return calculSimplifiedTransfers(balancesRegularisation);
+  }, [balancesRegularisation]);
 
   const moisDeLoyerAffiche = currentMonthData?.moisAnnee
     ? dayjs(currentMonthData.moisAnnee).add(1, "month").format("YYYY-MM")
@@ -96,7 +111,7 @@ const RegulationScreen: React.FC = () => {
           if (!config && householdUsers.length > 0) {
             await DB.initLoyerConfig(
               activeHouseholdId,
-              householdUsers.map((u) => u.id)
+              householdUsers.map((u) => u.id),
             );
             config = await DB.getLoyerConfig(activeHouseholdId);
           }
@@ -104,7 +119,10 @@ const RegulationScreen: React.FC = () => {
           setLoyerConfig(config);
         } catch (error) {
           console.error("Erreur chargement config loyer:", error);
-          toast.error("Erreur", "Impossible de charger la configuration du loyer.");
+          toast.error(
+            "Erreur",
+            "Impossible de charger la configuration du loyer.",
+          );
         } finally {
           setIsLoadingLoyerConfig(false);
         }
@@ -117,39 +135,48 @@ const RegulationScreen: React.FC = () => {
   }, [activeHouseholdId, householdUsers]);
 
   useEffect(() => {
-    if (
-      !loyerConfig ||
-      chargesFixes.length === 0 ||
-      householdUsers.length === 0
-    )
-      return;
+    if (householdUsers.length > 0 && charges.length > 0) {
+      const newMap: Record<string, ChargeFixeForm[]> = {};
 
-    const isInitialized = Object.keys(chargesFormMap).length > 0;
-    if (isInitialized) return;
+      householdUsers.forEach((u) => {
+        const chargesFixesDuMois = chargesFixes
+          .filter(
+            (c) =>
+              c.payeur === u.id && c.moisAnnee === currentMonthData?.moisAnnee,
+          )
+          .map(
+            (c) =>
+              ({
+                ...c,
+                montantForm: c.montantTotal.toString(),
+                isNew: false,
+              }) as ChargeFixeForm,
+          );
 
-    const initialChargesMap: Record<string, ChargeFixeForm[]> = {};
-    householdUsers.forEach((u) => {
-      const userCharges = chargesFixes
-        .filter((c) => c.payeur === u.id)
-        .map((c) => ({
-          ...c,
-          montantForm: c.montantMensuel.toString(),
-          isNew: false,
-        }));
+        newMap[u.id] = chargesFixesDuMois;
+      });
 
-      initialChargesMap[u.id] = userCharges;
-    });
-    setChargesFormMap(initialChargesMap);
-    setLoyerTotal(loyerConfig.loyerTotal.toString());
+      setChargesFormMap(newMap);
+    }
+  }, [householdUsers, charges, currentMonthData?.moisAnnee]);
 
-    const initialApl: Record<string, string> = {};
-    householdUsers.forEach((u) => {
-      const aplAmount = loyerConfig.apportsAPL[u.id] || 0;
-      initialApl[u.id] = aplAmount.toString();
-    });
-    setApportsAPLForm(initialApl);
+  useEffect(() => {
+    if (loyerConfig) {
+      if (loyerTotal === "0" || loyerTotal === "") {
+        setLoyerTotal(loyerConfig.loyerTotal.toString());
+      }
 
-  }, [loyerConfig, chargesFixes, householdUsers]);
+      if (Object.keys(apportsAPLForm).length === 0 && loyerConfig.apportsAPL) {
+        const formattedAPL: Record<string, string> = {};
+
+        Object.entries(loyerConfig.apportsAPL).forEach(([uid, montant]) => {
+          formattedAPL[uid] = montant.toString();
+        });
+
+        setApportsAPLForm(formattedAPL);
+      }
+    }
+  }, [loyerConfig]);
 
   const handleAddCharge = useCallback(
     (targetUid: string) => {
@@ -159,12 +186,17 @@ const RegulationScreen: React.FC = () => {
         id: nanoid(),
         householdId: activeHouseholdId,
         moisAnnee: currentMonthData.moisAnnee,
-        nom: `Nouvelle Charge (${getDisplayName(targetUid)})`,
-        montantMensuel: 0,
+        description: `Nouvelle Charge (${getDisplayName(targetUid)})`,
+        montantTotal: 0,
         montantForm: "0",
         payeur: targetUid,
         isNew: true,
         jourPrelevementMensuel: 1,
+        beneficiaires: householdUsers.map((u) => u.id),
+        type: "fixe",
+        scope: "partage",
+        dateStatistiques: new Date().toISOString(),
+        dateComptes: new Date().toISOString(),
       };
 
       setChargesFormMap((prev) => ({
@@ -172,7 +204,7 @@ const RegulationScreen: React.FC = () => {
         [targetUid]: [...(prev[targetUid] || []), newCharge],
       }));
     },
-    [currentMonthData, chargesFormMap, getDisplayName]
+    [currentMonthData, chargesFormMap, getDisplayName],
   );
 
   const updateChargeForm = useCallback(
@@ -180,7 +212,7 @@ const RegulationScreen: React.FC = () => {
       (id: string, field: "nom" | "montantForm", value: string) => {
         const updater = (prevCharges: ChargeFixeForm[]) =>
           prevCharges.map((charge) =>
-            charge.id === id ? { ...charge, [field]: value } : charge
+            charge.id === id ? { ...charge, [field]: value } : charge,
           );
 
         setChargesFormMap((prev) => ({
@@ -188,7 +220,7 @@ const RegulationScreen: React.FC = () => {
           [targetUid]: updater(prev[targetUid] || []),
         }));
       },
-    []
+    [],
   );
 
   const handleDeleteCharge = useCallback(
@@ -204,7 +236,7 @@ const RegulationScreen: React.FC = () => {
         [targetUid]: prev[targetUid].filter((c) => c.id !== id),
       }));
     },
-    [chargesFormMap, deleteChargeFixe]
+    [chargesFormMap, deleteChargeFixe],
   );
 
   const updateLoyerTotal = (text: string) =>
@@ -217,14 +249,13 @@ const RegulationScreen: React.FC = () => {
     }));
   };
 
-  const updateDettesAjustements = (key: string, text: string) => {
-    setDettesAjustements((prev) => ({
-      ...prev,
-      [key]: text.replace(",", "."),
-    }));
-  };
-
-  if (isLoadingComptes || isLoadingLoyerConfig || !currentMonthData || !loyerConfig || householdUsers.length < 2) {
+  if (
+    isLoadingComptes ||
+    isLoadingLoyerConfig ||
+    !currentMonthData ||
+    !loyerConfig ||
+    householdUsers.length < 2
+  ) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
@@ -242,19 +273,19 @@ const RegulationScreen: React.FC = () => {
     if (isNaN(loyerNum) || loyerNum <= 0) {
       return toast.error(
         "Données invalides",
-        "Le montant du loyer doit être supérieur à 0."
+        "Le montant du loyer doit être supérieur à 0.",
       );
     }
 
     const allChargesForm = Object.values(chargesFormMap).flat();
 
     const hasEmptyChargeName = allChargesForm.some(
-      (c) => !c.nom || c.nom.trim().length === 0
+      (c) => !c.description || c.description.trim().length === 0,
     );
     if (hasEmptyChargeName) {
       return toast.error(
         "Données manquantes",
-        "Toutes les charges doivent avoir une description."
+        "Toutes les charges doivent avoir une description.",
       );
     }
 
@@ -265,7 +296,7 @@ const RegulationScreen: React.FC = () => {
     if (hasInvalidChargeAmount) {
       return toast.error(
         "Données invalides",
-        "Les montants des charges doivent être supérieur à 0."
+        "Les montants des charges doivent être supérieur à 0.",
       );
     }
 
@@ -276,22 +307,27 @@ const RegulationScreen: React.FC = () => {
           .map((charge) =>
             addChargeFixe({
               moisAnnee: currentMonthData.moisAnnee,
-              nom: charge.nom || `Charge ajoutée`,
-              montantMensuel: parseFloat(charge.montantForm) || 0,
+              description: charge.description || `Charge ajoutée`,
+              montantTotal: parseFloat(charge.montantForm) || 0,
               payeur: charge.payeur,
               jourPrelevementMensuel: charge.jourPrelevementMensuel || 1,
-            })
+              beneficiaires: householdUsers.map((u) => u.id),
+              type: "fixe",
+              scope: "partage",
+              dateStatistiques: new Date().toISOString(),
+              dateComptes: new Date().toISOString(),
+            }),
           ),
         ...allChargesForm
           .filter((c) => !c.isNew)
           .map((charge) =>
-            updateChargeFixe(charge.id, parseFloat(charge.montantForm) || 0)
+            updateChargeFixe(charge.id, parseFloat(charge.montantForm) || 0),
           ),
       ]);
 
       const chargesFixesSnapshot = allChargesForm.map((charge) => ({
-        nom: charge.nom,
-        montantMensuel: parseFloat(charge.montantForm) || 0,
+        description: charge.description,
+        montantTotal: parseFloat(charge.montantForm) || 0,
         payeur: charge.payeur,
       }));
 
@@ -302,7 +338,7 @@ const RegulationScreen: React.FC = () => {
 
       const dettesToSubmit: IDette[] = [];
 
-      suggestionsVirements.forEach((v) => {
+      virementsAffiches.forEach((v) => {
         dettesToSubmit.push({
           debiteurUid: v.de,
           creancierUid: v.a,
@@ -310,38 +346,21 @@ const RegulationScreen: React.FC = () => {
         });
       });
 
-      const processAjustement = (
-        debUid: string,
-        creUid: string,
-        montant: number
-      ) => {
-        if (montant <= 0) return;
-        const existing = dettesToSubmit.find(
-          (d) => d.debiteurUid === debUid && d.creancierUid === creUid
-        );
-        if (existing) {
-          existing.montant += montant;
-        } else {
-          dettesToSubmit.push({
-            debiteurUid: debUid,
-            creancierUid: creUid,
-            montant,
-          });
-        }
-      };
+      const dettesRegularisationToSubmit: IDette[] = [];
 
-      const d1to2 =
-        parseFloat(dettesAjustements[`${uid1}-${uid2}`] || "0") || 0;
-      processAjustement(uid1, uid2, d1to2);
-
-      const d2to1 =
-        parseFloat(dettesAjustements[`${uid2}-${uid1}`] || "0") || 0;
-      processAjustement(uid2, uid1, d2to1);
+      virementsRegularisation.forEach((v) => {
+        dettesRegularisationToSubmit.push({
+          debiteurUid: v.de,
+          creancierUid: v.a,
+          montant: v.montant,
+        });
+      });
 
       const dataToSubmit: IReglementData = {
         loyerTotal: parseFloat(loyerTotal) || 0,
         apportsAPL: apportsAPL,
         dettes: dettesToSubmit,
+        dettesRegularisation: dettesRegularisationToSubmit,
         loyerPayeurUid: loyerConfig.loyerPayeurUid || user.id || uid1,
         chargesFixesSnapshot: chargesFixesSnapshot,
       };
@@ -384,10 +403,10 @@ const RegulationScreen: React.FC = () => {
         handleDeleteCharge={handleDeleteCharge}
       />
 
-      <ChargesVariablesSection
-        chargesVariables={chargesVariables}
+      <ChargesSection
+        charges={chargesVariables}
         householdUsers={householdUsers}
-        virements={suggestionsVirements}
+        virements={virementsAffiches}
         getDisplayName={getDisplayName}
       />
 

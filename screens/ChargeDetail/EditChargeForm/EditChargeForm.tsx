@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { XCircle, ChevronsUpDown } from "lucide-react-native";
 import { PayeurPickerModal } from "./PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "./BeneficiariesSelector/BeneficiariesSelector";
-import { styles } from "./EditChargeVariableForm.style";
-import { EditChargeVariableFormProps } from "./EditChargeVariableForm.type";
+import { styles } from "./EditChargeForm.style";
+import { EditChargeFormProps } from "./EditChargeForm.type";
 import { CategoryPickerModal } from "./CategoryPickerModal/CategoryPickerModal";
 import { CategoryType } from "@/types";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
@@ -43,7 +43,7 @@ export const EditChargeVariableForm = ({
   setIsCategoryModalVisible,
   isCategoryModalVisible,
   categories,
-}: EditChargeVariableFormProps) => {
+}: EditChargeFormProps) => {
   const { user } = useAuth();
   if (!user) {
     return <NoAuthenticatedUser />;

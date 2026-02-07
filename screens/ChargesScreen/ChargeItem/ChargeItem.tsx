@@ -1,14 +1,15 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./ChargeVariableItem.style";
-import { ChargeVariableItemProps } from "./ChargeVariableItem.type";
+import { styles } from "./ChargeItem.style";
+import { ChargeItemProps } from "./ChargeItem.type";
 import { useCategories } from "hooks/useCategories";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
+import { DEFAULT_CATEGORIES } from "constants/categories";
 
-const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
+const ChargeItem: React.FC<ChargeItemProps> = ({
   charge,
   householdUsers,
   onPress,
@@ -26,8 +27,10 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
     householdUsers,
   );
 
-  const currentCategoryData = categories.find(
-    (cat) => cat.id === charge.categorie,
+  const currentCategoryData = categories.find((cat) =>
+    charge.type === "variable"
+      ? cat.id === charge.categorie
+      : cat.id === "cat_autre",
   );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
@@ -56,14 +59,11 @@ const ChargeVariableItem: React.FC<ChargeVariableItemProps> = ({
       </View>
 
       <View style={styles.depenseMontantContainer}>
-        <BadgeCharge
-          chargeScope={charge.scope}
-          chargeType={charge.type}
-        />
+        <BadgeCharge chargeScope={charge.scope} chargeType={charge.type} />
         <Text style={styles.depenseMontant}>{montantAffiche} €</Text>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default ChargeVariableItem;
+export default ChargeItem;

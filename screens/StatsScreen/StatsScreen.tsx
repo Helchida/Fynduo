@@ -24,7 +24,7 @@ dayjs.locale("fr");
 const { width } = Dimensions.get("window");
 
 const StatsScreen: React.FC = () => {
-  const { chargesVariables } = useComptes();
+  const { charges } = useComptes();
   const { categories } = useCategories();
   const { user } = useAuth();
   const { householdUsers } = useHouseholdUsers();
@@ -46,7 +46,7 @@ const StatsScreen: React.FC = () => {
   const referenceDate = period === "annee" ? selectedYear : selectedMonth;
 
   const { statsParCategorie, total } = useStats(
-    chargesVariables,
+    charges,
     categories,
     period,
     referenceDate,
@@ -55,7 +55,7 @@ const StatsScreen: React.FC = () => {
   );
 
   const filteredCharges = useMemo(() => {
-    return chargesVariables.filter((c) => {
+    return charges.filter((c) => {
       if (period === "tout") return true;
 
       const chargeMoisAnnee =
@@ -65,12 +65,12 @@ const StatsScreen: React.FC = () => {
       if (period === "annee") return chargeMoisAnnee.startsWith(referenceDate);
       return true;
     });
-  }, [chargesVariables, period, referenceDate]);
+  }, [charges, period, referenceDate]);
 
   const chargesByCategory = useMemo(() => {
-    const grouped: Record<string, typeof chargesVariables> = {};
+    const grouped: Record<string, typeof charges> = {};
     filteredCharges.forEach((charge) => {
-      const catId = charge.categorie || "cat_autre";
+      const catId = charge.type === "variable" ? charge.categorie : "cat_autre";
       if (!grouped[catId]) grouped[catId] = [];
       grouped[catId].push(charge);
     });
@@ -324,7 +324,7 @@ const StatsScreen: React.FC = () => {
         selectedYear={period === "annee" ? selectedYear : null}
         onSelectMonth={handleSelectMonth}
         onSelectYear={handleSelectYear}
-        chargesVariables={chargesVariables}
+        charges={charges}
         mode={period === "mois" ? "month" : "year"}
       />
     </ScrollView>

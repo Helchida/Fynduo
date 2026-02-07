@@ -8,7 +8,7 @@ import { styles } from "./SummaryRegulationScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const SummaryRegulationScreen: React.FC = () => {
-  const { currentMonthData, isLoadingComptes, chargesVariables } = useComptes();
+  const { currentMonthData, isLoadingComptes, charges } = useComptes();
 
   const { user } = useAuth();
 
@@ -24,12 +24,7 @@ const SummaryRegulationScreen: React.FC = () => {
   const otherUserUid = otherUser?.id || "UID_AUTRE_INCONNU";
 
   const { soldeFinal, detteLoyer, detteChargesFixes, detteChargesVariables } =
-    useCalculs(
-      currentMonthData,
-      currentMonthData?.chargesFixesSnapshot || [],
-      chargesVariables,
-      currentUserUid
-    );
+    useCalculs(currentMonthData, charges, currentUserUid);
 
   const colocataireActuel = getDisplayName(currentUserUid);
   const autreColocataire = getDisplayName(otherUserUid);
@@ -45,7 +40,7 @@ const SummaryRegulationScreen: React.FC = () => {
 
     const aplTotal = Object.values(currentMonthData.apportsAPL).reduce(
       (sum, apl) => sum + apl,
-      0
+      0,
     );
 
     const montantAVerserAgence = loyerBrut - aplTotal;
@@ -82,11 +77,11 @@ const SummaryRegulationScreen: React.FC = () => {
       "Équilibre parfait ! Aucun remboursement nécessaire entre vous.";
   } else if (estCrediteur) {
     messagePrincipal = `${autreColocataire} doit vous payer ${montantAbsolu.toFixed(
-      2
+      2,
     )} €`;
   } else {
     messagePrincipal = `Vous devez payer ${montantAbsolu.toFixed(
-      2
+      2,
     )} € à ${autreColocataire}`;
   }
 
@@ -118,7 +113,7 @@ const SummaryRegulationScreen: React.FC = () => {
 
   const aplSomme = Object.values(currentMonthData.apportsAPL).reduce(
     (sum, apl) => sum + apl,
-    0
+    0,
   );
 
   return (
