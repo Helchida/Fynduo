@@ -227,4 +227,17 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
+  refreshingBanner: {
+    backgroundColor: "#E3F2FD",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  refreshingText: {
+    color: "#1976D2",
+    fontSize: 14,
+    fontWeight: "500",
+  },
 });

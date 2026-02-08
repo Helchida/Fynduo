@@ -33,6 +33,8 @@ const ChargesFixesScreen: React.FC = () => {
     deleteChargeFixeConfig,
   } = useChargesFixesConfigs();
 
+  const { loadData } = useComptes();
+
   const { user, householdUsers } = useAuth();
   const toast = useToast();
   if (!user) {
@@ -48,13 +50,13 @@ const ChargesFixesScreen: React.FC = () => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isSoloMode = user.activeHouseholdId === user.id;
 
   useEffect(() => {
     loadConfigs();
   }, [loadConfigs]);
-
 
   const handleChargeUpdate = useCallback(
     async (id: string, newAmount: number) => {
@@ -152,13 +154,34 @@ const ChargesFixesScreen: React.FC = () => {
       setPayeur(user?.id || null);
       setShowForm(false);
       toast.success("Succès", "Charge fixe enregistrée");
+      const today = dayjs();
+      const shouldAutoAdd = jourPrelevement && today.date() >= jourPrelevement;
+
+      if (shouldAutoAdd) {
+        setIsRefreshing(true);
+        setTimeout(async () => {
+          await loadData();
+          setIsRefreshing(false);
+        }, 800);
+      }
     } catch (error) {
       console.error("Erreur charge fixe:", error);
       toast.error("Erreur", "Échec de l'enregistrement");
     } finally {
       setIsSubmitting(false);
     }
-  }, [nom, montant, payeur, user, jourPrelevement, addChargeFixeConfig]);
+  }, [
+    nom,
+    montant,
+    payeur,
+    user,
+    jourPrelevement,
+    addChargeFixeConfig,
+    loadData,
+    isSoloMode,
+    householdUsers,
+    toast,
+  ]);
 
   const selectPayeur = (uid: string) => {
     setPayeur(uid);
@@ -180,6 +203,11 @@ const ChargesFixesScreen: React.FC = () => {
           <Info size={24} color="#000" />
         </TouchableOpacity>
       </View>
+      {isRefreshing && (
+        <View style={styles.refreshingBanner}>
+          <Text style={styles.refreshingText}>Ajout dans les dépenses...</Text>
+        </View>
+      )}
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => setShowForm(!showForm)}
@@ -213,18 +241,22 @@ const ChargesFixesScreen: React.FC = () => {
             maxLength={8}
             editable={!isSubmitting}
           />
-          {!isSoloMode && <View style={styles.inputGroup}>
-            <Text style={styles.label}>Payée par</Text>
-            <TouchableOpacity
-              style={[styles.input, styles.dropdownInput]}
-              onPress={() => setIsPayeurModalVisible(true)}
-              disabled={isSubmitting}
-            >
-              <Text style={!payeur ? styles.placeholderText : styles.inputText}>
-                {getDisplayNameUserInHousehold(payeur, householdUsers)}
-              </Text>
-            </TouchableOpacity>
-          </View>}
+          {!isSoloMode && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Payée par</Text>
+              <TouchableOpacity
+                style={[styles.input, styles.dropdownInput]}
+                onPress={() => setIsPayeurModalVisible(true)}
+                disabled={isSubmitting}
+              >
+                <Text
+                  style={!payeur ? styles.placeholderText : styles.inputText}
+                >
+                  {getDisplayNameUserInHousehold(payeur, householdUsers)}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Jour de prélèvement</Text>
             <TouchableOpacity

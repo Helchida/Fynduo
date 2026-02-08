@@ -55,17 +55,26 @@ export const ChargesFixesConfigProvider: React.FC<{
     }
   }, [activeHouseholdId]);
 
+  useEffect(() => {
+    setChargesFixesConfigs([]);
+    loadConfigs();
+  }, [activeHouseholdId, loadConfigs]);
+
   const handleAutoAddFixedCharges = useCallback(
     async (existingCharges: any[]) => {
-      if (!activeHouseholdId || chargesFixesConfigs.length === 0) return;
+      if (!activeHouseholdId) return;
+
+      const freshConfigs = await DB.getChargesFixesConfigs(activeHouseholdId);
+      if (freshConfigs.length === 0) return;
 
       const today = dayjs();
       const currentMoisAnnee = today.format("YYYY-MM");
       const currentDay = today.date();
-      const beneficiaryUids =
-        isSoloMode ? [user.id] : householdUsers.map((u) => u.id);
+      const beneficiaryUids = isSoloMode
+        ? [user.id]
+        : householdUsers.map((u) => u.id);
 
-      for (const config of chargesFixesConfigs) {
+      for (const config of freshConfigs) {
         const chargeKey = `${config.description}-${currentMoisAnnee}`;
 
         if (
@@ -111,7 +120,7 @@ export const ChargesFixesConfigProvider: React.FC<{
         }
       }
     },
-    [activeHouseholdId, chargesFixesConfigs, householdUsers],
+    [activeHouseholdId, chargesFixesConfigs, isSoloMode, householdUsers],
   );
 
   const updateChargeFixeConfig = useCallback(
@@ -162,13 +171,16 @@ export const ChargesFixesConfigProvider: React.FC<{
   const addChargeFixeConfig = useCallback(
     async (charge: Omit<IChargeFixe, "id" | "householdId">) => {
       if (!activeHouseholdId) return;
-      const id = await DB.addChargeFixeConfig(activeHouseholdId, charge);
-      setChargesFixesConfigs((prev) => [
-        ...prev,
-        { id, householdId: activeHouseholdId, ...charge },
-      ]);
+      await DB.addChargeFixeConfig(activeHouseholdId, charge);
+      loadConfigs();
+
+      const existingCharges = await DB.getChargesByType<IChargeFixe>(
+        activeHouseholdId,
+        "fixe",
+      );
+      await handleAutoAddFixedCharges(existingCharges);
     },
-    [activeHouseholdId],
+    [activeHouseholdId, loadConfigs, handleAutoAddFixedCharges],
   );
 
   const deleteChargeFixeConfig = useCallback(
