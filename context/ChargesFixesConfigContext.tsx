@@ -67,6 +67,11 @@ export const ChargesFixesConfigProvider: React.FC<{
       const freshConfigs = await DB.getChargesFixesConfigs(activeHouseholdId);
       if (freshConfigs.length === 0) return;
 
+      const currentChargesInDB = await DB.getChargesByType<IChargeFixe>(
+        activeHouseholdId,
+        "fixe",
+      );
+
       const today = dayjs();
       const currentMoisAnnee = today.format("YYYY-MM");
       const currentDay = today.date();
@@ -82,7 +87,7 @@ export const ChargesFixesConfigProvider: React.FC<{
           config.jourPrelevementMensuel &&
           currentDay >= config.jourPrelevementMensuel
         ) {
-          const alreadyExists = existingCharges.some(
+          const alreadyExists = currentChargesInDB.some(
             (c) =>
               c.description === config.description &&
               c.moisAnnee === currentMoisAnnee &&
@@ -120,7 +125,7 @@ export const ChargesFixesConfigProvider: React.FC<{
         }
       }
     },
-    [activeHouseholdId, chargesFixesConfigs, isSoloMode, householdUsers],
+    [activeHouseholdId, isSoloMode, householdUsers, user],
   );
 
   const updateChargeFixeConfig = useCallback(
