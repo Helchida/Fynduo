@@ -1,0 +1,73 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 40,
+    maxHeight: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  modalHeaderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingHorizontal: 5,
+  },
+  modalHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#2c3e50",
+  },
+  modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#EFEFEF",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  modalItemSelected: {
+    backgroundColor: "#F2F9FF",
+    borderColor: "#3498db",
+    borderWidth: 1.5,
+  },
+  modalItemText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginLeft: 15,
+  },
+  modalCloseButton: {
+    marginTop: 15,
+    padding: 16,
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalCloseButtonText: {
+    color: "#7f8c8d",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+});

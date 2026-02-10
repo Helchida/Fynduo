@@ -27,6 +27,7 @@ import { useToast } from "hooks/useToast";
 import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
 import { useMultiUserBalance } from "hooks/useMultiUserBalance";
 import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
+import { TypeChargePickerModal } from "components/ui/TypeChargePickerModal/TypeChargePickerModal";
 
 dayjs.locale("fr");
 
@@ -75,9 +76,12 @@ const ChargesScreen: React.FC = () => {
   const [filterAnnee, setFilterAnnee] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterPayeur, setFilterPayeur] = useState<string | null>(null);
+  const [filterTypeCharge, setFilterTypeCharge] = useState<string | null>(null);
   const [isFilterPeriodeModalVisible, setIsFilterPeriodeModalVisible] =
     useState(false);
   const [isFilterPayeurModalVisible, setIsFilterPayeurModalVisible] =
+    useState(false);
+  const [isFilterTypeChargeModalVisible, setIsFilterTypeChargeModalVisible] =
     useState(false);
   const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
@@ -112,6 +116,10 @@ const ChargesScreen: React.FC = () => {
       filtered = filtered.filter((c) => c.payeur === filterPayeur);
     }
 
+    if (filterTypeCharge) {
+      filtered = filtered.filter((c) => c.type === filterTypeCharge);
+    }
+
     if (filterMois) {
       filtered = filtered.filter(
         (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois,
@@ -125,9 +133,7 @@ const ChargesScreen: React.FC = () => {
     }
 
     if (filterCategory) {
-      filtered = filtered.filter(
-        (c) => c.categorie === filterCategory,
-      );
+      filtered = filtered.filter((c) => c.categorie === filterCategory);
     }
 
     const sortedCharges = filtered.sort(
@@ -161,7 +167,14 @@ const ChargesScreen: React.FC = () => {
     });
 
     return groupedArray;
-  }, [charges, filterPayeur, filterMois, filterAnnee, filterCategory]);
+  }, [
+    charges,
+    filterPayeur,
+    filterTypeCharge,
+    filterMois,
+    filterAnnee,
+    filterCategory,
+  ]);
 
   const handleAddDepense = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
@@ -544,7 +557,33 @@ const ChargesScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          {(filterMois || filterPayeur || filterAnnee || filterCategory) && (
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              filterTypeCharge && styles.filterChipActive,
+            ]}
+            onPress={() => setIsFilterTypeChargeModalVisible(true)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterTypeCharge && styles.filterChipTextActive,
+              ]}
+            >
+              🧩{" "}
+              {filterTypeCharge
+                ? filterTypeCharge === "fixe"
+                  ? "Fixe"
+                  : "Variable"
+                : "Type"}
+            </Text>
+          </TouchableOpacity>
+
+          {(filterMois ||
+            filterPayeur ||
+            filterAnnee ||
+            filterCategory ||
+            filterTypeCharge) && (
             <TouchableOpacity
               style={styles.filterClearButton}
               onPress={() => {
@@ -552,6 +591,7 @@ const ChargesScreen: React.FC = () => {
                 setFilterPayeur(null);
                 setFilterAnnee(null);
                 setFilterCategory(null);
+                setFilterTypeCharge(null);
               }}
             >
               <Text style={styles.filterClearText}>✕</Text>
@@ -608,6 +648,16 @@ const ChargesScreen: React.FC = () => {
           setIsFilterPayeurModalVisible(false);
         }}
         getDisplayName={getDisplayName}
+      />
+
+      <TypeChargePickerModal
+        isVisible={isFilterTypeChargeModalVisible}
+        onClose={() => setIsFilterTypeChargeModalVisible(false)}
+        selectedId={filterTypeCharge}
+        onSelect={(id) => {
+          setFilterTypeCharge(id);
+          setIsFilterTypeChargeModalVisible(false);
+        }}
       />
 
       <CategoryPickerModal
