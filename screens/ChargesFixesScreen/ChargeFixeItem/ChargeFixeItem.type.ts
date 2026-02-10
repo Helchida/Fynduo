@@ -11,4 +11,5 @@ export interface ChargeFixeItemProps {
     newPayeurName: string,
   ) => Promise<void>;
   onUpdateDay: (id: string, newDay: number) => Promise<void>;
+  onUpdateCategorie: (id: string, categorieId: string) => Promise<void>;
 }

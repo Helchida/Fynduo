@@ -11,7 +11,7 @@ import { UniversalDatePicker } from "components/ui/UniversalDatePicker/Universal
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
-export const EditChargeVariableForm = ({
+export const EditChargeForm = ({
   editDescription,
   setEditDescription,
   editMontant,

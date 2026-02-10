@@ -21,7 +21,7 @@ import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 import { useComptes } from "hooks/useComptes";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { UserDisplayCard } from "./UserDisplayCard/UserDisplayCard";
-import { EditChargeVariableForm } from "./EditChargeForm/EditChargeForm";
+import { EditChargeForm } from "./EditChargeForm/EditChargeForm";
 import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
@@ -30,7 +30,7 @@ dayjs.locale("fr");
 
 type ChargeDetailRouteProp = RootStackRouteProp<"ChargeDetail">;
 
-const ChargeVariableDetailScreen: React.FC = () => {
+const ChargeDetailScreen: React.FC = () => {
   const route = useRoute<ChargeDetailRouteProp>();
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user } = useAuth();
@@ -80,7 +80,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
     charge?.dateComptes ? new Date(charge.dateComptes) : new Date(),
   );
   const [editCategorie, setEditCategorie] = useState<string>(
-    charge?.type === "variable" ? charge?.categorie : "cat_autre",
+    charge?.categorie || 'cat_autre',
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
@@ -117,10 +117,10 @@ const ChargeVariableDetailScreen: React.FC = () => {
 
       const categoryExists = categories.some(
         (c) =>
-          initialCharge.type === "variable" && c.id === initialCharge.categorie,
+          c.id === initialCharge.categorie,
       );
 
-      if (categoryExists && initialCharge.type === "variable") {
+      if (categoryExists) {
         setEditCategorie(initialCharge.categorie);
       } else if (defaultCategory) {
         setEditCategorie(defaultCategory.id);
@@ -186,7 +186,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
 
     const updatedData: Partial<IChargeVariable & IChargeFixe> = {
       ...updatedDataBase,
-      ...(charge.type === "variable" ? { categorie: editCategorie } : {}),
+      ...({ categorie: editCategorie }),
     } as Partial<IChargeVariable & IChargeFixe>;
 
     try {
@@ -261,7 +261,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
   const currentCategoryData = categories.find(
-    (c) => charge.type === "variable" && c.id === charge.categorie,
+    (c) => c.id === charge.categorie,
   );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
 
@@ -281,7 +281,7 @@ const ChargeVariableDetailScreen: React.FC = () => {
   return (
     <ScrollView style={styles.detailContainer}>
       {isEditing ? (
-        <EditChargeVariableForm
+        <EditChargeForm
           editDescription={editDescription}
           setEditDescription={setEditDescription}
           editMontant={editMontant}
@@ -425,4 +425,4 @@ const ChargeVariableDetailScreen: React.FC = () => {
   );
 };
 
-export default ChargeVariableDetailScreen;
+export default ChargeDetailScreen;

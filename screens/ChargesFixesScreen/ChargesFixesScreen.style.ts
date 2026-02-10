@@ -240,4 +240,15 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
+  selectorButton: {
+    backgroundColor: "#F2F2F7",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  selectorLabel: {
+    fontSize: 12,
+    color: "#8E8E93",
+    marginBottom: 2,
+  },
 });

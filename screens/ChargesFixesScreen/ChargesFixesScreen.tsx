@@ -14,12 +14,14 @@ import { IChargeFixe, IUser } from "@/types";
 import * as DB from "../../services/firebase/db";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
-import { Info } from "lucide-react-native";
+import { ChevronsUpDown, Info } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 import { useChargesFixesConfigs } from "hooks/useChargesFixesConfigs";
 import dayjs from "dayjs";
+import { CategoryPickerModal } from "screens/ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
+import { useCategories } from "hooks/useCategories";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -29,6 +31,7 @@ const ChargesFixesScreen: React.FC = () => {
     updateChargeFixeConfig,
     updateChargeFixeConfigPayeur,
     updateChargeFixeConfigDay,
+    updateChargeFixeConfigCategorie,
     addChargeFixeConfig,
     deleteChargeFixeConfig,
   } = useChargesFixesConfigs();
@@ -36,6 +39,7 @@ const ChargesFixesScreen: React.FC = () => {
   const { loadData } = useComptes();
 
   const { user, householdUsers } = useAuth();
+  const { categories, defaultCategory } = useCategories();
   const toast = useToast();
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -51,12 +55,25 @@ const ChargesFixesScreen: React.FC = () => {
   const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedCategorie, setSelectedCategorie] = useState(
+    defaultCategory?.id || "Autre",
+  );
+  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
   const isSoloMode = user.activeHouseholdId === user.id;
 
   useEffect(() => {
     loadConfigs();
   }, [loadConfigs]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      const defaultCat = categories.find((c) => c.isDefault);
+      if (defaultCat) {
+        setSelectedCategorie(defaultCat.id);
+      }
+    }
+  }, [categories]);
 
   const handleChargeUpdate = useCallback(
     async (id: string, newAmount: number) => {
@@ -95,6 +112,17 @@ const ChargesFixesScreen: React.FC = () => {
       }
     },
     [updateChargeFixeConfigDay],
+  );
+
+  const handleChargeUpdateCategorie = useCallback(
+    async (chargeId: string, newCategorie: string) => {
+      try {
+        await updateChargeFixeConfigCategorie(chargeId, newCategorie);
+      } catch (error) {
+        toast.error("Erreur", "Échec de la mise à jour de la catégorie");
+      }
+    },
+    [updateChargeFixeConfigCategorie],
   );
 
   const handleAddDepense = useCallback(async () => {
@@ -143,6 +171,7 @@ const ChargesFixesScreen: React.FC = () => {
       jourPrelevementMensuel: jourPrelevement,
       dateComptes: new Date().toISOString(),
       dateStatistiques: new Date().toISOString(),
+      categorie: selectedCategorie,
       type: "fixe",
       scope: isSoloMode ? "solo" : "partage",
     };
@@ -153,6 +182,7 @@ const ChargesFixesScreen: React.FC = () => {
       setMontant("");
       setPayeur(user?.id || null);
       setShowForm(false);
+      setSelectedCategorie(defaultCategory?.id || "Autre");
       toast.success("Succès", "Charge fixe enregistrée");
       const today = dayjs();
       const shouldAutoAdd = jourPrelevement && today.date() >= jourPrelevement;
@@ -181,6 +211,7 @@ const ChargesFixesScreen: React.FC = () => {
     isSoloMode,
     householdUsers,
     toast,
+    selectedCategorie,
   ]);
 
   const selectPayeur = (uid: string) => {
@@ -191,6 +222,10 @@ const ChargesFixesScreen: React.FC = () => {
   if (isLoadingComptes) {
     return <Text style={styles.loading}>Chargement des charges...</Text>;
   }
+
+  const currentCategoryData = categories.find(
+    (c) => c.id === selectedCategorie,
+  );
 
   return (
     <View style={styles.container}>
@@ -274,6 +309,29 @@ const ChargesFixesScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity
+            style={styles.selectorButton}
+            onPress={() => setIsCategoryModalVisible(true)}
+          >
+            <Text style={styles.selectorLabel}>Catégorie</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ fontSize: 16, marginRight: 6 }}>
+                  {currentCategoryData?.icon || "📦"}
+                </Text>
+                <Text numberOfLines={1} style={{ flexShrink: 1 }}>
+                  {currentCategoryData?.label || selectedCategorie}
+                </Text>
+              </View>
+              <ChevronsUpDown size={14} color="#8E8E93" />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={handleAddDepense}
             disabled={isSubmitting}
             style={styles.addButton}
@@ -297,6 +355,7 @@ const ChargesFixesScreen: React.FC = () => {
             householdUsers={householdUsers}
             onUpdatePayeur={handleChargeUpdatePayeur}
             onUpdateDay={handleChargeUpdateDay}
+            onUpdateCategorie={handleChargeUpdateCategorie}
           />
         )}
         style={styles.list}
@@ -307,6 +366,16 @@ const ChargesFixesScreen: React.FC = () => {
         onClose={() => setIsDayModalVisible(false)}
         selectedDay={jourPrelevement}
         onSelectDay={setJourPrelevement}
+      />
+      <CategoryPickerModal
+        isVisible={isCategoryModalVisible}
+        onClose={() => setIsCategoryModalVisible(false)}
+        selectedId={selectedCategorie}
+        categories={categories}
+        onSelect={(id) => {
+          setSelectedCategorie(id);
+          setIsCategoryModalVisible(false);
+        }}
       />
       <Modal
         visible={isPayeurModalVisible}

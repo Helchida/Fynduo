@@ -17,6 +17,8 @@ import { CalendarDays, User } from "lucide-react-native";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { useCategories } from "hooks/useCategories";
+import { CategoryPickerModal } from "screens/ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -25,6 +27,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   householdUsers,
   onUpdatePayeur,
   onUpdateDay,
+  onUpdateCategorie,
 }) => {
   const { user } = useAuth();
 
@@ -37,8 +40,10 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
+  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
   const toast = useToast();
+  const { categories } = useCategories();
 
   const isSoloMode = user.id === user.activeHouseholdId;
 
@@ -97,8 +102,34 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
     [charge.id, charge.jourPrelevementMensuel, onUpdateDay],
   );
 
+  const handleUpdateCategorie = useCallback(
+    async (newCategorieId: string) => {
+      if (newCategorieId !== charge.categorie) {
+        setIsSaving(true);
+        try {
+          await onUpdateCategorie(charge.id, newCategorieId);
+          toast.success("Succès", "Catégorie mise à jour");
+        } catch (error) {
+          toast.error("Erreur", "Impossible de modifier la catégorie");
+        } finally {
+          setIsSaving(false);
+          setIsCategoryModalVisible(false);
+        }
+      } else {
+        setIsCategoryModalVisible(false);
+      }
+    },
+    [charge.id, charge.categorie, onUpdateCategorie]
+  );
+
   const isButtonDisabled =
     parseFloat(amount) === charge.montantTotal || isSaving;
+
+    const currentCategoryData = categories.find((cat) =>
+    cat.id === charge.categorie
+  );
+
+    const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
 
   return (
     <View style={styles.chargeItem}>
@@ -118,6 +149,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           marginBottom: 10,
         }}
       >
+        <TouchableOpacity 
+          style={styles.avatarBadge} 
+          onPress={() => setIsCategoryModalVisible(true)}
+          disabled={isSaving}
+        >
+          <Text style={styles.avatarText}>{categoryIcon}</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.payeurContainer,
@@ -223,6 +261,14 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           await onDelete(charge.id);
         }}
         onCancel={() => setIsDeleteModalVisible(false)}
+      />
+
+      <CategoryPickerModal
+        isVisible={isCategoryModalVisible}
+        onClose={() => setIsCategoryModalVisible(false)}
+        selectedId={charge.categorie}
+        categories={categories}
+        onSelect={handleUpdateCategorie}
       />
     </View>
   );

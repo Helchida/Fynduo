@@ -126,7 +126,7 @@ const ChargesScreen: React.FC = () => {
 
     if (filterCategory) {
       filtered = filtered.filter(
-        (c) => c.type === "variable" && c.categorie === filterCategory,
+        (c) => c.categorie === filterCategory,
       );
     }
 

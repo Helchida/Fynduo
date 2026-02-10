@@ -437,76 +437,68 @@ export async function addCharge(
     return docRef.id;
   }
 
-  if (charge.type === "variable") {
-    try {
-      const categoryId = charge.categorie;
-      const catRef = doc(
-        db,
-        "households",
-        householdId,
-        "categories",
-        categoryId,
-      );
-      const catSnap = await getDoc(catRef);
+  try {
+    const categoryId = charge.categorie;
+    const catRef = doc(db, "households", householdId, "categories", categoryId);
+    const catSnap = await getDoc(catRef);
 
-      if (!catSnap.exists()) {
-        console.warn(
-          `Catégorie ${charge.categorie} introuvable, propagation annulée`,
+    if (!catSnap.exists()) {
+      console.warn(
+        `Catégorie ${charge.categorie} introuvable, propagation annulée`,
+      );
+      return docRef.id;
+    }
+
+    const categoryData = catSnap.data();
+
+    const householdMembers = householdSnap.data().members || [];
+
+    const realUserBeneficiaires = charge.beneficiaires.filter(
+      (uid) => householdMembers.includes(uid) && uid !== householdId,
+    );
+
+    if (realUserBeneficiaires.length === 0) {
+      console.log("Aucun bénéficiaire à propager");
+      return docRef.id;
+    }
+
+    const batch = writeBatch(db);
+    let propagationCount = 0;
+
+    for (const userId of realUserBeneficiaires) {
+      try {
+        const soloCatRef = doc(
+          db,
+          "households",
+          userId,
+          "categories",
+          charge.categorie,
         );
-        return docRef.id;
-      }
 
-      const categoryData = catSnap.data();
+        const existingCat = await getDoc(soloCatRef);
 
-      const householdMembers = householdSnap.data().members || [];
-
-      const realUserBeneficiaires = charge.beneficiaires.filter(
-        (uid) => householdMembers.includes(uid) && uid !== householdId,
-      );
-
-      if (realUserBeneficiaires.length === 0) {
-        console.log("Aucun bénéficiaire à propager");
-        return docRef.id;
-      }
-
-      const batch = writeBatch(db);
-      let propagationCount = 0;
-
-      for (const userId of realUserBeneficiaires) {
-        try {
-          const soloCatRef = doc(
-            db,
-            "households",
-            userId,
-            "categories",
-            charge.categorie,
-          );
-
-          const existingCat = await getDoc(soloCatRef);
-
-          if (!existingCat.exists()) {
-            batch.set(soloCatRef, categoryData, { merge: true });
-            propagationCount++;
-            console.log(`Catégorie propagée au foyer solo de ${userId}`);
-          } else {
-            console.log(
-              `Catégorie déjà existante dans le foyer solo de ${userId}`,
-            );
-          }
-        } catch (error) {
-          console.warn(
-            `Impossible de propager la catégorie au foyer solo ${userId}:`,
-            error,
+        if (!existingCat.exists()) {
+          batch.set(soloCatRef, categoryData, { merge: true });
+          propagationCount++;
+          console.log(`Catégorie propagée au foyer solo de ${userId}`);
+        } else {
+          console.log(
+            `Catégorie déjà existante dans le foyer solo de ${userId}`,
           );
         }
+      } catch (error) {
+        console.warn(
+          `Impossible de propager la catégorie au foyer solo ${userId}:`,
+          error,
+        );
       }
-
-      if (propagationCount > 0) {
-        await batch.commit();
-      }
-    } catch (error) {
-      console.error("Erreur lors de la récupération de la catégorie:", error);
     }
+
+    if (propagationCount > 0) {
+      await batch.commit();
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la catégorie:", error);
   }
   return docRef.id;
 }

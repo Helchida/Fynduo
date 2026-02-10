@@ -10,20 +10,8 @@ import { IChargeFixe } from "../types";
 import { useAuth } from "../hooks/useAuth";
 import * as DB from "../services/firebase/db";
 import dayjs from "dayjs";
+import { IChargesFixesConfigContext } from "./types/ChargesFixesConfigContext.type";
 
-export interface IChargesFixesConfigContext {
-  isLoadingComptes: boolean;
-  chargesFixesConfigs: IChargeFixe[];
-  loadConfigs: () => Promise<void>;
-  handleAutoAddFixedCharges: (existingCharges: any[]) => Promise<void>;
-  updateChargeFixeConfig: (id: string, amount: number) => Promise<void>;
-  updateChargeFixeConfigPayeur: (id: string, payeurId: string) => Promise<void>;
-  updateChargeFixeConfigDay: (id: string, day: number) => Promise<void>;
-  addChargeFixeConfig: (
-    charge: Omit<IChargeFixe, "id" | "householdId">,
-  ) => Promise<void>;
-  deleteChargeFixeConfig: (id: string) => Promise<void>;
-}
 
 export const ChargesFixesConfigContext = createContext<
   IChargesFixesConfigContext | undefined
@@ -61,7 +49,7 @@ export const ChargesFixesConfigProvider: React.FC<{
   }, [activeHouseholdId, loadConfigs]);
 
   const handleAutoAddFixedCharges = useCallback(
-    async (existingCharges: any[]) => {
+    async () => {
       if (!activeHouseholdId) return;
 
       const freshConfigs = await DB.getChargesFixesConfigs(activeHouseholdId);
@@ -110,6 +98,7 @@ export const ChargesFixesConfigProvider: React.FC<{
                   .date(config.jourPrelevementMensuel)
                   .toISOString(),
                 moisAnnee: currentMoisAnnee,
+                categorie: config.categorie,
                 type: "fixe",
                 scope: beneficiaryUids.length > 1 ? "partage" : "solo",
                 householdId: activeHouseholdId,
@@ -158,6 +147,21 @@ export const ChargesFixesConfigProvider: React.FC<{
     [activeHouseholdId],
   );
 
+  const updateChargeFixeConfigCategorie = useCallback(
+    async (chargeId: string, categoryId: string) => {
+      if (!activeHouseholdId) return;
+      await DB.updateChargeFixeConfig(activeHouseholdId, chargeId, {
+        categorie: categoryId,
+      });
+      setChargesFixesConfigs((prev) =>
+        prev.map((c) =>
+          c.id === chargeId ? { ...c, categorie: categoryId } : c,
+        ),
+      );
+    },
+    [activeHouseholdId],
+  );
+
   const updateChargeFixeConfigDay = useCallback(
     async (chargeId: string, newDay: number) => {
       if (!activeHouseholdId) return;
@@ -178,12 +182,7 @@ export const ChargesFixesConfigProvider: React.FC<{
       if (!activeHouseholdId) return;
       await DB.addChargeFixeConfig(activeHouseholdId, charge);
       loadConfigs();
-
-      const existingCharges = await DB.getChargesByType<IChargeFixe>(
-        activeHouseholdId,
-        "fixe",
-      );
-      await handleAutoAddFixedCharges(existingCharges);
+      await handleAutoAddFixedCharges();
     },
     [activeHouseholdId, loadConfigs, handleAutoAddFixedCharges],
   );
@@ -206,6 +205,7 @@ export const ChargesFixesConfigProvider: React.FC<{
       updateChargeFixeConfig,
       updateChargeFixeConfigPayeur,
       updateChargeFixeConfigDay,
+      updateChargeFixeConfigCategorie,
       addChargeFixeConfig,
       deleteChargeFixeConfig,
     }),
@@ -217,6 +217,7 @@ export const ChargesFixesConfigProvider: React.FC<{
       updateChargeFixeConfig,
       updateChargeFixeConfigPayeur,
       updateChargeFixeConfigDay,
+      updateChargeFixeConfigCategorie,
       addChargeFixeConfig,
       deleteChargeFixeConfig,
     ],

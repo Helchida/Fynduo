@@ -47,11 +47,11 @@ export interface ICharge extends FirestoreDocument {
   householdId: string;
   type: ChargeType;
   scope: ChargeScope;
+  categorie: ICategorie["id"];
 }
 
 export interface IChargeVariable extends ICharge {
   type: "variable";
-  categorie: ICategorie["id"];
 }
 export interface IChargeFixe extends ICharge {
   type: "fixe";

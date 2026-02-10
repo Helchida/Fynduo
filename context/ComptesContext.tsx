@@ -51,8 +51,8 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   const { handleAutoAddFixedCharges } = useChargesFixesConfigs();
 
   useEffect(() => {
-    if (!isLoadingComptes && charges.length > 0) {
-      handleAutoAddFixedCharges(charges);
+    if (!isLoadingComptes) {
+      handleAutoAddFixedCharges();
     }
   }, [charges, isLoadingComptes, handleAutoAddFixedCharges]);
 

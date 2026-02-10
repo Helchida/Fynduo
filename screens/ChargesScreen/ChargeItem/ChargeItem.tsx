@@ -28,9 +28,7 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
   );
 
   const currentCategoryData = categories.find((cat) =>
-    charge.type === "variable"
-      ? cat.id === charge.categorie
-      : cat.id === "cat_autre",
+    cat.id === charge.categorie
   );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
