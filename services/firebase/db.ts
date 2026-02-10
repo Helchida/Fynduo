@@ -35,7 +35,6 @@ import { DEFAULT_CATEGORIES } from "constants/categories";
 const SUB_COLLECTIONS = {
   COMPTES_MENSUELS: "comptes_mensuels",
   CHARGES_FIXES: "charges_fixes",
-  CHARGES_VARIABLES: "charges_variables",
   CHARGES: "charges",
   CATEGORIES: "categories",
   LOYER_CONFIG: "loyer_config",
@@ -644,12 +643,41 @@ export async function addCategory(
   householdId: string,
   category: Omit<ICategorie, "id">,
 ) {
-  const categorieCollection = getCollectionRef(
-    householdId,
-    SUB_COLLECTIONS.CATEGORIES,
-  );
-  const docRef = await addDoc(categorieCollection, category);
-  return docRef.id;
+  try {
+    const batch = writeBatch(db);
+    const categorieCollection = getCollectionRef(
+      householdId,
+      SUB_COLLECTIONS.CATEGORIES,
+    );
+    const newCatRef = doc(categorieCollection);
+    batch.set(newCatRef, category);
+
+    const householdRef = doc(db, "households", householdId);
+    const householdSnap = await getDoc(householdRef);
+
+    if (householdSnap.exists()) {
+      const members = householdSnap.data().members || [];
+
+      members.forEach((uid: string) => {
+        if (uid !== householdId) {
+          const soloCatRef = doc(
+            db,
+            "households",
+            uid,
+            "categories",
+            newCatRef.id,
+          );
+          batch.set(soloCatRef, category, { merge: true });
+        }
+      });
+    }
+
+    await batch.commit();
+    return newCatRef.id;
+  } catch (error) {
+    console.error("Erreur addCategory avec propagation:", error);
+    throw error;
+  }
 }
 
 export async function updateCategory(
@@ -712,7 +740,7 @@ export async function migrateChargesOnDelete(
   const batch = writeBatch(db);
   const chargesCollection = getCollectionRef(
     householdId,
-    SUB_COLLECTIONS.CHARGES_VARIABLES,
+    SUB_COLLECTIONS.CHARGES,
   );
   const q = query(chargesCollection, where("categorie", "==", oldCategoryId));
   const snapshot = await getDocs(q);

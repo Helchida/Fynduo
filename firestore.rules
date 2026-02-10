@@ -26,11 +26,10 @@ service cloud.firestore {
       return currentUserHouseholds.hasAny(targetUserHouseholds);
     }
     
-    function sharesHouseholdWithUser(householdId) {
-      return exists(/databases/$(database)/documents/users/$(householdId)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households.hasAny(
-               get(/databases/$(database)/documents/users/$(householdId)).data.households
-             );
+    function sharesHouseholdWithUser(targetUserId) {
+      let myHouseholds = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.households;
+      let targetUserHouseholds = get(/databases/$(database)/documents/users/$(targetUserId)).data.households;
+      return myHouseholds.hasAny(targetUserHouseholds);
     }
 
     // ==========================================
@@ -120,9 +119,8 @@ service cloud.firestore {
       
       // --- SOUS-COLLECTION: categories ---
       match /categories/{categorieId} {
-        allow read, create, update: if belongsToHousehold(householdId) || 
-                                       (isSignedIn() && sharesHouseholdWithUser(householdId));
-        allow delete: if belongsToHousehold(householdId) && !resource.data.isDefault;
+        allow read, create, update: if belongsToHousehold(householdId) || sharesHouseholdWithUser(householdId);
+        allow delete: if (request.auth.uid == householdId || belongsToHousehold(householdId)) && !resource.data.isDefault;
       }
     }
   }
