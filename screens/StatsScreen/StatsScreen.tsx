@@ -56,6 +56,7 @@ const StatsScreen: React.FC = () => {
 
   const filteredCharges = useMemo(() => {
     return charges.filter((c) => {
+      if (c.type === "fixe") return false;
       if (period === "tout") return true;
 
       const chargeMoisAnnee =
@@ -70,7 +71,7 @@ const StatsScreen: React.FC = () => {
   const chargesByCategory = useMemo(() => {
     const grouped: Record<string, typeof charges> = {};
     filteredCharges.forEach((charge) => {
-      const catId = charge.type === "variable" ? charge.categorie : "cat_autre";
+      const catId = charge.categorie || "cat_autre";
       if (!grouped[catId]) grouped[catId] = [];
       grouped[catId].push(charge);
     });
@@ -178,6 +179,10 @@ const StatsScreen: React.FC = () => {
       )}
 
       <View style={styles.chartCard}>
+        <View style={styles.chartTitleContainer}>
+          <Text style={styles.chartTitle}>Charges variables</Text>
+          <View style={styles.chartTitleUnderline} />
+        </View>
         <View style={styles.chartWrapper}>
           <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
             <PieChart

@@ -18,6 +18,7 @@ export const useStats = (
 ) => {
   const statsParCategorie = useMemo((): StatDataItem[] => {
     const filtered = charges.filter((c) => {
+      if (c.type === "fixe") return false;
       if (period === "tout") return true;
 
       const chargeMoisAnnee =
@@ -32,8 +33,7 @@ export const useStats = (
 
     const aggregation = filtered.reduce(
       (acc, charge) => {
-        const catId =
-          charge.type === "variable" ? charge.categorie : "cat_autre";
+        const catId = charge.categorie || "cat_autre";
         const montantTotal = Number(charge.montantTotal) || 0;
 
         let montantFinal = montantTotal;

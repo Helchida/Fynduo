@@ -260,4 +260,23 @@ export const styles = StyleSheet.create({
     color: "#95A5A6",
     marginTop: 2,
   },
+  chartTitleContainer: {
+    alignItems: "center",
+    marginBottom: 10,
+    marginTop: 5,
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2c3e50",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  chartTitleUnderline: {
+    height: 3,
+    width: 40,
+    backgroundColor: "#2ecc71",
+    borderRadius: 2,
+    marginTop: 4,
+  },
 });
