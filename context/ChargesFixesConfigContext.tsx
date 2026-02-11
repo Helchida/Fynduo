@@ -12,7 +12,6 @@ import * as DB from "../services/firebase/db";
 import dayjs from "dayjs";
 import { IChargesFixesConfigContext } from "./types/ChargesFixesConfigContext.type";
 
-
 export const ChargesFixesConfigContext = createContext<
   IChargesFixesConfigContext | undefined
 >(undefined);
@@ -20,7 +19,7 @@ export const ChargesFixesConfigContext = createContext<
 export const ChargesFixesConfigProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { user, householdUsers } = useAuth();
+  const { user, householdUsers, isLoading } = useAuth();
   const activeHouseholdId = user?.activeHouseholdId;
   const isSoloMode = user?.id === activeHouseholdId;
   const [chargesFixesConfigs, setChargesFixesConfigs] = useState<IChargeFixe[]>(
@@ -45,77 +44,80 @@ export const ChargesFixesConfigProvider: React.FC<{
 
   useEffect(() => {
     setChargesFixesConfigs([]);
-    loadConfigs();
-  }, [activeHouseholdId, loadConfigs]);
+    if (!isLoading) {
+      loadConfigs();
+    }
+  }, [activeHouseholdId, loadConfigs, isLoading]);
 
-  const handleAutoAddFixedCharges = useCallback(
-    async () => {
-      if (!activeHouseholdId) return;
+  const handleAutoAddFixedCharges = useCallback(async () => {
+    if (isLoading || !activeHouseholdId || !user) return;
 
-      const freshConfigs = await DB.getChargesFixesConfigs(activeHouseholdId);
-      if (freshConfigs.length === 0) return;
+    if (!isSoloMode && (!householdUsers || householdUsers.length === 0)) {
+      return;
+    }
 
-      const currentChargesInDB = await DB.getChargesByType<IChargeFixe>(
-        activeHouseholdId,
-        "fixe",
-      );
+    const freshConfigs = await DB.getChargesFixesConfigs(activeHouseholdId);
+    if (freshConfigs.length === 0) return;
 
-      const today = dayjs();
-      const currentMoisAnnee = today.format("YYYY-MM");
-      const currentDay = today.date();
-      const beneficiaryUids = isSoloMode
-        ? [user.id]
-        : householdUsers.map((u) => u.id);
+    const currentChargesInDB = await DB.getChargesByType<IChargeFixe>(
+      activeHouseholdId,
+      "fixe",
+    );
 
-      for (const config of freshConfigs) {
-        const chargeKey = `${config.description}-${currentMoisAnnee}`;
+    const today = dayjs();
+    const currentMoisAnnee = today.format("YYYY-MM");
+    const currentDay = today.date();
+    const beneficiaryUids = isSoloMode
+      ? [user.id]
+      : householdUsers.map((u) => u.id);
 
-        if (
-          !processingCharges.current.has(chargeKey) &&
-          config.jourPrelevementMensuel &&
-          currentDay >= config.jourPrelevementMensuel
-        ) {
-          const alreadyExists = currentChargesInDB.some(
-            (c) =>
-              c.description === config.description &&
-              c.moisAnnee === currentMoisAnnee &&
-              c.type === "fixe",
-          );
+    for (const config of freshConfigs) {
+      const chargeKey = `${config.description}-${currentMoisAnnee}`;
 
-          if (!alreadyExists) {
-            processingCharges.current.add(chargeKey);
-            try {
-              const nouvelleCharge: Omit<IChargeFixe, "id"> = {
-                description: config.description,
-                montantTotal: config.montantTotal,
-                payeur: config.payeur,
-                beneficiaires: beneficiaryUids,
-                jourPrelevementMensuel: config.jourPrelevementMensuel,
-                dateComptes: today
-                  .date(config.jourPrelevementMensuel)
-                  .toISOString(),
-                dateStatistiques: today
-                  .date(config.jourPrelevementMensuel)
-                  .toISOString(),
-                moisAnnee: currentMoisAnnee,
-                categorie: config.categorie,
-                type: "fixe",
-                scope: beneficiaryUids.length > 1 ? "partage" : "solo",
-                householdId: activeHouseholdId,
-              };
+      if (
+        !processingCharges.current.has(chargeKey) &&
+        config.jourPrelevementMensuel &&
+        currentDay >= config.jourPrelevementMensuel
+      ) {
+        const alreadyExists = currentChargesInDB.some(
+          (c) =>
+            c.description === config.description &&
+            c.moisAnnee === currentMoisAnnee &&
+            c.type === "fixe",
+        );
 
-              await DB.addCharge(activeHouseholdId, nouvelleCharge);
-              console.log(`Charge fixe auto-générée : ${config.description}`);
-            } catch (error) {
-              console.error("Erreur auto-add charge:", error);
-              processingCharges.current.delete(chargeKey);
-            }
+        if (!alreadyExists) {
+          processingCharges.current.add(chargeKey);
+          try {
+            const nouvelleCharge: Omit<IChargeFixe, "id"> = {
+              description: config.description,
+              montantTotal: config.montantTotal,
+              payeur: config.payeur,
+              beneficiaires: beneficiaryUids,
+              jourPrelevementMensuel: config.jourPrelevementMensuel,
+              dateComptes: today
+                .date(config.jourPrelevementMensuel)
+                .toISOString(),
+              dateStatistiques: today
+                .date(config.jourPrelevementMensuel)
+                .toISOString(),
+              moisAnnee: currentMoisAnnee,
+              categorie: config.categorie,
+              type: "fixe",
+              scope: beneficiaryUids.length > 1 ? "partage" : "solo",
+              householdId: activeHouseholdId,
+            };
+
+            await DB.addCharge(activeHouseholdId, nouvelleCharge);
+            console.log(`Charge fixe auto-générée : ${config.description}`);
+          } catch (error) {
+            console.error("Erreur auto-add charge:", error);
+            processingCharges.current.delete(chargeKey);
           }
         }
       }
-    },
-    [activeHouseholdId, isSoloMode, householdUsers, user],
-  );
+    }
+  }, [activeHouseholdId, isSoloMode, householdUsers, user, isLoading]);
 
   const updateChargeFixeConfig = useCallback(
     async (chargeId: string, newAmount: number) => {
