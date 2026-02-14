@@ -1,8 +1,9 @@
-import { IChargeFixe } from "@/types";
+import { IChargeFixeTemplate } from "@/types";
+
 
 export interface IChargesFixesConfigContext {
   isLoadingComptes: boolean;
-  chargesFixesConfigs: IChargeFixe[];
+  chargesFixesConfigs: IChargeFixeTemplate[];
   loadConfigs: () => Promise<void>;
   handleAutoAddFixedCharges: () => Promise<void>;
   updateChargeFixeConfig: (id: string, amount: number) => Promise<void>;
@@ -10,7 +11,7 @@ export interface IChargesFixesConfigContext {
   updateChargeFixeConfigDay: (id: string, day: number) => Promise<void>;
   updateChargeFixeConfigCategorie: (id: string, categoryId: string) => Promise<void>;
   addChargeFixeConfig: (
-    charge: Omit<IChargeFixe, "id" | "householdId">,
+    charge: Omit<IChargeFixeTemplate, "id" | "householdId">,
   ) => Promise<void>;
   deleteChargeFixeConfig: (id: string) => Promise<void>;
 }

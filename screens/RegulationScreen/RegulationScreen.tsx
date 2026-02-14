@@ -27,7 +27,7 @@ import { useToast } from "hooks/useToast";
 import ChargesSection from "./ChargesSection/ChargesSection";
 import { useMultiUserBalance } from "hooks/useMultiUserBalance";
 import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
-import * as DB from "../../services/firebase/db";
+import * as DB from "../../services/supabase/db";
 
 const RegulationScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
@@ -150,6 +150,7 @@ const RegulationScreen: React.FC = () => {
                 ...c,
                 montantForm: c.montantTotal.toString(),
                 isNew: false,
+                jourPrelevementMensuel: 1,
               }) as ChargeFixeForm,
           );
 
@@ -158,7 +159,7 @@ const RegulationScreen: React.FC = () => {
 
       setChargesFormMap(newMap);
     }
-  }, [householdUsers, charges, currentMonthData?.moisAnnee]);
+  }, [householdUsers, charges, currentMonthData?.moisAnnee, chargesFixes]);
 
   useEffect(() => {
     if (loyerConfig) {
@@ -185,7 +186,6 @@ const RegulationScreen: React.FC = () => {
       const newCharge: ChargeFixeForm = {
         id: nanoid(),
         householdId: activeHouseholdId,
-        moisAnnee: currentMonthData.moisAnnee,
         description: `Nouvelle Charge (${getDisplayName(targetUid)})`,
         montantTotal: 0,
         montantForm: "0",
@@ -193,10 +193,8 @@ const RegulationScreen: React.FC = () => {
         isNew: true,
         jourPrelevementMensuel: 1,
         beneficiaires: householdUsers.map((u) => u.id),
-        type: "fixe",
         scope: "partage",
-        dateStatistiques: new Date().toISOString(),
-        dateComptes: new Date().toISOString(),
+        categorie: "cat_autre",
       };
 
       setChargesFormMap((prev) => ({
@@ -310,12 +308,12 @@ const RegulationScreen: React.FC = () => {
               description: charge.description || `Charge ajoutée`,
               montantTotal: parseFloat(charge.montantForm) || 0,
               payeur: charge.payeur,
-              jourPrelevementMensuel: charge.jourPrelevementMensuel || 1,
               beneficiaires: householdUsers.map((u) => u.id),
               type: "fixe",
               scope: "partage",
               dateStatistiques: new Date().toISOString(),
               dateComptes: new Date().toISOString(),
+              categorie: charge.categorie,
             }),
           ),
         ...allChargesForm

@@ -10,8 +10,6 @@ import {
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./ChargesFixesScreen.style";
-import { IChargeFixe, IUser } from "@/types";
-import * as DB from "../../services/firebase/db";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { ChevronsUpDown, Info } from "lucide-react-native";
@@ -22,6 +20,7 @@ import { useChargesFixesConfigs } from "hooks/useChargesFixesConfigs";
 import dayjs from "dayjs";
 import { CategoryPickerModal } from "screens/ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
 import { useCategories } from "hooks/useCategories";
+import { IChargeFixeTemplate } from "@/types";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -162,17 +161,13 @@ const ChargesFixesScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const chargeFixeToAdd: Omit<IChargeFixe, "id" | "householdId"> = {
+    const chargeFixeToAdd: Omit<IChargeFixeTemplate, "id" | "householdId"> = {
       description: nom.trim(),
       montantTotal,
       payeur: payeur,
       beneficiaires: isSoloMode ? [user.id] : householdUsers.map((u) => u.id),
-      moisAnnee: dayjs().format("YYYY-MM"),
       jourPrelevementMensuel: jourPrelevement,
-      dateComptes: new Date().toISOString(),
-      dateStatistiques: new Date().toISOString(),
       categorie: selectedCategorie,
-      type: "fixe",
       scope: isSoloMode ? "solo" : "partage",
     };
 

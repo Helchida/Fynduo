@@ -6,10 +6,9 @@ import {
   IUser,
   IResultatsCalcul,
   IHistoricalData,
-  IChargeVariable,
 } from "../../types";
 import { useCalculs } from "../../hooks/useCalculs";
-import * as DB from "../../services/firebase/db";
+import * as DB from "../../services/supabase/db";
 import dayjs from "dayjs";
 import { styles } from "./HistoryDetailScreen.style";
 import "dayjs/locale/fr";
@@ -58,7 +57,7 @@ const HistoryDetailScreen: React.FC = () => {
           return;
         }
 
-        const variables = await DB.getChargesByType<IChargeVariable>(
+        const variables = await DB.getChargesByType(
           user.activeHouseholdId,
           "variable",
         );

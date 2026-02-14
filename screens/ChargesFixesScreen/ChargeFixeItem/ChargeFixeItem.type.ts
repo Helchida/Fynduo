@@ -1,7 +1,7 @@
-import { IChargeFixe, IUser } from "@/types";
+import { IChargeFixeTemplate, IUser } from "@/types";
 
 export interface ChargeFixeItemProps {
-  charge: IChargeFixe;
+  charge: IChargeFixeTemplate;
   householdUsers: IUser[];
   onUpdate: (id: string, newAmount: number) => Promise<void>;
   onDelete: (id: string) => Promise<void>;

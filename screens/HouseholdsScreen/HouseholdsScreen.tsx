@@ -18,7 +18,7 @@ import {
   leaveHousehold,
   switchActiveHousehold,
   updateHouseholdName,
-} from "services/firebase/db";
+} from "services/supabase/db";
 import {
   Plus,
   UserPlus,
@@ -28,8 +28,7 @@ import {
   Check,
 } from "lucide-react-native";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "services/firebase/config";
+import { supabase } from "services/supabase/config";
 
 const HouseholdsScreen: React.FC = () => {
   const { user, updateLocalActiveHousehold } = useAuth();
@@ -62,40 +61,75 @@ const HouseholdsScreen: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!user?.households) return;
+  if (!user?.households) return;
 
-    const unsubscribes: (() => void)[] = [];
+  const channels: any[] = [];
+  let isMounted = true;
 
-    user.households.forEach((hId) => {
+  const loadHouseholds = async () => {
+    for (const hId of user.households) {
+      if (!isMounted) return;
+      
       if (hId === user.id) {
         setHouseholdData((prev) => ({
           ...prev,
           [hId]: { name: "Mon Foyer Solo", memberCount: 1 },
         }));
       } else {
-        const householdRef = doc(db, "households", hId);
-        const unsubscribe = onSnapshot(
-          householdRef,
-          (snap) => {
-            if (snap.exists()) {
-              const data = snap.data();
-              setHouseholdData((prev) => ({
-                ...prev,
-                [hId]: {
-                  name: data.name || `Foyer (${hId.substring(0, 4)})`,
-                  memberCount: data.members?.length || 0,
-                },
-              }));
-            }
-          },
-          (error) => console.error(error)
-        );
-        unsubscribes.push(unsubscribe);
-      }
-    });
+        const { data, error } = await supabase
+          .from('households')
+          .select('*')
+          .eq('id', hId)
+          .single();
 
-    return () => unsubscribes.forEach((unsub) => unsub());
-  }, [user?.households]);
+        if (data && !error && isMounted) {
+          setHouseholdData((prev) => ({
+            ...prev,
+            [hId]: {
+              name: data.name || `Foyer (${hId.substring(0, 4)})`,
+              memberCount: data.members?.length || 0,
+            },
+          }));
+
+          const channel = supabase
+            .channel(`household-${hId}`) 
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'households',
+                filter: `id=eq.${hId}`,
+              },
+              (payload) => {
+                if (!isMounted) return;
+                const newData = payload.new as any;
+                if (newData) {
+                  setHouseholdData((prev) => ({
+                    ...prev,
+                    [hId]: {
+                      name: newData.name || `Foyer (${hId.substring(0, 4)})`,
+                      memberCount: newData.members?.length || 0,
+                    },
+                  }));
+                }
+              }
+            )
+            .subscribe();
+
+          channels.push(channel);
+        }
+      }
+    }
+  };
+
+  loadHouseholds();
+
+  return () => {
+    isMounted = false;
+    channels.forEach((channel) => supabase.removeChannel(channel));
+  };
+}, [user?.households]);
 
   const handleAction = async () => {
     if (!inputValue.trim() || !user) return;

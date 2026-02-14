@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import {
+  ICharge,
   ICompteMensuel,
-  IChargeFixe,
-  IChargeVariable,
   IResultatsCalcul,
 } from "../types";
 
@@ -17,7 +16,7 @@ const initialResults: IResultatsCalcul = {
 
 export const useCalculs = (
   currentMonthData: ICompteMensuel | null,
-  allCharges: (IChargeFixe | IChargeVariable)[],
+  allCharges: ICharge[],
   currentUserUid: string | undefined,
 ): IResultatsCalcul => {
   return useMemo(() => {

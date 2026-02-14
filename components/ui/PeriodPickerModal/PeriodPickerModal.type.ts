@@ -1,4 +1,4 @@
-import { IChargeFixe, IChargeVariable } from "@/types";
+import { ICharge } from "@/types";
 
 export interface PeriodPickerModalProps {
   isVisible: boolean;
@@ -7,6 +7,6 @@ export interface PeriodPickerModalProps {
   selectedYear: string | null;
   onSelectMonth: (month: string) => void;
   onSelectYear: (year: string) => void;
-  charges: (IChargeVariable | IChargeFixe)[];
+  charges: ICharge[];
   mode?: "both" | "month" | "year";
 }

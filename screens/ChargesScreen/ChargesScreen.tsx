@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
-import { IChargeFixe, IChargeVariable, RootStackNavigationProp } from "@/types";
+import { ICharge, RootStackNavigationProp } from "@/types";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { styles } from "./ChargesScreen.style";
@@ -33,7 +33,7 @@ dayjs.locale("fr");
 
 interface GroupedCharges {
   date: string;
-  charges: (IChargeVariable | IChargeFixe)[];
+  charges: ICharge[];
 }
 
 const ChargesScreen: React.FC = () => {
@@ -96,7 +96,7 @@ const ChargesScreen: React.FC = () => {
   }, [categories]);
 
   const handleOpenDetail = useCallback(
-    (charge: IChargeVariable | IChargeFixe) => {
+    (charge: ICharge) => {
       navigation.navigate("ChargeDetail", {
         chargeId: charge.id,
         description: charge.description,
@@ -151,7 +151,7 @@ const ChargesScreen: React.FC = () => {
         acc[dateKey].push(charge);
         return acc;
       },
-      {} as Record<string, (IChargeVariable | IChargeFixe)[]>,
+      {} as Record<string, ICharge[]>,
     );
 
     const groupedArray: GroupedCharges[] = [];
@@ -205,7 +205,7 @@ const ChargesScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const chargeVariableToAdd: Omit<IChargeVariable, "id" | "householdId"> = {
+    const chargeVariableToAdd: Omit<ICharge, "id" | "householdId"> = {
       description: description.trim(),
       montantTotal,
       payeur: payeurUid,

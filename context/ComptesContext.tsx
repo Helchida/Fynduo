@@ -8,14 +8,13 @@ import React, {
 } from "react";
 import {
   ICompteMensuel,
-  IChargeFixe,
-  IChargeVariable,
   IReglementData,
   IChargeFixeSnapshot,
+  ICharge,
 } from "../types";
 import { useAuth } from "../hooks/useAuth";
 import { useCalculs } from "../hooks/useCalculs";
-import * as DB from "../services/firebase/db";
+import * as DB from "../services/supabase/db";
 import dayjs from "dayjs";
 import { IComptesContext } from "./types/ComptesContext.type";
 import { useChargesFixesConfigs } from "hooks/useChargesFixesConfigs";
@@ -39,11 +38,11 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [currentMonthData, setCurrentMonthData] =
     useState<ICompteMensuel | null>(null);
-  const [chargesFixes, setChargesFixes] = useState<IChargeFixe[]>([]);
-  const [chargesVariables, setChargesVariables] = useState<IChargeVariable[]>(
+  const [chargesFixes, setChargesFixes] = useState<ICharge[]>([]);
+  const [chargesVariables, setChargesVariables] = useState<ICharge[]>(
     [],
   );
-  const [charges, setCharges] = useState<(IChargeVariable | IChargeFixe)[]>([]);
+  const [charges, setCharges] = useState<ICharge[]>([]);
   const [isLoadingComptes, setIsLoadingComptes] = useState(false);
   const [historyMonths, setHistoryMonths] = useState<ICompteMensuel[]>([]);
 
@@ -82,13 +81,13 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       setCurrentMonthData(moisData);
-      const chargesFixesData = await DB.getChargesByType<IChargeFixe>(
+      const chargesFixesData = await DB.getChargesByType(
         activeHouseholdId,
         "fixe",
       );
       setChargesFixes(chargesFixesData);
 
-      const chargesVariablesData = await DB.getChargesByType<IChargeVariable>(
+      const chargesVariablesData = await DB.getChargesByType(
         activeHouseholdId,
         "variable",
       );
@@ -96,13 +95,13 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (activeHouseholdId === currentUserUid) {
         const chargesVariablesSolo =
-          await DB.getSoloChargesByType<IChargeVariable>(
+          await DB.getSoloChargesByType(
             user.households,
             currentUserUid,
             "variable",
           );
 
-        const chargesFixesSolo = await DB.getSoloChargesByType<IChargeFixe>(
+        const chargesFixesSolo = await DB.getSoloChargesByType(
           user.households,
           currentUserUid,
           "fixe",
@@ -131,11 +130,11 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [activeHouseholdId]);
 
   const addChargeFixe = useCallback(
-    async (charge: Omit<IChargeFixe, "id" | "householdId">) => {
+    async (charge: Omit<ICharge, "id" | "householdId">) => {
       if (!activeHouseholdId) return;
       try {
         const id = await DB.addCharge(activeHouseholdId, charge);
-        const newCharge: IChargeFixe = {
+        const newCharge: ICharge = {
           id,
           householdId: activeHouseholdId,
           ...charge,
@@ -210,15 +209,15 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const addChargeVariable = useCallback(
-    async (charge: Omit<IChargeVariable, "id" | "householdId">) => {
+    async (charge: Omit<ICharge, "id" | "householdId">) => {
       if (!activeHouseholdId) return;
       try {
-        const chargeToSave: Omit<IChargeVariable, "id"> = {
+        const chargeToSave: Omit<ICharge, "id"> = {
           ...charge,
           householdId: activeHouseholdId,
         };
         const id = await DB.addCharge(activeHouseholdId, chargeToSave);
-        const newVar: IChargeVariable = {
+        const newVar: ICharge = {
           id,
           householdId: activeHouseholdId,
           ...charge,
@@ -235,7 +234,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateCharge = useCallback(
     async (
       chargeId: string,
-      updateData: Partial<IChargeVariable & IChargeFixe>,
+      updateData: Partial<ICharge>,
     ) => {
       if (!activeHouseholdId) return;
       try {
@@ -247,7 +246,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
               return {
                 ...(c as any),
                 ...(updateData as any),
-              } as IChargeFixe | IChargeVariable;
+              } as ICharge;
             }
             return c;
           }),

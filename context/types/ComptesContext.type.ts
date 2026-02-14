@@ -1,6 +1,5 @@
 import {
-  IChargeFixe,
-  IChargeVariable,
+  ICharge,
   ICompteMensuel,
   IReglementData,
   IResultatsCalcul,
@@ -8,9 +7,9 @@ import {
 
 export interface IComptesContext extends IResultatsCalcul {
   currentMonthData: ICompteMensuel | null;
-  chargesFixes: IChargeFixe[];
-  chargesVariables: IChargeVariable[];
-  charges: (IChargeVariable | IChargeFixe)[];
+  chargesFixes: ICharge[];
+  chargesVariables: ICharge[];
+  charges: ICharge[];
   isLoadingComptes: boolean;
   historyMonths: ICompteMensuel[];
   loadData: () => Promise<void>;
@@ -20,15 +19,15 @@ export interface IComptesContext extends IResultatsCalcul {
     loyerPayeurUid: string,
   ) => Promise<void>;
   addChargeVariable: (
-    depense: Omit<IChargeVariable, "id" | "householdId">,
+    depense: Omit<ICharge, "id" | "householdId">,
   ) => Promise<void>;
   updateCharge: (
     chargeId: string,
-    updateData: Partial<IChargeVariable & IChargeFixe>,
+    updateData: Partial<ICharge>,
   ) => Promise<void>;
   deleteCharge: (chargeId: string) => Promise<void>;
   addChargeFixe: (
-    charge: Omit<IChargeFixe, "id" | "householdId">,
+    charge: Omit<ICharge, "id" | "householdId">,
   ) => Promise<void>;
   updateChargeFixe: (chargeId: string, newAmount: number) => Promise<void>;
   deleteChargeFixe: (chargeId: string) => Promise<void>;

@@ -20,15 +20,14 @@ import {
 } from "firebase/firestore";
 import dayjs from "dayjs";
 import {
-  IChargeFixe,
   ICompteMensuel,
-  IChargeVariable,
   IChargeFixeSnapshot,
   IDette,
   IUser,
   ICategorie,
   ILoyerConfig,
   ICharge,
+  IChargeFixeTemplate,
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 
@@ -278,13 +277,13 @@ export async function setMoisFinalise(
  */
 export async function getChargesFixesConfigs(
   householdId: string,
-): Promise<IChargeFixe[]> {
+): Promise<IChargeFixeTemplate[]> {
   const chargesCollection = getCollectionRef(
     householdId,
     SUB_COLLECTIONS.CHARGES_FIXES,
   );
   const snapshot = await getDocs(chargesCollection);
-  return snapshot.docs.map((doc) => mapDocToType<IChargeFixe>(doc));
+  return snapshot.docs.map((doc) => mapDocToType<IChargeFixeTemplate>(doc));
 }
 
 /**
@@ -292,7 +291,7 @@ export async function getChargesFixesConfigs(
  */
 export async function addChargeFixeConfig(
   householdId: string,
-  charge: Omit<IChargeFixe, "id" | "householdId">,
+  charge: Omit<IChargeFixeTemplate, "id" | "householdId">,
 ): Promise<string> {
   const chargesCollection = getCollectionRef(
     householdId,
@@ -312,7 +311,7 @@ export async function addChargeFixeConfig(
 export async function updateChargeFixeConfig(
   householdId: string,
   chargeId: string,
-  updates: Partial<Omit<IChargeFixe, "id">>,
+  updates: Partial<Omit<IChargeFixeTemplate, "id">>,
 ) {
   const chargeRef = doc(
     db,
@@ -344,10 +343,10 @@ export async function deleteChargeFixeConfig(
 /**
  * Récupère toutes les charges (selon le type fixe ou variable) d'un foyer
  */
-export async function getChargesByType<T extends ICharge>(
+export async function getChargesByType(
   householdId: string,
   type: "fixe" | "variable",
-): Promise<T[]> {
+): Promise<ICharge[]> {
   const chargesCollection = getCollectionRef(
     householdId,
     SUB_COLLECTIONS.CHARGES,
@@ -355,7 +354,7 @@ export async function getChargesByType<T extends ICharge>(
   const q = query(chargesCollection, where("type", "==", type));
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => mapDocToType<T>(doc));
+  return snapshot.docs.map((doc) => mapDocToType<ICharge>(doc));
 }
 
 /**
@@ -363,7 +362,7 @@ export async function getChargesByType<T extends ICharge>(
  */
 export async function getAllCharges(
   householdId: string,
-): Promise<(IChargeFixe | IChargeVariable)[]> {
+): Promise<ICharge[]> {
   const chargesCollection = getCollectionRef(
     householdId,
     SUB_COLLECTIONS.CHARGES,
@@ -371,7 +370,7 @@ export async function getAllCharges(
   const snapshot = await getDocs(chargesCollection);
 
   return snapshot.docs.map((doc) =>
-    mapDocToType<IChargeFixe | IChargeVariable>(doc),
+    mapDocToType<ICharge>(doc),
   );
 }
 
@@ -379,12 +378,12 @@ export async function getAllCharges(
  * Récupère toutes les charges d'un type précis où l'utilisateur est bénéficiaire
  * à travers plusieurs foyers (solo + partagé)
  */
-export async function getSoloChargesByType<T extends ICharge>(
+export async function getSoloChargesByType(
   householdIds: string[],
   userId: string,
   type: "fixe" | "variable",
-): Promise<T[]> {
-  let allCharges: T[] = [];
+): Promise<ICharge[]> {
+  let allCharges: ICharge[] = [];
 
   for (const id of householdIds) {
     const q = query(
@@ -394,7 +393,7 @@ export async function getSoloChargesByType<T extends ICharge>(
     );
 
     const snap = await getDocs(q);
-    const charges = snap.docs.map((doc) => mapDocToType<T>(doc));
+    const charges = snap.docs.map((doc) => mapDocToType<ICharge>(doc));
 
     allCharges = [...allCharges, ...charges];
   }
@@ -411,9 +410,7 @@ export async function getSoloChargesByType<T extends ICharge>(
  */
 export async function addCharge(
   householdId: string,
-  charge:
-    | Omit<IChargeFixe, "id" | "householdId">
-    | Omit<IChargeVariable, "id" | "householdId">,
+  charge: Omit<ICharge, "id" | "householdId">,
 ) {
   const depensesCollection = getCollectionRef(
     householdId,

@@ -2,7 +2,7 @@ import { createContext, useCallback, useEffect, useState } from "react";
 import { ICategoriesContext } from "./types/CategoriesContext.type";
 import { ICategorie } from "@/types";
 import { useAuth } from "hooks/useAuth";
-import * as DB from "../services/firebase/db";
+import * as DB from "../services/supabase/db";
 
 export const CategoriesContext = createContext<ICategoriesContext>(
   {} as ICategoriesContext

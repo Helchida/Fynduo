@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
-  IChargeFixe,
-  IChargeVariable,
+  ICharge,
   RootStackNavigationProp,
   RootStackRouteProp,
 } from "../../types";
@@ -50,7 +49,7 @@ const ChargeDetailScreen: React.FC = () => {
   const initialCharge = charges.find((c) => c.id === chargeId);
 
   const [charge, setCharge] = useState<
-    (IChargeVariable | IChargeFixe) | undefined
+    ICharge | undefined
   >(initialCharge);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -184,10 +183,10 @@ const ChargeDetailScreen: React.FC = () => {
       dateComptes: editDateComptes.toISOString(),
     };
 
-    const updatedData: Partial<IChargeVariable & IChargeFixe> = {
+    const updatedData: Partial<ICharge> = {
       ...updatedDataBase,
       ...({ categorie: editCategorie }),
-    } as Partial<IChargeVariable & IChargeFixe>;
+    } as Partial<ICharge>;
 
     try {
       await updateCharge(charge.id, updatedData);

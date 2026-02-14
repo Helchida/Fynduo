@@ -1,15 +1,14 @@
 import { useMemo } from "react";
 import {
-  IChargeVariable,
   ICategorie,
   StatPeriod,
   StatDataItem,
-  IChargeFixe,
+  ICharge,
 } from "@/types";
 import dayjs from "dayjs";
 
 export const useStats = (
-  charges: (IChargeVariable | IChargeFixe)[],
+  charges: ICharge[],
   categories: ICategorie[],
   period: StatPeriod,
   referenceDate: string,

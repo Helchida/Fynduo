@@ -5,16 +5,16 @@ import React, {
   ReactNode,
   useMemo,
 } from "react";
-import { auth, db } from "../services/firebase/config";
+import { auth } from "../services/firebase/config";
+import { supabase } from "../services/supabase/config";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
 import { IUser } from "@/types";
-import * as DB from "../services/firebase/db";
+import * as DB from "../services/supabase/db";
 import { IAuthContext, IUserContext } from "./types/AuthContext.type";
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -42,8 +42,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   useEffect(() => {
-    let unsubscribeDoc: () => void;
-    let unsubscribeHousehold: () => void;
+    let userChannel: any = null;
+    let householdChannel: any = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
@@ -51,8 +51,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (!firebaseUser) {
         setUser(null);
         setHouseholdUsers([]);
-        if (unsubscribeDoc) unsubscribeDoc();
-        if (unsubscribeHousehold) unsubscribeHousehold();
+        if (userChannel) supabase.removeChannel(userChannel);
+        if (householdChannel) supabase.removeChannel(householdChannel);
         setIsLoading(false);
         return;
       }
@@ -60,65 +60,98 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const canAccess = firebaseUser.emailVerified || __DEV__;
 
       if (canAccess) {
-        const userRef = doc(db, "users", firebaseUser.uid);
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', firebaseUser.uid)
+            .single();
 
-        unsubscribeDoc = onSnapshot(
-          userRef,
-          async (docSnap) => {
-            if (docSnap.exists()) {
-              const userData = docSnap.data() as IUser;
-              const token = await firebaseUser.getIdToken();
-              const activeId = userData.activeHouseholdId;
-
-              if (user && user.activeHouseholdId !== activeId) {
-                setHouseholdUsers([]);
-              }
-
-              const currentUserObj: IUser = {
-                id: firebaseUser.uid,
-                displayName: userData.displayName || "Moi",
-                email: firebaseUser.email || "",
-                households: userData.households || [],
-                activeHouseholdId: activeId,
-              };
-
-              setUser({
-                id: firebaseUser.uid,
-                displayName: userData.displayName,
-                activeHouseholdId: activeId,
-                households: userData.households,
-                token,
-              });
-
-              if (unsubscribeHousehold) unsubscribeHousehold();
-              if (activeId === firebaseUser.uid) {
-                setHouseholdUsers([currentUserObj]);
-              } else {
-                const householdRef = doc(db, "households", activeId);
-                unsubscribeHousehold = onSnapshot(
-                  householdRef,
-                  async (householdSnap) => {
-                    if (householdSnap.exists()) {
-                      const members = await DB.getHouseholdUsers(activeId);
-                      setHouseholdUsers(members);
-                    } else {
-                      setHouseholdUsers([]);
-                    }
-                  },
-                  (error) => {
-                    console.error("Erreur listener household:", error);
-                    setHouseholdUsers([]);
-                  },
-                );
-              }
-            }
+          if (userError || !userData) {
+            console.error("Erreur récupération user:", userError);
             setIsLoading(false);
-          },
-          (error: any) => {
-            console.error("Erreur listener profil:", error);
-            setIsLoading(false);
-          },
-        );
+            return;
+          }
+
+          const token = await firebaseUser.getIdToken();
+          const activeId = userData.active_household_id;
+
+          if (user && user.activeHouseholdId !== activeId) {
+            setHouseholdUsers([]);
+          }
+
+          const currentUserObj: IUser = {
+            id: firebaseUser.uid,
+            displayName: userData.display_name || "Moi",
+            email: firebaseUser.email || "",
+            households: userData.households || [],
+            activeHouseholdId: activeId,
+          };
+
+          setUser({
+            id: firebaseUser.uid,
+            displayName: userData.display_name,
+            activeHouseholdId: activeId,
+            households: userData.households,
+            token,
+          });
+
+          if (userChannel) supabase.removeChannel(userChannel);
+          if (householdChannel) supabase.removeChannel(householdChannel);
+
+          userChannel = supabase
+            .channel(`user:${firebaseUser.uid}`)
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'users',
+                filter: `id=eq.${firebaseUser.uid}`,
+              },
+              async (payload) => {
+                const newData = payload.new as any;
+                if (newData) {
+                  setUser((prev) => prev ? {
+                    ...prev,
+                    displayName: newData.display_name,
+                    activeHouseholdId: newData.active_household_id,
+                    households: newData.households,
+                  } : null);
+                }
+              }
+            )
+            .subscribe();
+
+          if (activeId === firebaseUser.uid) {
+            setHouseholdUsers([currentUserObj]);
+          } else {
+            const members = await DB.getHouseholdUsers(activeId);
+            setHouseholdUsers(members);
+
+            householdChannel = supabase
+              .channel(`household:${activeId}`)
+              .on(
+                'postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: 'households',
+                  filter: `id=eq.${activeId}`,
+                },
+                async () => {
+                  const updatedMembers = await DB.getHouseholdUsers(activeId);
+                  setHouseholdUsers(updatedMembers);
+                }
+              )
+              .subscribe();
+          }
+
+          setIsLoading(false);
+        } catch (error) {
+          console.error("Erreur chargement profil:", error);
+          setIsLoading(false);
+        }
       } else {
         setUser(null);
         setIsAwaitingVerification(true);
@@ -128,8 +161,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     return () => {
       unsubscribeAuth();
-      if (unsubscribeDoc) unsubscribeDoc();
-      if (unsubscribeHousehold) unsubscribeHousehold();
+      if (userChannel) supabase.removeChannel(userChannel);
+      if (householdChannel) supabase.removeChannel(householdChannel);
     };
   }, []);
 

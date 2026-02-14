@@ -6,9 +6,9 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { IChargeFixe } from "../types";
+import { ICharge, IChargeFixeTemplate } from "../types";
 import { useAuth } from "../hooks/useAuth";
-import * as DB from "../services/firebase/db";
+import * as DB from "../services/supabase/db";
 import dayjs from "dayjs";
 import { IChargesFixesConfigContext } from "./types/ChargesFixesConfigContext.type";
 
@@ -22,7 +22,7 @@ export const ChargesFixesConfigProvider: React.FC<{
   const { user, householdUsers, isLoading } = useAuth();
   const activeHouseholdId = user?.activeHouseholdId;
   const isSoloMode = user?.id === activeHouseholdId;
-  const [chargesFixesConfigs, setChargesFixesConfigs] = useState<IChargeFixe[]>(
+  const [chargesFixesConfigs, setChargesFixesConfigs] = useState<IChargeFixeTemplate[]>(
     [],
   );
   const [isLoadingComptes, setIsLoadingComptes] = useState(false);
@@ -59,7 +59,7 @@ export const ChargesFixesConfigProvider: React.FC<{
     const freshConfigs = await DB.getChargesFixesConfigs(activeHouseholdId);
     if (freshConfigs.length === 0) return;
 
-    const currentChargesInDB = await DB.getChargesByType<IChargeFixe>(
+    const currentChargesInDB = await DB.getChargesByType(
       activeHouseholdId,
       "fixe",
     );
@@ -89,12 +89,11 @@ export const ChargesFixesConfigProvider: React.FC<{
         if (!alreadyExists) {
           processingCharges.current.add(chargeKey);
           try {
-            const nouvelleCharge: Omit<IChargeFixe, "id"> = {
+            const nouvelleCharge: Omit<ICharge, "id"> = {
               description: config.description,
               montantTotal: config.montantTotal,
               payeur: config.payeur,
               beneficiaires: beneficiaryUids,
-              jourPrelevementMensuel: config.jourPrelevementMensuel,
               dateComptes: today
                 .date(config.jourPrelevementMensuel)
                 .toISOString(),
@@ -180,7 +179,7 @@ export const ChargesFixesConfigProvider: React.FC<{
   );
 
   const addChargeFixeConfig = useCallback(
-    async (charge: Omit<IChargeFixe, "id" | "householdId">) => {
+    async (charge: Omit<IChargeFixeTemplate, "id" | "householdId">) => {
       if (!activeHouseholdId) return;
       await DB.addChargeFixeConfig(activeHouseholdId, charge);
       loadConfigs();

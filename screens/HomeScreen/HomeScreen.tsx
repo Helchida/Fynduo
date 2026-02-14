@@ -13,7 +13,7 @@ import { RootStackNavigationProp } from "@/types";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./HomeScreen.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
-import { switchActiveHousehold } from "services/firebase/db";
+import { switchActiveHousehold } from "services/supabase/db";
 import {
   LogOut,
   User,
@@ -23,8 +23,7 @@ import {
   Users,
 } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "services/firebase/config";
+import { supabase } from "services/supabase/config";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 
@@ -72,37 +71,68 @@ const HomeScreen: React.FC = () => {
   useEffect(() => {
     if (!user?.households) return;
 
-    const unsubscribes: (() => void)[] = [];
+    const channels: any[] = [];
 
-    user.households.forEach((hId) => {
-      if (hId === user.id) {
-        setHouseholdsDetails((prev) => ({
-          ...prev,
-          [hId]: { name: "Mon Foyer Solo", count: 1 },
-        }));
-      } else {
-        const householdRef = doc(db, "households", hId);
-        const unsubscribe = onSnapshot(
-          householdRef,
-          (snap) => {
-            if (snap.exists()) {
-              const data = snap.data();
-              setHouseholdsDetails((prev) => ({
-                ...prev,
-                [hId]: {
-                  name: data.name || `Foyer (${hId.substring(0, 4)})`,
-                  count: data.members?.length || 0,
+    const loadHouseholds = async () => {
+      for (const hId of user.households) {
+        if (hId === user.id) {
+          setHouseholdsDetails((prev) => ({
+            ...prev,
+            [hId]: { name: "Mon Foyer Solo", count: 1 },
+          }));
+        } else {
+          const { data, error } = await supabase
+            .from('households')
+            .select('*')
+            .eq('id', hId)
+            .single();
+
+          if (data && !error) {
+            setHouseholdsDetails((prev) => ({
+              ...prev,
+              [hId]: {
+                name: data.name || `Foyer (${hId.substring(0, 4)})`,
+                count: data.members?.length || 0,
+              },
+            }));
+
+            const channel = supabase
+              .channel(`household:${hId}`)
+              .on(
+                'postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: 'households',
+                  filter: `id=eq.${hId}`,
                 },
-              }));
-            }
-          },
-          (error) => console.error(`Erreur foyer ${hId}:`, error),
-        );
-        unsubscribes.push(unsubscribe);
-      }
-    });
+                (payload) => {
+                  const newData = payload.new as any;
+                  if (newData) {
+                    setHouseholdsDetails((prev) => ({
+                      ...prev,
+                      [hId]: {
+                        name: newData.name || `Foyer (${hId.substring(0, 4)})`,
+                        count: newData.members?.length || 0,
+                      },
+                    }));
+                  }
+                }
+              )
+              .subscribe();
 
-    return () => unsubscribes.forEach((unsub) => unsub());
+            channels.push(channel);
+          } else {
+            console.error(`Erreur foyer ${hId}:`, error);
+          }
+        }
+      }
+    };
+
+    loadHouseholds();
+    return () => {
+      channels.forEach((channel) => supabase.removeChannel(channel));
+    };
   }, [user?.households]);
 
   const { isLoadingComptes, currentMonthData, charges } = useComptes();
@@ -192,17 +222,19 @@ const HomeScreen: React.FC = () => {
     return <Text style={styles.loading}>Chargement...</Text>;
   }
 
-  const handleSwitchHousehold = async (targetId: string) => {
-    if (!user || user.activeHouseholdId === targetId) return;
+  const handleSwitchHousehold = async (hId: string) => {
+  if (user.activeHouseholdId === hId) return;
 
-    try {
-      await switchActiveHousehold(user.id, targetId);
-      setHouseholdMenuVisible(false);
-      toast.success("Foyer changé");
-    } catch (error) {
-      toast.error("Erreur", "Impossible de changer de foyer");
-    }
-  };
+  try {
+    await switchActiveHousehold(user.id, hId);
+    
+    // Forcer le rechargement complet de l'app
+    window.location.reload();
+    
+  } catch (error) {
+    alert("Erreur lors du changement de foyer");
+  }
+};
 
   const isFinalized = currentMonthData?.statut === "finalisé";
   const isSolo = user.activeHouseholdId === user.id;

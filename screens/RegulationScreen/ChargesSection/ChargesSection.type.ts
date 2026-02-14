@@ -1,4 +1,4 @@
-import { IChargeFixe, IChargeVariable, IUser } from "@/types";
+import { ICharge, IUser } from "@/types";
 
 export interface IVirement {
   de: string;
@@ -7,7 +7,7 @@ export interface IVirement {
 }
 
 export interface ChargesSectionProps {
-  charges: (IChargeVariable | IChargeFixe)[];
+  charges: ICharge[];
   householdUsers: IUser[];
   virements: IVirement[];
   getDisplayName: (uid: string) => string;

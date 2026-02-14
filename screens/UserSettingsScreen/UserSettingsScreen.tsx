@@ -26,7 +26,7 @@ import {
   reauthenticateWithCredential,
 } from "firebase/auth";
 import { auth } from "services/firebase/config";
-import { updateUserInfo } from "services/firebase/db";
+import { updateUserInfo } from "services/supabase/db";
 import { useToast } from "hooks/useToast";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "@/types";
@@ -101,7 +101,7 @@ const UserSettingsScreen: React.FC = () => {
           toast.success("Succès", "Mot de passe modifié");
         } else if (activeAction === "DELETE") {
           const uid = auth.currentUser!.uid;
-          const { deleteUserInfo } = require("services/firebase/db");
+          const { deleteUserInfo } = require("services/supabase/db");
           await deleteUserInfo(uid);
           await deleteUser(auth.currentUser!);
           toast.success(

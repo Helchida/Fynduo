@@ -12,7 +12,7 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "./LoyerScreen.style";
 import { IUser, ILoyerConfig } from "../../types";
-import * as DB from "../../services/firebase/db";
+import * as DB from "../../services/supabase/db";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";

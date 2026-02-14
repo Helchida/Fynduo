@@ -1,8 +1,8 @@
-import { IChargeFixe, IChargeVariable, IUser } from "@/types";
+import { ICharge, IUser } from "@/types";
 import { useMemo } from "react";
 
 export const useMultiUserBalance = (
-  charges: (IChargeVariable | IChargeFixe)[],
+  charges: ICharge[],
   householdUsers: IUser[],
 ) => {
   return useMemo(() => {

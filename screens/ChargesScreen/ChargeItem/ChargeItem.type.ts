@@ -1,7 +1,7 @@
-import { IChargeFixe, IChargeVariable, IUser } from "@/types";
+import { ICharge, IUser } from "@/types";
 
 export interface ChargeItemProps {
-  charge: IChargeVariable | IChargeFixe;
+  charge: ICharge;
   householdUsers: IUser[];
-  onPress: (charge: IChargeVariable | IChargeFixe) => void;
+  onPress: (charge: ICharge) => void;
 }

@@ -50,15 +50,18 @@ export interface ICharge extends FirestoreDocument {
   categorie: ICategorie["id"];
 }
 
-export interface IChargeVariable extends ICharge {
-  type: "variable";
-}
-export interface IChargeFixe extends ICharge {
-  type: "fixe";
+export interface IChargeFixeTemplate extends FirestoreDocument {
+  householdId: string;
+  categorie: string;
+  description: string;
+  montantTotal: number;
+  payeur: string;
+  beneficiaires: string[];
   jourPrelevementMensuel: number;
+  scope: ChargeScope;
 }
 
-export interface ChargeFixeForm extends IChargeFixe {
+export interface ChargeFixeForm extends IChargeFixeTemplate {
   montantForm: string;
   isNew?: boolean;
 }
@@ -93,7 +96,7 @@ export interface ICompteMensuel extends FirestoreDocument {
   statut: StatutMois;
   dettes: IDette[];
   dateCloture?: string | null;
-  chargesFixesSnapshot?: IChargeFixe[];
+  chargesFixesSnapshot?: IChargeFixeTemplate[];
 }
 
 export interface IResultatsCalcul {
@@ -116,7 +119,7 @@ export interface IReglementData {
 
 export interface IHistoricalData {
   compteMensuel: ICompteMensuel;
-  charges: (IChargeVariable | IChargeFixe)[];
+  charges: ICharge[];
 }
 
 export interface ICategorie extends FirestoreDocument {
