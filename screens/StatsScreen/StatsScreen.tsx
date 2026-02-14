@@ -60,7 +60,7 @@ const StatsScreen: React.FC = () => {
       if (period === "tout") return true;
 
       const chargeMoisAnnee =
-        c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
+        dayjs(c.dateStatistiques).format("YYYY-MM");
 
       if (period === "mois") return chargeMoisAnnee === referenceDate;
       if (period === "annee") return chargeMoisAnnee.startsWith(referenceDate);
