@@ -181,6 +181,7 @@ const ChargeDetailScreen: React.FC = () => {
       beneficiaires: editBeneficiairesUid,
       dateStatistiques: editDateStatistiques.toISOString(),
       dateComptes: editDateComptes.toISOString(),
+      scope: editBeneficiairesUid.length > 1 ? "partage" : "solo",
     };
 
     const updatedData: Partial<ICharge> = {
