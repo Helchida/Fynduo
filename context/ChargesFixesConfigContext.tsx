@@ -94,9 +94,6 @@ export const ChargesFixesConfigProvider: React.FC<{
               montantTotal: config.montantTotal,
               payeur: config.payeur,
               beneficiaires: beneficiaryUids,
-              dateComptes: today
-                .date(config.jourPrelevementMensuel)
-                .toISOString(),
               dateStatistiques: today
                 .date(config.jourPrelevementMensuel)
                 .toISOString(),

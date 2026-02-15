@@ -23,15 +23,10 @@ export const EditChargeForm = ({
   getDisplayName,
   setEditPayeurUid,
   editDateStatistiques,
-  editDateComptes,
   showDateStatistiquesPicker,
-  showDateComptesPicker,
   isDateStatistiquesPickerVisible,
-  isDateComptesPickerVisible,
   handleConfirmDateStatistiques,
-  handleConfirmDateComptes,
   hideDateStatistiquesPicker,
-  hideDateComptesPicker,
   editBeneficiairesUid,
   handleToggleEditBeneficiaire,
   currentUserId,
@@ -146,18 +141,6 @@ export const EditChargeForm = ({
           onOpen={showDateStatistiquesPicker}
           styles={styles}
           containerStyle={{ flex: 1, marginLeft: 0 }}
-        />
-      </View>
-      <View style={[styles.editRow, { marginTop: 0 }]}>
-        <UniversalDatePicker
-          date={editDateComptes}
-          label="Date d'ajout"
-          isVisible={isDateComptesPickerVisible}
-          onConfirm={handleConfirmDateComptes}
-          onCancel={hideDateComptesPicker}
-          onOpen={showDateComptesPicker}
-          styles={styles}
-          containerStyle={{ flex: 1, marginLeft: 0, marginRight: 0 }}
         />
       </View>
       <CategoryPickerModal

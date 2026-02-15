@@ -556,7 +556,6 @@ export async function addChargeVariableRegularisation(
       payeur: detteRegularisation.debiteurUid,
       beneficiaires: [detteRegularisation.creancierUid],
       dateStatistiques: dateRegul,
-      dateComptes: dateRegul,
       moisAnnee: moisAnnee,
       categorie: "Remboursement",
       type: "variable",

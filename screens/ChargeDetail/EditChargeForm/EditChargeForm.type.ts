@@ -12,15 +12,10 @@ export interface EditChargeFormProps {
   getDisplayName: (uid: string) => string;
   setEditPayeurUid: (uid: string) => void;
   editDateStatistiques: Date;
-  editDateComptes: Date;
   showDateStatistiquesPicker: () => void;
-  showDateComptesPicker: () => void;
   isDateStatistiquesPickerVisible: boolean;
-  isDateComptesPickerVisible: boolean;
   handleConfirmDateStatistiques: (date: Date) => void;
-  handleConfirmDateComptes: (date: Date) => void;
   hideDateStatistiquesPicker: () => void;
-  hideDateComptesPicker: () => void;
   editBeneficiairesUid: string[];
   handleToggleEditBeneficiaire: (userId: string) => void;
   currentUserId: string;

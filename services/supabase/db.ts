@@ -527,7 +527,6 @@ export async function getChargesByType<T extends ICharge>(
     montantTotal: row.montant_total,
     payeur: row.payeur,
     beneficiaires: row.beneficiaires || [],
-    dateComptes: row.date_comptes,
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
@@ -556,7 +555,6 @@ export async function getAllCharges(
     montantTotal: row.montant_total,
     payeur: row.payeur,
     beneficiaires: row.beneficiaires || [],
-    dateComptes: row.date_comptes,
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
@@ -589,7 +587,6 @@ export async function getSoloChargesByType<T extends ICharge>(
     montantTotal: row.montant_total,
     payeur: row.payeur,
     beneficiaires: row.beneficiaires || [],
-    dateComptes: row.date_comptes,
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
@@ -625,7 +622,6 @@ export async function addCharge(
       montant_total: charge.montantTotal,
       payeur: charge.payeur,
       beneficiaires: charge.beneficiaires || [],
-      date_comptes: (charge as any).dateComptes,
       date_statistiques: (charge as any).dateStatistiques,
       mois_annee: (charge as any).moisAnnee,
       scope: (charge as any).scope || 'partage',
@@ -697,7 +693,6 @@ export async function updateCharge(
     if ((updateData as any).montantTotal !== undefined) supabaseUpdates.montant_total = (updateData as any).montantTotal;
     if (updateData.payeur !== undefined) supabaseUpdates.payeur = updateData.payeur;
     if (updateData.beneficiaires !== undefined) supabaseUpdates.beneficiaires = updateData.beneficiaires;
-    if ((updateData as any).dateComptes !== undefined) supabaseUpdates.date_comptes = (updateData as any).dateComptes;
     if ((updateData as any).dateStatistiques !== undefined) supabaseUpdates.date_statistiques = (updateData as any).dateStatistiques;
     if ((updateData as any).scope !== undefined) supabaseUpdates.scope = (updateData as any).scope;
 
@@ -752,7 +747,6 @@ export async function addChargeVariableRegularisation(
       payeur: detteRegularisation.debiteurUid,
       beneficiaires: [detteRegularisation.creancierUid],
       dateStatistiques: dateRegul,
-      dateComptes: dateRegul,
       moisAnnee: moisAnnee,
       categorie: "Remboursement",
       type: "variable",

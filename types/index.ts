@@ -42,7 +42,6 @@ export interface ICharge extends FirestoreDocument {
   payeur: string;
   beneficiaires: string[];
   dateStatistiques: string;
-  dateComptes: string;
   moisAnnee: string;
   householdId: string;
   type: ChargeType;

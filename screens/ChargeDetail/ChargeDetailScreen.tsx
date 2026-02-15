@@ -69,14 +69,9 @@ const ChargeDetailScreen: React.FC = () => {
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isDateStatistiquesPickerVisible, setDateStatistiquesPickerVisibility] =
     useState(false);
-  const [isDateComptesPickerVisible, setDateComptesPickerVisibility] =
-    useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [editDateStatistiques, setEditDateStatistiques] = useState<Date>(
     charge?.dateStatistiques ? new Date(charge.dateStatistiques) : new Date(),
-  );
-  const [editDateComptes, setEditDateComptes] = useState<Date>(
-    charge?.dateComptes ? new Date(charge.dateComptes) : new Date(),
   );
   const [editCategorie, setEditCategorie] = useState<string>(
     charge?.categorie || 'cat_autre',
@@ -88,18 +83,11 @@ const ChargeDetailScreen: React.FC = () => {
   const hideDateStatistiquesPicker = () =>
     setDateStatistiquesPickerVisibility(false);
 
-  const showDateComptesPicker = () => setDateComptesPickerVisibility(true);
-  const hideDateComptesPicker = () => setDateComptesPickerVisibility(false);
-
   const handleConfirmDateStatistiques = (date: Date) => {
     setEditDateStatistiques(date);
     hideDateStatistiquesPicker();
   };
 
-  const handleConfirmDateComptes = (date: Date) => {
-    setEditDateComptes(date);
-    hideDateComptesPicker();
-  };
 
   const getDisplayName = (uid: string) => {
     const user = householdUsers.find((u) => u.id === uid);
@@ -130,11 +118,6 @@ const ChargeDetailScreen: React.FC = () => {
       setEditDateStatistiques(
         initialCharge.dateStatistiques
           ? new Date(initialCharge.dateStatistiques)
-          : new Date(),
-      );
-      setEditDateComptes(
-        initialCharge.dateComptes
-          ? new Date(initialCharge.dateComptes)
           : new Date(),
       );
     } else if (!isLoadingComptes) {
@@ -180,7 +163,6 @@ const ChargeDetailScreen: React.FC = () => {
       payeur: editPayeurUid,
       beneficiaires: editBeneficiairesUid,
       dateStatistiques: editDateStatistiques.toISOString(),
-      dateComptes: editDateComptes.toISOString(),
       scope: editBeneficiairesUid.length > 1 ? "partage" : "solo",
     };
 
@@ -205,7 +187,6 @@ const ChargeDetailScreen: React.FC = () => {
     editPayeurUid,
     editBeneficiairesUid,
     editDateStatistiques,
-    editDateComptes,
     updateCharge,
     editCategorie,
   ]);
@@ -256,7 +237,6 @@ const ChargeDetailScreen: React.FC = () => {
   const dateStatistiquesFormatted = dayjs(charge.dateStatistiques).format(
     "DD MMMM YYYY",
   );
-  const dateComptesFormatted = dayjs(charge.dateComptes).format("DD MMMM YYYY");
 
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
@@ -293,15 +273,10 @@ const ChargeDetailScreen: React.FC = () => {
           getDisplayName={getDisplayName}
           setEditPayeurUid={setEditPayeurUid}
           editDateStatistiques={editDateStatistiques}
-          editDateComptes={editDateComptes}
           showDateStatistiquesPicker={showDateStatistiquesPicker}
-          showDateComptesPicker={showDateComptesPicker}
           isDateStatistiquesPickerVisible={isDateStatistiquesPickerVisible}
-          isDateComptesPickerVisible={isDateComptesPickerVisible}
           handleConfirmDateStatistiques={handleConfirmDateStatistiques}
-          handleConfirmDateComptes={handleConfirmDateComptes}
           hideDateStatistiquesPicker={hideDateStatistiquesPicker}
-          hideDateComptesPicker={hideDateComptesPicker}
           editBeneficiairesUid={editBeneficiairesUid}
           handleToggleEditBeneficiaire={handleToggleEditBeneficiaire}
           currentUserId={user.id}
@@ -327,9 +302,6 @@ const ChargeDetailScreen: React.FC = () => {
             )}
             <Text style={styles.detailDateText}>
               Dépense du {dateStatistiquesFormatted}
-            </Text>
-            <Text style={styles.detailDateText}>
-              Ajouté le {dateComptesFormatted}
             </Text>
           </View>
 

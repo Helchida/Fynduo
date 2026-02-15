@@ -167,7 +167,6 @@ describe("Firestore Security Rules", () => {
         payeur: "user1",
         beneficiaires: ["user1", "user2"],
         dateStatistiques: "2023-10-27",
-        dateComptes: "2023-10-27",
         moisAnnee: "10-2023",
       })
     );

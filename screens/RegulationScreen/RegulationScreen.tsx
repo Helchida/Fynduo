@@ -312,7 +312,6 @@ const RegulationScreen: React.FC = () => {
               type: "fixe",
               scope: "partage",
               dateStatistiques: new Date().toISOString(),
-              dateComptes: new Date().toISOString(),
               categorie: charge.categorie,
             }),
           ),
