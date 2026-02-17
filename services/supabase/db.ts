@@ -8,9 +8,12 @@ import {
   ILoyerConfig,
   ICharge,
   IChargeFixeTemplate,
+  ICategorieRevenu,
+  IRevenu,
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 import { supabase } from "../supabase/config";
+import { DEFAULT_CATEGORIES_REVENUS } from "constants/categories_revenus";
 
 // ============================================
 // HELPERS
@@ -76,6 +79,7 @@ export async function createUserProfile(
 
     // Créer les catégories par défaut
     await createDefaultCategories(uid);
+    await createDefaultCategoriesRevenus(uid);
   } catch (error) {
     console.error("Erreur lors de la création du profil utilisateur:", error);
     throw error;
@@ -1181,4 +1185,250 @@ export async function createDefaultCategories(householdId: string) {
     .insert(categoriesToInsert);
 
   if (error) throw error;
+}
+
+/**
+ * Récupère toutes les catégories de revenus d'un foyer
+ */
+export async function getCategoriesRevenus(
+  householdId: string,
+): Promise<ICategorieRevenu[]> {
+  try {
+    const { data, error } = await supabase
+      .from('categories_revenus')
+      .select('*')
+      .eq('household_id', householdId);
+
+    if (error) throw error;
+
+    return (data || []).map((row) => ({
+      id: extractDocId(row.id),
+      label: row.label,
+      icon: row.icon,
+      isDefault: row.is_default,
+    }));
+  } catch (error) {
+    console.error("Erreur getCategoriesRevenus:", error);
+    throw error;
+  }
+}
+
+/**
+ * Ajoute une catégorie de revenu personnalisée
+ */
+export async function addCategorieRevenu(
+  householdId: string,
+  category: Omit<ICategorieRevenu, "id">,
+): Promise<string> {
+  try {
+    const newCatId = generateId();
+    const uniqueId = makeUniqueId(householdId, newCatId);
+
+    const { error } = await supabase
+      .from('categories_revenus')
+      .insert({
+        id: uniqueId,
+        household_id: householdId,
+        label: category.label,
+        icon: category.icon,
+        is_default: category.isDefault || false,
+      });
+
+    if (error) throw error;
+    return newCatId;
+  } catch (error) {
+    console.error("Erreur addCategorieRevenu:", error);
+    throw error;
+  }
+}
+
+/**
+ * Met à jour une catégorie de revenu
+ */
+export async function updateCategorieRevenu(
+  householdId: string,
+  categoryId: string,
+  updates: Partial<Omit<ICategorieRevenu, "id">>,
+) {
+  try {
+    const uniqueId = makeUniqueId(householdId, categoryId);
+    const supabaseUpdates: any = {};
+
+    if (updates.label !== undefined) supabaseUpdates.label = updates.label;
+    if (updates.icon !== undefined) supabaseUpdates.icon = updates.icon;
+
+    const { error } = await supabase
+      .from('categories_revenus')
+      .update(supabaseUpdates)
+      .eq('id', uniqueId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Erreur updateCategorieRevenu:", error);
+    throw error;
+  }
+}
+
+/**
+ * Supprime une catégorie de revenu
+ */
+export async function deleteCategorieRevenu(
+  householdId: string,
+  categoryId: string,
+) {
+  try {
+    const uniqueId = makeUniqueId(householdId, categoryId);
+
+    const { error } = await supabase
+      .from('categories_revenus')
+      .delete()
+      .eq('id', uniqueId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Erreur deleteCategorieRevenu:", error);
+    throw error;
+  }
+}
+
+/**
+ * Crée les catégories de revenus par défaut
+ */
+export async function createDefaultCategoriesRevenus(householdId: string) {
+  const categoriesToInsert = DEFAULT_CATEGORIES_REVENUS.map((category) => {
+    const uniqueId = makeUniqueId(householdId, category.id);
+    return {
+      id: uniqueId,
+      household_id: householdId,
+      label: category.label,
+      icon: category.icon,
+      is_default: category.isDefault || false,
+    };
+  });
+
+  const { error } = await supabase
+    .from('categories_revenus')
+    .insert(categoriesToInsert);
+
+  if (error) throw error;
+}
+
+
+/**
+ * Récupère tous les revenus d'un foyer
+ */
+export async function getRevenus(
+  householdId: string,
+  moisAnnee?: string,
+): Promise<IRevenu[]> {
+  try {
+    let query = supabase
+      .from('revenus')
+      .select('*')
+      .eq('household_id', householdId);
+
+    if (moisAnnee) {
+      query = query.eq('mois_annee', moisAnnee);
+    }
+
+    const { data, error } = await query.order('date_reception', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((row) => ({
+      id: extractDocId(row.id),
+      householdId: row.household_id,
+      categorie: row.categorie,
+      description: row.description,
+      montant: row.montant,
+      beneficiaire: row.beneficiaire,
+      dateReception: row.date_reception,
+      moisAnnee: row.mois_annee,
+    }));
+  } catch (error) {
+    console.error("Erreur getRevenus:", error);
+    throw error;
+  }
+}
+
+/**
+ * Ajoute un revenu
+ */
+export async function addRevenu(
+  householdId: string,
+  revenu: Omit<IRevenu, "id" | "householdId">,
+): Promise<string> {
+  try {
+    const docId = generateId();
+    const uniqueId = makeUniqueId(householdId, docId);
+
+    const { error } = await supabase
+      .from('revenus')
+      .insert({
+        id: uniqueId,
+        household_id: householdId,
+        categorie: revenu.categorie,
+        description: revenu.description,
+        montant: revenu.montant,
+        beneficiaire: revenu.beneficiaire,
+        date_reception: revenu.dateReception,
+        mois_annee: revenu.moisAnnee,
+      });
+
+    if (error) throw error;
+    return docId;
+  } catch (error) {
+    console.error("Erreur addRevenu:", error);
+    throw error;
+  }
+}
+
+/**
+ * Met à jour un revenu
+ */
+export async function updateRevenu(
+  householdId: string,
+  revenuId: string,
+  updates: Partial<Omit<IRevenu, "id" | "householdId">>,
+) {
+  try {
+    const uniqueId = makeUniqueId(householdId, revenuId);
+    const supabaseUpdates: any = {};
+
+    if (updates.categorie !== undefined) supabaseUpdates.categorie = updates.categorie;
+    if (updates.description !== undefined) supabaseUpdates.description = updates.description;
+    if (updates.montant !== undefined) supabaseUpdates.montant = updates.montant;
+    if (updates.beneficiaire !== undefined) supabaseUpdates.beneficiaire = updates.beneficiaire;
+    if (updates.dateReception !== undefined) supabaseUpdates.date_reception = updates.dateReception;
+    if (updates.moisAnnee !== undefined) supabaseUpdates.mois_annee = updates.moisAnnee;
+
+    const { error } = await supabase
+      .from('revenus')
+      .update(supabaseUpdates)
+      .eq('id', uniqueId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Erreur updateRevenu:", error);
+    throw error;
+  }
+}
+
+/**
+ * Supprime un revenu
+ */
+export async function deleteRevenu(householdId: string, revenuId: string) {
+  try {
+    const uniqueId = makeUniqueId(householdId, revenuId);
+
+    const { error } = await supabase
+      .from('revenus')
+      .delete()
+      .eq('id', uniqueId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Erreur deleteRevenu:", error);
+    throw error;
+  }
 }

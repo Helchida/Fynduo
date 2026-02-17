@@ -381,10 +381,10 @@ const HomeScreen: React.FC = () => {
           (householdsDetails[user.activeHouseholdId]?.count ?? 0) <= 1 ? (
             <View style={styles.actionsContainer}>
               <TouchableOpacity
-                style={[styles.actionButton, { borderLeftColor: "#d14127ff" }]}
-                onPress={() => navigation.navigate("ChargesFixes")}
+                style={[styles.actionButton, { borderLeftColor: "#27a1d1ff" }]}
+                onPress={() => navigation.navigate("Revenus")}
               >
-                <Text style={styles.actionText}>Charges fixes</Text>
+                <Text style={styles.actionText}>Revenus</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#2ecc71" }]}
@@ -392,7 +392,12 @@ const HomeScreen: React.FC = () => {
               >
                 <Text style={styles.actionText}>Dépenses</Text>
               </TouchableOpacity>
-
+              <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#d14127ff" }]}
+                onPress={() => navigation.navigate("ChargesFixes")}
+              >
+                <Text style={styles.actionText}>Charges fixes</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
                 onPress={() => navigation.navigate("Stats")}

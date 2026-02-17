@@ -11,6 +11,7 @@ import {
   IReglementData,
   IChargeFixeSnapshot,
   ICharge,
+  IRevenu,
 } from "../types";
 import { useAuth } from "../hooks/useAuth";
 import { useCalculs } from "../hooks/useCalculs";
@@ -40,6 +41,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<ICompteMensuel | null>(null);
   const [chargesFixes, setChargesFixes] = useState<ICharge[]>([]);
   const [chargesVariables, setChargesVariables] = useState<ICharge[]>(
+    [],
+  );
+  const [revenus, setRevenus] = useState<IRevenu[]>(
     [],
   );
   const [charges, setCharges] = useState<ICharge[]>([]);
@@ -92,6 +96,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         "variable",
       );
       setChargesVariables(chargesVariablesData);
+
+      const revenusData = await DB.getRevenus(activeHouseholdId);
+      setRevenus(revenusData);
 
       if (activeHouseholdId === currentUserUid) {
         const chargesVariablesSolo =
@@ -206,6 +213,71 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     },
     [currentMonthData, activeHouseholdId],
+  );
+
+  const addRevenu = useCallback(
+    async (revenu: Omit<IRevenu, "id" | "householdId">) => {
+      if (!activeHouseholdId) return;
+      try {
+        const revenuToSave: Omit<IRevenu, "id"> = {
+          ...revenu,
+          householdId: activeHouseholdId,
+        };
+        const id = await DB.addRevenu(activeHouseholdId, revenuToSave);
+        const newRevenu: IRevenu = {
+          id,
+          householdId: activeHouseholdId,
+          ...revenu,
+        };
+        setRevenus((prev) => [...prev, newRevenu]);
+      } catch (error) {
+        console.error("Erreur addRevenu:", error);
+        throw error;
+      }
+    },
+    [activeHouseholdId],
+  );
+
+  const updateRevenu = useCallback(
+    async (
+      revenuId: string,
+      updateData: Partial<IRevenu>,
+    ) => {
+      if (!activeHouseholdId) return;
+      try {
+        await DB.updateRevenu(activeHouseholdId, revenuId, updateData);
+
+        setRevenus((prev) =>
+          prev.map((r) => {
+            if (r.id === revenuId) {
+              return {
+                ...(r as any),
+                ...(updateData as any),
+              } as IRevenu;
+            }
+            return r;
+          }),
+        );
+      } catch (error) {
+        console.error("Erreur updateRevenu:", error);
+        throw error;
+      }
+    },
+    [activeHouseholdId],
+  );
+
+  const deleteRevenu = useCallback(
+    async (revenuId: string) => {
+      if (!activeHouseholdId) return;
+      try {
+        await DB.deleteRevenu(activeHouseholdId, revenuId);
+        setRevenus((prev) => prev.filter((r) => r.id !== revenuId));
+      } catch (error) {
+        console.error("Erreur deleteRevenu:", error);
+        throw error;
+      }
+    },
+    [activeHouseholdId],
   );
 
   const addChargeVariable = useCallback(
@@ -342,6 +414,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       setChargesFixes([]);
       setChargesVariables([]);
       setCharges([]);
+      setRevenus([]);
     }
   }, [user, loadData]);
 
@@ -361,6 +434,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       chargesFixes,
       chargesVariables,
       charges,
+      revenus,
       isLoadingComptes,
       historyMonths,
       loadData,
@@ -374,6 +448,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       cloturerMois,
       loadHistory,
       getMonthDataById,
+      addRevenu,
+      updateRevenu,
+      deleteRevenu,
       targetMoisAnnee: TARGET_MOIS_ANNEE,
       ...calculs,
     }),
@@ -382,6 +459,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       chargesFixes,
       chargesVariables,
       charges,
+      revenus,
       isLoadingComptes,
       historyMonths,
       loadData,
@@ -395,6 +473,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       cloturerMois,
       loadHistory,
       getMonthDataById,
+      addRevenu,
+      updateRevenu,
+      deleteRevenu,
       calculs,
     ],
   );

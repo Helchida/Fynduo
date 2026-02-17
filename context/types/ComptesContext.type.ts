@@ -3,6 +3,7 @@ import {
   ICompteMensuel,
   IReglementData,
   IResultatsCalcul,
+  IRevenu,
 } from "@/types";
 
 export interface IComptesContext extends IResultatsCalcul {
@@ -10,6 +11,7 @@ export interface IComptesContext extends IResultatsCalcul {
   chargesFixes: ICharge[];
   chargesVariables: ICharge[];
   charges: ICharge[];
+  revenus: IRevenu[];
   isLoadingComptes: boolean;
   historyMonths: ICompteMensuel[];
   loadData: () => Promise<void>;
@@ -34,4 +36,12 @@ export interface IComptesContext extends IResultatsCalcul {
   cloturerMois: (data: IReglementData) => Promise<void>;
   loadHistory: () => Promise<void>;
   getMonthDataById: (moisAnnee: string) => ICompteMensuel | undefined;
+  addRevenu: (
+    revenu: Omit<IRevenu, "id" | "householdId">,
+  ) => Promise<void>;
+  updateRevenu: (
+    revenuId: string,
+    updateData: Partial<IRevenu>,
+  ) => Promise<void>;
+  deleteRevenu: (revenuId: string) => Promise<void>;
 }

@@ -71,6 +71,24 @@ export interface IChargeFixeSnapshot {
   payeur: string;
 }
 
+// Catégorie de revenu
+export interface ICategorieRevenu extends FirestoreDocument {
+  label: string;
+  icon: string;
+  isDefault: boolean;
+}
+
+// Revenu
+export interface IRevenu extends FirestoreDocument {
+  householdId: string;
+  categorie: string; 
+  description: string;
+  montant: number;
+  beneficiaire: string;
+  dateReception: string;
+  moisAnnee: string;
+}
+
 // 3. Données du mois (Loyer et APL + Régularisation)
 export type StatutMois = "ouvert" | "finalisé";
 
@@ -152,6 +170,7 @@ export type RootStackParamList = {
   Loyer: undefined;
   ChargesFixes: undefined;
   Charges: undefined;
+  Revenus: undefined;
   Regulation: undefined;
   SummaryRegulation: undefined;
   Login: undefined;
@@ -163,6 +182,7 @@ export type RootStackParamList = {
   Stats: undefined;
   HistoryDetail: { moisAnnee: string };
   ChargeDetail: { chargeId: string; description: string };
+  RevenuDetail: { revenuId: string; description: string };
 };
 
 export type RootStackNavigationProp =

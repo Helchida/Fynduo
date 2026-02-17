@@ -9,6 +9,7 @@ import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import LoyerScreen from "../screens/LoyerScreen/LoyerScreen";
 import ChargesFixesScreen from "../screens/ChargesFixesScreen/ChargesFixesScreen";
 import ChargesScreen from "../screens/ChargesScreen/ChargesScreen";
+import RevenusScreen from "../screens/RevenusScreen/RevenusScreen";
 import LoginScreen from "../screens/LoginScreen/LoginScreen";
 import Regulation from "../screens/RegulationScreen/RegulationScreen";
 import SummaryRegulationScreen from "../screens/SummaryRegulationScreen/SummaryRegulationScreen";
@@ -22,6 +23,7 @@ import UserSettingsScreen from "../screens/UserSettingsScreen/UserSettingsScreen
 import HouseholdsScreen from "../screens/HouseholdsScreen/HouseholdsScreen";
 import StatsScreen from "screens/StatsScreen/StatsScreen";
 import ChargeDetailScreen from "screens/ChargeDetail/ChargeDetailScreen";
+import RevenuDetailScreen from "screens/RevenuDetail/RevenuDetailScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -91,6 +93,13 @@ const AppStack = () => (
       })}
     />
     <Stack.Screen
+      name="RevenuDetail"
+      component={RevenuDetailScreen}
+      options={({ route }) => ({
+        title: `Détail de ${route.params.description}`,
+      })}
+    />
+    <Stack.Screen
       name="Regulation"
       component={Regulation}
       options={{ title: "Faire les Comptes" }}
@@ -116,6 +125,11 @@ const AppStack = () => (
       name="Stats"
       component={StatsScreen}
       options={{ title: "Statistiques" }}
+    />
+    <Stack.Screen
+      name="Revenus"
+      component={RevenusScreen}
+      options={{ title: "Revenus" }}
     />
   </Stack.Navigator>
 );

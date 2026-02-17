@@ -22,6 +22,7 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
   onSelectMonth,
   onSelectYear,
   charges,
+  revenus,
   mode = "both",
 }) => {
   const [activeTab, setActiveTab] = useState<"month" | "year">(
@@ -32,17 +33,27 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
     const months = new Set<string>();
     const years = new Set<string>();
 
-    charges.forEach((c) => {
-      const date = dayjs(c.dateStatistiques);
-      months.add(date.format("YYYY-MM"));
-      years.add(date.format("YYYY"));
-    });
+    if (charges) {
+      charges.forEach((c) => {
+        const date = dayjs(c.dateStatistiques);
+        months.add(date.format("YYYY-MM"));
+        years.add(date.format("YYYY"));
+      });
+    }
+
+    if (revenus) {
+      revenus.forEach((c) => {
+        const date = dayjs(c.dateReception);
+        months.add(date.format("YYYY-MM"));
+        years.add(date.format("YYYY"));
+      });
+    }
 
     return {
       months: Array.from(months).sort((a, b) => b.localeCompare(a)),
       years: Array.from(years).sort((a, b) => b.localeCompare(a)),
     };
-  }, [charges]);
+  }, [charges, revenus]);
 
   const formatMonth = (monthStr: string) => {
     const formatted = dayjs(monthStr).format("MMMM YYYY");
