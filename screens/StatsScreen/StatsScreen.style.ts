@@ -146,4 +146,82 @@ export const styles = StyleSheet.create({
   chargeIcon: {
     fontSize: 18,
   },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  trigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
+    elevation: 2,
+    ...Platform.select({
+      web: { boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.08)" },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  triggerText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  triggerChevron: {
+    fontSize: 10,
+    color: "#007AFF",
+  },
+  modalBackdrop: {
+    flex: 1,
+  },
+  menu: {
+    position: "absolute",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    overflow: "hidden",
+    minWidth: 160,
+    elevation: 8,
+    ...Platform.select({
+      web: { boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.12)" },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+      },
+    }),
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  menuItemActive: {
+    backgroundColor: "#F0F7FF",
+  },
+  menuItemText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2D3436",
+  },
+  menuItemTextActive: {
+    color: "#007AFF",
+  },
+  checkmark: {
+    fontSize: 14,
+    color: "#007AFF",
+    fontWeight: "700",
+  },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Pressable,
+  Modal,
 } from "react-native";
 import { styles } from "./StatsScreen.style";
 import { useComptes } from "../../hooks/useComptes";
@@ -23,7 +25,7 @@ import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 
 dayjs.locale("fr");
 
-type ViewMode = "charges" | "revenus";
+type ViewMode = "dépenses" | "revenus";
 
 const StatsScreen: React.FC = () => {
   const { charges, revenus } = useComptes();
@@ -39,12 +41,13 @@ const StatsScreen: React.FC = () => {
     dayjs().format("YYYY"),
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("charges");
+  const [viewMode, setViewMode] = useState<ViewMode>("dépenses");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const triggerRef = useRef<View>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
-
-  // En mode partagé, on force l'affichage sur les charges (pas de revenus partagés)
-  const effectiveViewMode: ViewMode = isSoloMode ? viewMode : "charges";
+  const effectiveViewMode: ViewMode = isSoloMode ? viewMode : "dépenses";
 
   const referenceDate = period === "annee" ? selectedYear : selectedMonth;
 
@@ -96,7 +99,80 @@ const StatsScreen: React.FC = () => {
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
-      <Text style={styles.header}>Statistiques</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>Statistiques</Text>
+
+        {isSoloMode && (
+          <View>
+            <TouchableOpacity
+              ref={triggerRef}
+              style={styles.trigger}
+              onPress={() => {
+                triggerRef.current?.measureInWindow((x, y, width, height) => {
+                  setDropdownPosition({
+                    top: y + height + 6,
+                    right: 20,
+                  });
+                  setIsDropdownOpen(true);
+                });
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.triggerText}>
+                {viewMode === "dépenses" ? "💸 Dépenses" : "💰 Revenus"}
+              </Text>
+              <Text style={styles.triggerChevron}>
+                {isDropdownOpen ? "▲" : "▼"}
+              </Text>
+            </TouchableOpacity>
+
+            <Modal
+              visible={isDropdownOpen}
+              transparent
+              animationType="none"
+              onRequestClose={() => setIsDropdownOpen(false)}
+            >
+              <Pressable
+                style={styles.modalBackdrop}
+                onPress={() => setIsDropdownOpen(false)}
+              >
+                <View
+                  style={[
+                    styles.menu,
+                    { top: dropdownPosition.top, right: dropdownPosition.right },
+                  ]}
+                >
+                  {(["dépenses", "revenus"] as ViewMode[]).map((mode) => (
+                    <TouchableOpacity
+                      key={mode}
+                      style={[
+                        styles.menuItem,
+                        viewMode === mode && styles.menuItemActive,
+                      ]}
+                      onPress={() => {
+                        setViewMode(mode);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.menuItemText,
+                          viewMode === mode && styles.menuItemTextActive,
+                        ]}
+                      >
+                        {mode === "dépenses" ? "💸 Dépenses" : "💰 Revenus"}
+                      </Text>
+                      {viewMode === mode && (
+                        <Text style={styles.checkmark}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </Pressable>
+            </Modal>
+          </View>
+        )}
+      </View>
 
       <View style={styles.tabContainer}>
         {(["mois", "annee", "tout"] as StatPeriod[]).map((p) => (
@@ -126,44 +202,7 @@ const StatsScreen: React.FC = () => {
         </TouchableOpacity>
       )}
 
-      {isSoloMode && (
-        <View style={viewToggleStyles.container}>
-          <TouchableOpacity
-            style={[
-              viewToggleStyles.button,
-              viewMode === "charges" && viewToggleStyles.buttonActiveCharges,
-            ]}
-            onPress={() => setViewMode("charges")}
-          >
-            <Text
-              style={[
-                viewToggleStyles.buttonText,
-                viewMode === "charges" && viewToggleStyles.buttonTextActive,
-              ]}
-            >
-              💸 Charges
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              viewToggleStyles.button,
-              viewMode === "revenus" && viewToggleStyles.buttonActiveRevenus,
-            ]}
-            onPress={() => setViewMode("revenus")}
-          >
-            <Text
-              style={[
-                viewToggleStyles.buttonText,
-                viewMode === "revenus" && viewToggleStyles.buttonTextActive,
-              ]}
-            >
-              💰 Revenus
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {effectiveViewMode === "charges" ? (
+      {effectiveViewMode === "dépenses" ? (
         <ChargesVariablesStatsCard
           charges={charges}
           statsParCategorie={statsParCategorie}
@@ -197,55 +236,5 @@ const StatsScreen: React.FC = () => {
     </ScrollView>
   );
 };
-
-const viewToggleStyles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "#E9ECEF",
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 20,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 11,
-  },
-  buttonActiveCharges: {
-    backgroundColor: "#FFFFFF",
-    elevation: 3,
-    ...Platform.select({
-      web: { boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)" },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-    }),
-  },
-  buttonActiveRevenus: {
-    backgroundColor: "#FFFFFF",
-    elevation: 3,
-    ...Platform.select({
-      web: { boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)" },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-    }),
-  },
-  buttonText: {
-    fontWeight: "600",
-    color: "#6C757D",
-    fontSize: 14,
-  },
-  buttonTextActive: {
-    color: "#007AFF",
-  },
-});
 
 export default StatsScreen;
