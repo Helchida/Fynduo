@@ -153,7 +153,7 @@ const HomeScreen: React.FC = () => {
         if (c.type === "variable" && c.categorie === "cat_remboursement")
           return;
         const chargeMoisAnnee =
-          c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
+          dayjs(c.dateStatistiques).format("YYYY-MM");
         allMonthsSet.add(chargeMoisAnnee);
       });
 
@@ -170,7 +170,7 @@ const HomeScreen: React.FC = () => {
           if (c.type === "variable" && c.categorie === "cat_remboursement")
             return false;
           const chargeMoisAnnee =
-            c.moisAnnee || dayjs(c.dateStatistiques).format("YYYY-MM");
+            dayjs(c.dateStatistiques).format("YYYY-MM");
           return chargeMoisAnnee === monthKey;
         });
 
