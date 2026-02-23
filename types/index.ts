@@ -71,6 +71,13 @@ export interface IChargeFixeSnapshot {
   payeur: string;
 }
 
+export interface StatCategorie {
+  categoryId: string;
+  label: string;
+  montant: number;
+  icon: string;
+}
+
 // Catégorie de revenu
 export interface ICategorieRevenu extends FirestoreDocument {
   label: string;
@@ -156,13 +163,6 @@ export interface Toast {
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";
-
-export interface StatDataItem {
-  categoryId: string;
-  montant: number;
-  label: string;
-  icon: string;
-}
 
 // NAVIGATION TYPES
 export type RootStackParamList = {

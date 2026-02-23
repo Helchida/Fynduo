@@ -156,6 +156,7 @@ export const styles = StyleSheet.create({
   trigger: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -176,9 +177,10 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#1A1A1A",
+    lineHeight: Platform.OS === "ios" ? 0 : 20,
+    textAlignVertical: "center",
   },
   triggerChevron: {
-    fontSize: 10,
     color: "#007AFF",
   },
   modalBackdrop: {

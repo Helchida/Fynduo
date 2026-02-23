@@ -1,14 +1,14 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-    chartCard: {
+  chartCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 20,
     elevation: 2,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 10,
+    marginBottom: 20,
   },
   chartWrapper: {
     alignItems: "center",
@@ -85,21 +85,46 @@ export const styles = StyleSheet.create({
     fontSize: 15,
   },
   chartTitleContainer: {
-    alignItems: "center",
-    marginBottom: 10,
-    marginTop: 5,
+    flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between", // Pousse la flèche à l'extrémité
+  backgroundColor: "#FFFFFF",      // Comme le bouton de période
+  paddingHorizontal: 20,           // Même padding
+  paddingVertical: 14,             // Même padding
+  borderRadius: 14,
+  width: "100%",
+  },
+  titleWrapper: {
+    flexDirection: "column",
+  alignItems: "center", // Garde le titre et le souligné au centre
+  flex: 1,
   },
   chartTitle: {
+    textAlign: "center",
     fontSize: 18,
     fontWeight: "700",
     color: "#2c3e50",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  chartTitleUnderline: {
+  chartTitleUnderlineVariable: {
     height: 3,
     width: 40,
     backgroundColor: "#2ecc71",
+    borderRadius: 2,
+    marginTop: 4,
+  },
+  chartTitleUnderlineFixe: {
+    height: 3,
+    width: 40,
+    backgroundColor: "#d14127ff",
+    borderRadius: 2,
+    marginTop: 4,
+  },
+  chartTitleUnderlineAll: {
+    height: 3,
+    width: 40,
+    backgroundColor: "#9b59b6",
     borderRadius: 2,
     marginTop: 4,
   },
@@ -133,5 +158,10 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#F1F3F5",
     paddingTop: 20,
+    padding: 20,
+  },
+  collapsedButtonIcon: {
+    fontSize: 12,
+    color: "#007AFF",
   },
 });

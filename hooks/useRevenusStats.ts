@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import {
   StatPeriod,
-  StatDataItem,
   IRevenu,
   ICategorieRevenu,
+  StatCategorie,
 } from "@/types";
 import dayjs from "dayjs";
 
@@ -14,7 +14,7 @@ export const useRevenusStats = (
   referenceDate: string,
   currentUserUid: string | undefined,
 ) => {
-  const statsRevenusParCategorie = useMemo((): StatDataItem[] => {
+  const statsRevenusParCategorie = useMemo((): StatCategorie[] => {
     const filtered = revenus.filter((r) => {
       if (period === "tout") return true;
 

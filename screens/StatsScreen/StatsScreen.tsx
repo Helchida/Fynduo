@@ -16,12 +16,13 @@ import { useStats } from "../../hooks/useStats";
 import { useRevenusStats } from "../../hooks/useRevenusStats";
 import { useAuth } from "../../hooks/useAuth";
 import { PeriodPickerModal } from "../../components/ui/PeriodPickerModal/PeriodPickerModal";
-import { ChargesVariablesStatsCard } from "./ChargesVariablesStatsCard/ChargesVariablesStatsCard";
+import { ChargesStatsCard } from "./ChargesStatsCard/ChargesStatsCard";
 import { RevenusStatsCard } from "./RevenusStatsCard/RevenusStatsCard";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { StatPeriod } from "@/types";
 import { useHouseholdUsers } from "hooks/useHouseholdUsers";
+import { ChevronDown, ChevronUp } from "lucide-react-native";
 
 dayjs.locale("fr");
 
@@ -44,14 +45,24 @@ const StatsScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("dépenses");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const triggerRef = useRef<View>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    right: 0,
+  });
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
   const effectiveViewMode: ViewMode = isSoloMode ? viewMode : "dépenses";
 
   const referenceDate = period === "annee" ? selectedYear : selectedMonth;
 
-  const { statsParCategorie, total } = useStats(
+  const {
+    variablesStatsParCategorie,
+    totalVariable,
+    fixesStatsParCategorie,
+    totalFixe,
+    allChargesStatsParCategorie,
+    totalAllCharges,
+  } = useStats(
     charges,
     categories,
     period,
@@ -121,9 +132,7 @@ const StatsScreen: React.FC = () => {
               <Text style={styles.triggerText}>
                 {viewMode === "dépenses" ? "💸 Dépenses" : "💰 Revenus"}
               </Text>
-              <Text style={styles.triggerChevron}>
-                {isDropdownOpen ? "▲" : "▼"}
-              </Text>
+                {isDropdownOpen ? <ChevronUp color="#2c3e50" size={16} /> : <ChevronDown color="#2c3e50" size={16} />}
             </TouchableOpacity>
 
             <Modal
@@ -139,7 +148,10 @@ const StatsScreen: React.FC = () => {
                 <View
                   style={[
                     styles.menu,
-                    { top: dropdownPosition.top, right: dropdownPosition.right },
+                    {
+                      top: dropdownPosition.top,
+                      right: dropdownPosition.right,
+                    },
                   ]}
                 >
                   {(["dépenses", "revenus"] as ViewMode[]).map((mode) => (
@@ -198,20 +210,43 @@ const StatsScreen: React.FC = () => {
           <Text style={styles.periodButtonText}>
             {period === "mois" ? formatMonth(selectedMonth) : selectedYear}
           </Text>
-          <Text style={styles.periodButtonIcon}>▼</Text>
+
+          <ChevronDown color="#2c3e50" size={28} />
         </TouchableOpacity>
       )}
 
       {effectiveViewMode === "dépenses" ? (
-        <ChargesVariablesStatsCard
-          charges={charges}
-          statsParCategorie={statsParCategorie}
-          total={total}
-          period={period}
-          referenceDate={referenceDate}
-          isSoloMode={isSoloMode}
-          getDisplayName={getDisplayName}
-        />
+        <>
+          <ChargesStatsCard
+            charges={charges}
+            statsParCategorie={variablesStatsParCategorie}
+            total={totalVariable}
+            period={period}
+            referenceDate={referenceDate}
+            isSoloMode={isSoloMode}
+            getDisplayName={getDisplayName}
+            chargeType={"variable"}
+          />
+          <ChargesStatsCard
+            charges={charges}
+            statsParCategorie={fixesStatsParCategorie}
+            total={totalFixe}
+            period={period}
+            referenceDate={referenceDate}
+            isSoloMode={isSoloMode}
+            getDisplayName={getDisplayName}
+            chargeType={"fixe"}
+          />
+          <ChargesStatsCard
+            charges={charges}
+            statsParCategorie={allChargesStatsParCategorie}
+            total={totalAllCharges}
+            period={period}
+            referenceDate={referenceDate}
+            isSoloMode={isSoloMode}
+            getDisplayName={getDisplayName}
+          />
+        </>
       ) : (
         <RevenusStatsCard
           revenus={revenus}
