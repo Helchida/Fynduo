@@ -133,6 +133,7 @@ const RevenuDetailScreen: React.FC = () => {
       description: editDescription.trim(),
       montant: montantTotal,
       dateReception: editDateReception.toISOString(),
+      moisAnnee: dayjs(editDateReception).format("YYYY-MM"),
     };
 
     const updatedData: Partial<IRevenu> = {

@@ -163,6 +163,7 @@ const ChargeDetailScreen: React.FC = () => {
       payeur: editPayeurUid,
       beneficiaires: editBeneficiairesUid,
       dateStatistiques: editDateStatistiques.toISOString(),
+      moisAnnee: dayjs(editDateStatistiques).format("YYYY-MM"),
       scope: editBeneficiairesUid.length > 1 ? "partage" : "solo",
     };
 

@@ -698,6 +698,7 @@ export async function updateCharge(
     if (updateData.payeur !== undefined) supabaseUpdates.payeur = updateData.payeur;
     if (updateData.beneficiaires !== undefined) supabaseUpdates.beneficiaires = updateData.beneficiaires;
     if ((updateData as any).dateStatistiques !== undefined) supabaseUpdates.date_statistiques = (updateData as any).dateStatistiques;
+    if ((updateData as any).moisAnnee !== undefined) supabaseUpdates.mois_annee = (updateData as any).moisAnnee;
     if ((updateData as any).scope !== undefined) supabaseUpdates.scope = (updateData as any).scope;
 
     const { error } = await supabase
@@ -1400,6 +1401,7 @@ export async function updateRevenu(
     if (updates.montant !== undefined) supabaseUpdates.montant = updates.montant;
     if (updates.beneficiaire !== undefined) supabaseUpdates.beneficiaire = updates.beneficiaire;
     if (updates.dateReception !== undefined) supabaseUpdates.date_reception = updates.dateReception;
+    if (updates.moisAnnee !== undefined) supabaseUpdates.mois_annee = updates.moisAnnee;
     if (updates.moisAnnee !== undefined) supabaseUpdates.mois_annee = updates.moisAnnee;
 
     const { error } = await supabase
