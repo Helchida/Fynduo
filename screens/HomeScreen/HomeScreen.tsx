@@ -33,21 +33,169 @@ const HistogramPlaceholder = ({
   month,
   year,
   total,
+  totalRevenus,
   maxTotal,
+  isSoloMode,
+  isStacked,
 }: {
   month: string;
   year: string;
   total: number;
+  totalRevenus: number;
   maxTotal: number;
+  isSoloMode: boolean;
+  isStacked: boolean;
 }) => {
-  const MAX_BAR_HEIGHT = 120;
-  const barHeight = maxTotal > 0 ? (total / maxTotal) * MAX_BAR_HEIGHT : 0;
+  const MAX_BAR_HEIGHT = 90;
+  const depenseHeight = maxTotal > 0 ? (total / maxTotal) * MAX_BAR_HEIGHT : 0;
+  const revenuHeight =
+    maxTotal > 0 ? (totalRevenus / maxTotal) * MAX_BAR_HEIGHT : 0;
+
+  const solde = totalRevenus - total;
+  const soldeColor = solde > 0 ? "#27ae60" : solde < 0 ? "#e74c3c" : "#95a5a6";
 
   return (
     <View style={styles.historyColumn}>
-      <Text style={styles.historyTotalLabel}>{total.toFixed(2)}€</Text>
-      <View style={[styles.bar, { height: Math.max(barHeight, 5) }]} />
-      <Text style={styles.historyMonthLabel}>{month}</Text>
+      {isStacked && isSoloMode ? (
+        <>
+          <View
+            style={{
+              height: 40,
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 5,
+            }}
+          >
+            <Text
+              style={{ color: soldeColor, fontSize: 12, fontWeight: "900" }}
+            >
+              {solde >= 0 ? "+" : ""}
+              {solde.toFixed(2)}€
+            </Text>
+          </View>
+
+          <View
+            style={{
+              height: MAX_BAR_HEIGHT,
+              width: 25,
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={[
+                styles.bar,
+                {
+                  height: Math.max(revenuHeight, 2),
+                  backgroundColor: "#27a1d1",
+                  width: 25,
+                  opacity: 0.2,
+                  position: "absolute",
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.bar,
+                {
+                  height: Math.max(depenseHeight, 2),
+                  backgroundColor: soldeColor,
+                  width: 25,
+                  opacity: 0.8,
+                },
+              ]}
+            />
+          </View>
+        </>
+      ) : (
+        <View style={{ alignItems: "center" }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-end", gap: 2 }}
+          >
+            {isSoloMode && (
+              <View style={{ alignItems: "center" }}>
+                <View
+                  style={{
+                    height: 40,
+                    justifyContent: "flex-end",
+                    marginBottom: 4,
+                  }}
+                >
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      color: "#27a1d1",
+                      fontSize: 9,
+                      fontWeight: "700",
+                      textAlign: "center",
+                      minWidth: 40,
+                    }}
+                  >
+                    {totalRevenus > 0 ? `${totalRevenus.toFixed(2)}€` : ""}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.bar,
+                    {
+                      height: Math.max(revenuHeight, 2),
+                      backgroundColor: "#27a1d1",
+                      width: 20,
+                    },
+                  ]}
+                />
+              </View>
+            )}
+
+            <View style={{ alignItems: "center" }}>
+              <View
+                style={{
+                  height: 40,
+                  justifyContent: "flex-end",
+                  marginBottom: 4,
+                }}
+              >
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    color: "#27ae60",
+                    fontSize: 9,
+                    fontWeight: "700",
+                    textAlign: "center",
+                    minWidth: 40,
+                  }}
+                >
+                  {total > 0 ? `${total.toFixed(2)}€` : ""}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.bar,
+                  {
+                    height: Math.max(depenseHeight, 2),
+                    backgroundColor: "#27ae60",
+                    width: 20,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+
+          {isSoloMode && (
+            <View
+              style={{
+                width: "80%",
+                height: 2,
+                backgroundColor: "#bdc3c7",
+                marginTop: 6,
+                borderRadius: 1,
+              }}
+            />
+          )}
+        </View>
+      )}
+
+      <Text style={[styles.historyMonthLabel, { marginTop: 8 }]}>{month}</Text>
       <Text style={styles.historyYearLabel}>{year}</Text>
     </View>
   );
@@ -63,6 +211,7 @@ const HomeScreen: React.FC = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [householdMenuVisible, setHouseholdMenuVisible] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
+  const [isStackedView, setIsStackedView] = useState(false);
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -82,9 +231,9 @@ const HomeScreen: React.FC = () => {
           }));
         } else {
           const { data, error } = await supabase
-            .from('households')
-            .select('*')
-            .eq('id', hId)
+            .from("households")
+            .select("*")
+            .eq("id", hId)
             .single();
 
           if (data && !error) {
@@ -99,11 +248,11 @@ const HomeScreen: React.FC = () => {
             const channel = supabase
               .channel(`household:${hId}`)
               .on(
-                'postgres_changes',
+                "postgres_changes",
                 {
-                  event: '*',
-                  schema: 'public',
-                  table: 'households',
+                  event: "*",
+                  schema: "public",
+                  table: "households",
                   filter: `id=eq.${hId}`,
                 },
                 (payload) => {
@@ -117,7 +266,7 @@ const HomeScreen: React.FC = () => {
                       },
                     }));
                   }
-                }
+                },
               )
               .subscribe();
 
@@ -135,87 +284,78 @@ const HomeScreen: React.FC = () => {
     };
   }, [user?.households]);
 
-  const { isLoadingComptes, currentMonthData, charges } = useComptes();
-  const { monthsData, canGoNext, canGoPrevious, availableMonths } =
-    useMemo(() => {
-      if (!charges)
-        return {
-          monthsData: [],
-          canGoNext: false,
-          canGoPrevious: false,
-          availableMonths: [],
-        };
+  const { isLoadingComptes, currentMonthData, charges, revenus } = useComptes(); // Ajout de revenus
 
-      const isSoloMode = user.activeHouseholdId === user.id;
+  const { monthsData, canGoNext, canGoPrevious } = useMemo(() => {
+    if (!charges)
+      return { monthsData: [], canGoNext: false, canGoPrevious: false };
 
-      const allMonthsSet = new Set<string>();
-      charges.forEach((c) => {
-        if (c.type === "variable" && c.categorie === "cat_remboursement")
-          return;
-        const chargeMoisAnnee =
-          dayjs(c.dateStatistiques).format("YYYY-MM");
-        allMonthsSet.add(chargeMoisAnnee);
-      });
+    const isSoloMode = user.activeHouseholdId === user.id;
 
-      const sortedMonths = Array.from(allMonthsSet).sort((a, b) =>
-        b.localeCompare(a),
+    // 1. Identifier tous les mois disponibles (charges + revenus)
+    const allMonthsSet = new Set<string>();
+    charges.forEach((c) =>
+      allMonthsSet.add(dayjs(c.dateStatistiques).format("YYYY-MM")),
+    );
+    revenus.forEach((r) =>
+      allMonthsSet.add(dayjs(r.dateReception).format("YYYY-MM")),
+    );
+
+    const sortedMonths = Array.from(allMonthsSet).sort((a, b) =>
+      b.localeCompare(a),
+    );
+    const startIndex = Math.abs(monthOffset);
+    const displayMonths = sortedMonths.slice(startIndex, startIndex + 3);
+
+    const monthsData = displayMonths.reverse().map((monthKey) => {
+      // Calcul Total Dépenses
+      const monthCharges = charges.filter(
+        (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === monthKey,
       );
-
-      const startIndex = Math.abs(monthOffset);
-      const endIndex = startIndex + 3;
-      const displayMonths = sortedMonths.slice(startIndex, endIndex);
-
-      const monthsData = displayMonths.reverse().map((monthKey) => {
-        const monthCharges = charges.filter((c) => {
-          if (c.type === "variable" && c.categorie === "cat_remboursement")
-            return false;
-          const chargeMoisAnnee =
-            dayjs(c.dateStatistiques).format("YYYY-MM");
-          return chargeMoisAnnee === monthKey;
-        });
-
-        let total = 0;
-        monthCharges.forEach((charge) => {
-          const montantTotal = Number(charge.montantTotal) || 0;
-
-          if (
-            isSoloMode &&
-            charge.beneficiaires &&
-            charge.beneficiaires.length > 0
-          ) {
-            const estBeneficiaire = charge.beneficiaires.includes(user.id);
-            if (estBeneficiaire) {
-              total += montantTotal / charge.beneficiaires.length;
-            }
-          } else {
-            total += montantTotal;
-          }
-        });
-
-        const monthDate = dayjs(monthKey);
-        return {
-          month:
-            monthDate.format("MMM").charAt(0).toUpperCase() +
-            monthDate.format("MMM").slice(1),
-          year: monthDate.format("YYYY"),
-          total,
-          fullDate: monthKey,
-        };
+      let totalDépenses = 0;
+      monthCharges.forEach((c) => {
+        const montant = Number(c.montantTotal) || 0;
+        if (isSoloMode && c.beneficiaires?.length > 0) {
+          if (c.beneficiaires.includes(user.id))
+            totalDépenses += montant / c.beneficiaires.length;
+        } else {
+          totalDépenses += montant;
+        }
       });
 
-      const canGoPrevious = endIndex < sortedMonths.length;
-      const canGoNext = monthOffset < 0;
+      // Calcul Total Revenus
+      const monthRevenus = revenus.filter(
+        (r) => dayjs(r.dateReception).format("YYYY-MM") === monthKey,
+      );
+      let totalRevenus = 0;
+      monthRevenus.forEach((r) => {
+        totalRevenus += Number(r.montant) || 0;
+      });
 
+      const monthDate = dayjs(monthKey);
       return {
-        monthsData,
-        canGoNext,
-        canGoPrevious,
-        availableMonths: sortedMonths,
+        month:
+          monthDate.format("MMM").charAt(0).toUpperCase() +
+          monthDate.format("MMM").slice(1),
+        year: monthDate.format("YYYY"),
+        total: totalDépenses,
+        totalRevenus, // Nouvelle donnée
+        fullDate: monthKey,
       };
-    }, [charges, user?.activeHouseholdId, user?.id, monthOffset]);
+    });
+
+    return {
+      monthsData,
+      canGoPrevious: startIndex + 3 < sortedMonths.length,
+      canGoNext: monthOffset < 0,
+    };
+  }, [charges, revenus, user, monthOffset]);
 
   const maxTotal = useMemo(() => {
-    return Math.max(...monthsData.map((d) => d.total), 1);
+    return Math.max(
+      ...monthsData.map((d) => Math.max(d.total, d.totalRevenus)),
+      1,
+    );
   }, [monthsData]);
 
   if (isLoadingComptes || isLoading) {
@@ -223,18 +363,17 @@ const HomeScreen: React.FC = () => {
   }
 
   const handleSwitchHousehold = async (hId: string) => {
-  if (user.activeHouseholdId === hId) return;
+    if (user.activeHouseholdId === hId) return;
 
-  try {
-    await switchActiveHousehold(user.id, hId);
-    
-    // Forcer le rechargement complet de l'app
-    window.location.reload();
-    
-  } catch (error) {
-    alert("Erreur lors du changement de foyer");
-  }
-};
+    try {
+      await switchActiveHousehold(user.id, hId);
+
+      // Forcer le rechargement complet de l'app
+      window.location.reload();
+    } catch (error) {
+      alert("Erreur lors du changement de foyer");
+    }
+  };
 
   const isFinalized = currentMonthData?.statut === "finalisé";
   const isSolo = user.activeHouseholdId === user.id;
@@ -327,7 +466,46 @@ const HomeScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.historyCard}>
-            <Text style={styles.sectionTitle}>Total des dépenses</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitleHeader}>
+                {isSolo ? "Historique" : "Total dépenses"}
+              </Text>
+
+              {isSolo && <View style={styles.switchContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.switchButton,
+                    !isStackedView && styles.switchButtonActive,
+                  ]}
+                  onPress={() => setIsStackedView(false)}
+                >
+                  <Text
+                    style={[
+                      styles.switchText,
+                      !isStackedView && styles.switchTextActive,
+                    ]}
+                  >
+                    SÉPARÉ
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.switchButton,
+                    isStackedView && styles.switchButtonActive,
+                  ]}
+                  onPress={() => setIsStackedView(true)}
+                >
+                  <Text
+                    style={[
+                      styles.switchText,
+                      isStackedView && styles.switchTextActive,
+                    ]}
+                  >
+                    SOLDE
+                  </Text>
+                </TouchableOpacity>
+              </View>}
+            </View>
 
             <View style={styles.historyNavigator}>
               <TouchableOpacity
@@ -355,7 +533,10 @@ const HomeScreen: React.FC = () => {
                     month={data.month}
                     year={data.year}
                     total={data.total}
+                    totalRevenus={data.totalRevenus}
                     maxTotal={maxTotal}
+                    isSoloMode={isSolo}
+                    isStacked={isStackedView}
                   />
                 ))}
               </View>
