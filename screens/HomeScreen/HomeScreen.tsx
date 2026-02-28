@@ -70,7 +70,7 @@ const HistogramPlaceholder = ({
         </>
       ) : (
         <View style={{ alignItems: "center" }}>
-  <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
+  <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 1}}>
     {isSoloMode && (
       <View style={{ alignItems: "flex-end", width: 40 }}> 
         <Text 

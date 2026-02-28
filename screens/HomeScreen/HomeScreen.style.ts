@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
   },
   historyCard: {
     backgroundColor: "#fff",
-    padding: 20,
+    padding: 10,
     borderRadius: 15,
     marginBottom: 20,
     shadowColor: "#000",
@@ -98,7 +98,6 @@ export const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "flex-end",
     height: "100%",
-    paddingHorizontal: 5,
     paddingTop: 45,
   },
   cardHeader: {
@@ -143,7 +142,7 @@ export const styles = StyleSheet.create({
   },
   historyColumn: {
     alignItems: "center",
-    width: "32%",
+    width: "33%",
   },
   bar: {
     borderRadius: 3,
