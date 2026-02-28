@@ -48,8 +48,7 @@ const HistogramPlaceholder = ({
 }) => {
   const MAX_BAR_HEIGHT = 90;
   const depenseHeight = maxTotal > 0 ? (total / maxTotal) * MAX_BAR_HEIGHT : 0;
-  const revenuHeight =
-    maxTotal > 0 ? (totalRevenus / maxTotal) * MAX_BAR_HEIGHT : 0;
+  const revenuHeight = maxTotal > 0 ? (totalRevenus / maxTotal) * MAX_BAR_HEIGHT : 0;
 
   const solde = totalRevenus - total;
   const soldeColor = solde > 0 ? "#27ae60" : solde < 0 ? "#e74c3c" : "#95a5a6";
@@ -58,141 +57,60 @@ const HistogramPlaceholder = ({
     <View style={styles.historyColumn}>
       {isStacked && isSoloMode ? (
         <>
-          <View
-            style={{
-              height: 40,
-              justifyContent: "center",
-              alignItems: "center",
-              marginBottom: 5,
-            }}
-          >
-            <Text
-              style={{ color: soldeColor, fontSize: 12, fontWeight: "900" }}
-            >
-              {solde >= 0 ? "+" : ""}
-              {solde.toFixed(2)}€
+          <View style={{ height: 40, justifyContent: "center", alignItems: "center", marginBottom: 5 }}>
+            <Text style={{ color: soldeColor, fontSize: 11, fontWeight: "900" }}>
+              {solde >= 0 ? "+" : ""}{solde.toFixed(2)}€
             </Text>
           </View>
 
-          <View
-            style={{
-              height: MAX_BAR_HEIGHT,
-              width: 25,
-              justifyContent: "flex-end",
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={[
-                styles.bar,
-                {
-                  height: Math.max(revenuHeight, 2),
-                  backgroundColor: "#27a1d1",
-                  width: 25,
-                  opacity: 0.2,
-                  position: "absolute",
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.bar,
-                {
-                  height: Math.max(depenseHeight, 2),
-                  backgroundColor: soldeColor,
-                  width: 25,
-                  opacity: 0.8,
-                },
-              ]}
-            />
+          <View style={{ height: MAX_BAR_HEIGHT, width: 25, justifyContent: "flex-end", alignItems: "center" }}>
+            <View style={[styles.bar, { height: Math.max(revenuHeight, 2), backgroundColor: "#27a1d1", width: 25, opacity: 0.2, position: "absolute" }]} />
+            <View style={[styles.bar, { height: Math.max(depenseHeight, 2), backgroundColor: soldeColor, width: 25, opacity: 0.8 }]} />
           </View>
         </>
       ) : (
         <View style={{ alignItems: "center" }}>
-          <View
-            style={{ flexDirection: "row", alignItems: "flex-end", gap: 2 }}
-          >
-            {isSoloMode && (
-              <View style={{ alignItems: "center" }}>
-                <View
-                  style={{
-                    height: 40,
-                    justifyContent: "flex-end",
-                    marginBottom: 4,
-                  }}
-                >
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      color: "#27a1d1",
-                      fontSize: 9,
-                      fontWeight: "700",
-                      textAlign: "center",
-                      minWidth: 40,
-                    }}
-                  >
-                    {totalRevenus > 0 ? `${totalRevenus.toFixed(2)}€` : ""}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height: Math.max(revenuHeight, 2),
-                      backgroundColor: "#27a1d1",
-                      width: 20,
-                    },
-                  ]}
-                />
-              </View>
-            )}
+  <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
+    {isSoloMode && (
+      <View style={{ alignItems: "flex-end", width: 40 }}> 
+        <Text 
+          numberOfLines={1}
+          style={{ 
+            color: "#27a1d1", 
+            fontSize: 9, 
+            fontWeight: "800", 
+            textAlign: "right", 
+            width: 60,
+            marginBottom: 4
+          }}
+        >
+          {totalRevenus > 0 ? `${totalRevenus.toFixed(1)}€` : ""}
+        </Text>
+        <View style={[styles.bar, { height: Math.max(revenuHeight, 2), backgroundColor: "#27a1d1", width: 20 }]} />
+      </View>
+    )}
 
-            <View style={{ alignItems: "center" }}>
-              <View
-                style={{
-                  height: 40,
-                  justifyContent: "flex-end",
-                  marginBottom: 4,
-                }}
-              >
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color: "#27ae60",
-                    fontSize: 9,
-                    fontWeight: "700",
-                    textAlign: "center",
-                    minWidth: 40,
-                  }}
-                >
-                  {total > 0 ? `${total.toFixed(2)}€` : ""}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.bar,
-                  {
-                    height: Math.max(depenseHeight, 2),
-                    backgroundColor: "#27ae60",
-                    width: 20,
-                  },
-                ]}
-              />
-            </View>
-          </View>
-
-          {isSoloMode && (
-            <View
-              style={{
-                width: "80%",
-                height: 2,
-                backgroundColor: "#bdc3c7",
-                marginTop: 6,
-                borderRadius: 1,
-              }}
-            />
-          )}
-        </View>
+    <View style={{ alignItems: "flex-start", width: 40 }}> 
+      <Text 
+        numberOfLines={1}
+        style={{ 
+          color: "#27ae60", 
+          fontSize: 9, 
+          fontWeight: "800", 
+          textAlign: "left",
+          width: 60,
+          marginBottom: 4
+        }}
+      >
+        {total > 0 ? `${total.toFixed(1)}€` : ""}
+      </Text>
+      <View style={[styles.bar, { height: Math.max(depenseHeight, 2), backgroundColor: "#27ae60", width: 20 }]} />
+    </View>
+  </View>
+  {isSoloMode && (
+    <View style={{ width: 44, height: 2, backgroundColor: "#bdc3c7", marginTop: 6, borderRadius: 1 }} />
+  )}
+</View>
       )}
 
       <Text style={[styles.historyMonthLabel, { marginTop: 8 }]}>{month}</Text>
@@ -284,7 +202,7 @@ const HomeScreen: React.FC = () => {
     };
   }, [user?.households]);
 
-  const { isLoadingComptes, currentMonthData, charges, revenus } = useComptes(); // Ajout de revenus
+  const { isLoadingComptes, currentMonthData, charges, revenus } = useComptes(); 
 
   const { monthsData, canGoNext, canGoPrevious } = useMemo(() => {
     if (!charges)
@@ -292,11 +210,11 @@ const HomeScreen: React.FC = () => {
 
     const isSoloMode = user.activeHouseholdId === user.id;
 
-    // 1. Identifier tous les mois disponibles (charges + revenus)
     const allMonthsSet = new Set<string>();
-    charges.forEach((c) =>
-      allMonthsSet.add(dayjs(c.dateStatistiques).format("YYYY-MM")),
-    );
+    charges.forEach((c) => {
+      if (c.type === "variable" && c.categorie === "cat_remboursement") return;
+      allMonthsSet.add(dayjs(c.dateStatistiques).format("YYYY-MM"));
+    });
     revenus.forEach((r) =>
       allMonthsSet.add(dayjs(r.dateReception).format("YYYY-MM")),
     );
@@ -308,7 +226,6 @@ const HomeScreen: React.FC = () => {
     const displayMonths = sortedMonths.slice(startIndex, startIndex + 3);
 
     const monthsData = displayMonths.reverse().map((monthKey) => {
-      // Calcul Total Dépenses
       const monthCharges = charges.filter(
         (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === monthKey,
       );
@@ -323,7 +240,6 @@ const HomeScreen: React.FC = () => {
         }
       });
 
-      // Calcul Total Revenus
       const monthRevenus = revenus.filter(
         (r) => dayjs(r.dateReception).format("YYYY-MM") === monthKey,
       );
@@ -339,7 +255,7 @@ const HomeScreen: React.FC = () => {
           monthDate.format("MMM").slice(1),
         year: monthDate.format("YYYY"),
         total: totalDépenses,
-        totalRevenus, // Nouvelle donnée
+        totalRevenus,
         fullDate: monthKey,
       };
     });
@@ -367,8 +283,6 @@ const HomeScreen: React.FC = () => {
 
     try {
       await switchActiveHousehold(user.id, hId);
-
-      // Forcer le rechargement complet de l'app
       window.location.reload();
     } catch (error) {
       alert("Erreur lors du changement de foyer");
@@ -471,40 +385,42 @@ const HomeScreen: React.FC = () => {
                 {isSolo ? "Historique" : "Total dépenses"}
               </Text>
 
-              {isSolo && <View style={styles.switchContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.switchButton,
-                    !isStackedView && styles.switchButtonActive,
-                  ]}
-                  onPress={() => setIsStackedView(false)}
-                >
-                  <Text
+              {isSolo && (
+                <View style={styles.switchContainer}>
+                  <TouchableOpacity
                     style={[
-                      styles.switchText,
-                      !isStackedView && styles.switchTextActive,
+                      styles.switchButton,
+                      !isStackedView && styles.switchButtonActive,
                     ]}
+                    onPress={() => setIsStackedView(false)}
                   >
-                    SÉPARÉ
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.switchButton,
-                    isStackedView && styles.switchButtonActive,
-                  ]}
-                  onPress={() => setIsStackedView(true)}
-                >
-                  <Text
+                    <Text
+                      style={[
+                        styles.switchText,
+                        !isStackedView && styles.switchTextActive,
+                      ]}
+                    >
+                      FLUX
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={[
-                      styles.switchText,
-                      isStackedView && styles.switchTextActive,
+                      styles.switchButton,
+                      isStackedView && styles.switchButtonActive,
                     ]}
+                    onPress={() => setIsStackedView(true)}
                   >
-                    SOLDE
-                  </Text>
-                </TouchableOpacity>
-              </View>}
+                    <Text
+                      style={[
+                        styles.switchText,
+                        isStackedView && styles.switchTextActive,
+                      ]}
+                    >
+                      SOLDE
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
             <View style={styles.historyNavigator}>
