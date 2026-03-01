@@ -140,23 +140,10 @@ export const styles = StyleSheet.create({
   switchTextActive: {
     color: '#3498db',
   },
-  historyColumn: {
-    alignItems: "center",
-    width: "33%",
-  },
-  bar: {
-    borderRadius: 3,
-    opacity: 0.85,
-  },
   historyTotalLabel: {
     fontWeight: "700",
     marginBottom: 4,
     textAlign: "center",
-  },
-  historyMonthLabel: {
-    fontSize: 12,
-    color: "#7f8c8d",
-    marginTop: 4,
   },
   actionsContainer: {
     flexDirection: "row",
@@ -343,11 +330,5 @@ export const styles = StyleSheet.create({
   },
   navArrowTextDisabled: {
     color: "#bdc3c7",
-  },
-  historyYearLabel: {
-    fontSize: 10,
-    color: "#95a5a6",
-    marginTop: 2,
-    fontWeight: "500",
   },
 });
