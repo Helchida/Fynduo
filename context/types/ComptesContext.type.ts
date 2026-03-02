@@ -33,7 +33,7 @@ export interface IComptesContext extends IResultatsCalcul {
   ) => Promise<void>;
   updateChargeFixe: (chargeId: string, newAmount: number) => Promise<void>;
   deleteChargeFixe: (chargeId: string) => Promise<void>;
-  cloturerMois: (data: IReglementData) => Promise<void>;
+  cloturerMois: (data: IReglementData, moisCloture: string) => Promise<void>;
   loadHistory: () => Promise<void>;
   getMonthDataById: (moisAnnee: string) => ICompteMensuel | undefined;
   addRevenu: (

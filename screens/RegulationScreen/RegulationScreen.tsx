@@ -65,23 +65,41 @@ const RegulationScreen: React.FC = () => {
   >({});
 
   const moisEnCoursDeCloture = currentMonthData?.moisAnnee;
-
+  if (!moisEnCoursDeCloture) {
+    return
+  }
+  console.log("Mois en cours de clôture:", moisEnCoursDeCloture);
+  console.log("Charges:", charges);
   const chargesPourBalanceAffichee = useMemo(() => {
     return charges.filter((c) => {
-      if (c.type === "variable") return true;
-      return c.type === "fixe" && c.moisAnnee === moisEnCoursDeCloture;
-    });
+    if (c.type === "variable") {
+      return c.moisAnnee <= moisEnCoursDeCloture;
+    }
+    if (c.type === "fixe") {
+      return c.moisAnnee < moisEnCoursDeCloture;
+    }
+
+    return false;
+  });
   }, [charges, moisEnCoursDeCloture]);
 
+  console.log("Charges utilisées pour balance affichée:", chargesPourBalanceAffichee);
   const balancesAffichees = useMultiUserBalance(
     chargesPourBalanceAffichee,
     householdUsers,
   );
   const virementsAffiches = useMemo(() => {
+    console.log("Balances affichées pour calcul des virements:", balancesAffichees);
     return calculSimplifiedTransfers(balancesAffichees);
   }, [balancesAffichees]);
 
-  const balancesRegularisation = useMultiUserBalance(charges, householdUsers);
+  const chargesPourBalanceRegularisation = useMemo(() => {
+    return charges.filter((c) => {
+      return c.moisAnnee <= moisEnCoursDeCloture;
+  });
+  }, [charges, moisEnCoursDeCloture]);
+
+  const balancesRegularisation = useMultiUserBalance(chargesPourBalanceRegularisation, householdUsers);
   const virementsRegularisation = useMemo(() => {
     return calculSimplifiedTransfers(balancesRegularisation);
   }, [balancesRegularisation]);
@@ -362,7 +380,7 @@ const RegulationScreen: React.FC = () => {
         chargesFixesSnapshot: chargesFixesSnapshot,
       };
 
-      await cloturerMois(dataToSubmit);
+      await cloturerMois(dataToSubmit, moisEnCoursDeCloture);
       navigation.navigate("SummaryRegulation");
     } catch (error) {
       toast.error("Erreur", "La clôture a échoué. " + (error as Error).message);

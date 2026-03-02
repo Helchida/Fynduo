@@ -738,16 +738,18 @@ export async function deleteCharge(householdId: string, chargeId: string) {
 export async function addChargeVariableRegularisation(
   householdId: string,
   moisAnnee: string,
+  moisCloture: string,
   dettesRegularisation: IDette[],
 ) {
-  const dateRegul = dayjs().toISOString();
+  const moisClotureFormate = dayjs(moisCloture).locale('fr').format('MMMM YYYY');
+  const dateRegul = dayjs().startOf('month').toISOString();
   const dettesRegularisationPositives = dettesRegularisation.filter(
     (d) => d.montant > 0,
   );
   
   for (const detteRegularisation of dettesRegularisationPositives) {
     await addCharge(householdId, {
-      description: "Régularisation Trésorerie",
+      description: `Régularisation ${moisClotureFormate.charAt(0).toUpperCase() + moisClotureFormate.slice(1)}`,
       montantTotal: detteRegularisation.montant,
       payeur: detteRegularisation.debiteurUid,
       beneficiaires: [detteRegularisation.creancierUid],

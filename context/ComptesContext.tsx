@@ -348,6 +348,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   const cloturerMois = useCallback(
     async (
       data: IReglementData & { chargesFixesSnapshot?: IChargeFixeSnapshot[] },
+      moisCloture: string,
     ) => {
       if (!currentMonthData || !currentMonthData.id || !activeHouseholdId) {
         throw new Error("Impossible de clôturer le mois : données manquantes.");
@@ -379,6 +380,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
         await DB.addChargeVariableRegularisation(
           activeHouseholdId,
           currentMonthData.id,
+          moisCloture,
           data.dettesRegularisation,
         );
 
