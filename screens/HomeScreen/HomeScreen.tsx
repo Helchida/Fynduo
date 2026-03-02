@@ -123,6 +123,7 @@ const HomeScreen: React.FC = () => {
 
     const allMonthsSet = new Set<string>();
     charges.forEach((c) => {
+      console.log("categorie charge", c.categorie);
       if (c.type === "variable" && c.categorie === "cat_remboursement") return;
       allMonthsSet.add(dayjs(c.dateStatistiques).format("YYYY-MM"));
     });
@@ -137,9 +138,15 @@ const HomeScreen: React.FC = () => {
     const displayMonths = sortedMonths.slice(startIndex, startIndex + 3);
 
     const monthsData = displayMonths.reverse().map((monthKey) => {
-      const monthCharges = charges.filter(
-        (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === monthKey,
-      );
+      const monthCharges = charges.filter((c) => {
+        const isSameMonth =
+          dayjs(c.dateStatistiques).format("YYYY-MM") === monthKey;
+        const isNotRegul = !(
+          c.type === "variable" && c.categorie === "cat_remboursement"
+        );
+
+        return isSameMonth && isNotRegul;
+      });
       let totalDépenses = 0;
       monthCharges.forEach((c) => {
         const montant = Number(c.montantTotal) || 0;

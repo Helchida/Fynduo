@@ -614,7 +614,6 @@ export async function addCharge(
   const docId = generateId();
   const uniqueId = makeUniqueId(householdId, docId);
 
-  // 1. Insérer la charge
   const { error } = await supabase
     .from('charges')
     .insert({
@@ -628,13 +627,12 @@ export async function addCharge(
       beneficiaires: charge.beneficiaires || [],
       date_statistiques: (charge as any).dateStatistiques,
       mois_annee: (charge as any).moisAnnee,
-      scope: (charge as any).scope || 'partage',
+      scope: charge.scope,
       jour_prelevement_mensuel: (charge as any).jourPrelevementMensuel,
     });
 
   if (error) throw error;
 
-  // 2. Propager la catégorie aux foyers solo des bénéficiaires
   try {
     const { data: householdData } = await supabase
       .from('households')
@@ -649,7 +647,6 @@ export async function addCharge(
       );
 
       if (realUserBeneficiaires.length > 0 && charge.categorie) {
-        // Récupérer la catégorie
         const catUniqueId = makeUniqueId(householdId, charge.categorie);
         const { data: categoryData } = await supabase
           .from('categories')
@@ -658,7 +655,6 @@ export async function addCharge(
           .single();
 
         if (categoryData) {
-          // Propager aux foyers solo
           const categoriesToInsert = realUserBeneficiaires.map((userId) => ({
             id: makeUniqueId(userId, charge.categorie),
             household_id: userId,
@@ -755,7 +751,7 @@ export async function addChargeVariableRegularisation(
       beneficiaires: [detteRegularisation.creancierUid],
       dateStatistiques: dateRegul,
       moisAnnee: moisAnnee,
-      categorie: "Remboursement",
+      categorie: "cat_remboursement",
       type: "variable",
       scope: "partage",
     });
