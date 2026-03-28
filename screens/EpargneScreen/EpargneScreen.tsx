@@ -251,13 +251,13 @@ const EpargneScreen: React.FC = () => {
           <View>
             <Text style={styles.miniStatLabel}>Total Revenus</Text>
             <Text style={styles.miniStatValue}>
-              {statsMois.revenus.toFixed(0)}€
+              {statsMois.revenus.toFixed(2)}€
             </Text>
           </View>
           <View style={{ marginLeft: 20 }}>
             <Text style={styles.miniStatLabel}>Total Dépenses</Text>
             <Text style={styles.miniStatValue}>
-              {statsMois.depenses.toFixed(0)}€
+              {statsMois.depenses.toFixed(2)}€
             </Text>
           </View>
         </View>
@@ -283,12 +283,12 @@ const EpargneScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.dispatchButton,
-              epargneDisponible <= 0 && { opacity: 0.5 },
+              epargneDisponible <= 0.00 && { opacity: 0.5 },
             ]}
             onPress={() =>
-              epargneDisponible > 0 && setIsDispatchModalVisible(true)
+              epargneDisponible > 0.00 && setIsDispatchModalVisible(true)
             }
-            disabled={epargneDisponible <= 0}
+            disabled={epargneDisponible <= 0.00}
           >
             <Text style={styles.dispatchButtonText}>
               Placer les {epargneDisponible.toFixed(2)}€
@@ -308,7 +308,7 @@ const EpargneScreen: React.FC = () => {
                   <View style={styles.tirelireHeader}>
                     <Text style={styles.tirelireName}>{item.description}</Text>
                     <Text style={styles.tirelireAmount}>
-                      {item.montantActuel.toFixed(0)}€{" "}
+                      {item.montantActuel.toFixed(2)}€{" "}
                       <Text style={styles.objectivSmall}>
                         / {item.objectif}€
                       </Text>
@@ -324,7 +324,7 @@ const EpargneScreen: React.FC = () => {
                   <Text style={styles.remainingText}>
                     {item.montantActuel >= item.objectif
                       ? "Objectif atteint ! 🎉"
-                      : `Il manque ${(item.objectif - item.montantActuel).toFixed(0)}€`}
+                      : `Il manque ${(item.objectif - item.montantActuel).toFixed(2)}€`}
                   </Text>
                 </View>
               );
@@ -417,7 +417,7 @@ const EpargneScreen: React.FC = () => {
             <Text style={styles.inputLabel}>Montant à placer (€)</Text>
             <TextInput
               style={styles.input}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               autoFocus
               placeholder="ex: 100"
               value={montantSaisi}
