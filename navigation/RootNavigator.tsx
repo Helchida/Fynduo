@@ -22,6 +22,7 @@ import EmailVerificationScreen from "screens/EmailVerificationScreen/EmailVerifi
 import UserSettingsScreen from "../screens/UserSettingsScreen/UserSettingsScreen";
 import HouseholdsScreen from "../screens/HouseholdsScreen/HouseholdsScreen";
 import StatsScreen from "screens/StatsScreen/StatsScreen";
+import EpargneScreen from "screens/EpargneScreen/EpargneScreen";
 import ChargeDetailScreen from "screens/ChargeDetail/ChargeDetailScreen";
 import RevenuDetailScreen from "screens/RevenuDetail/RevenuDetailScreen";
 
@@ -130,6 +131,11 @@ const AppStack = () => (
       name="Revenus"
       component={RevenusScreen}
       options={{ title: "Revenus" }}
+    />
+    <Stack.Screen
+      name="Epargne"
+      component={EpargneScreen}
+      options={{ title: "Epargne" }}
     />
   </Stack.Navigator>
 );

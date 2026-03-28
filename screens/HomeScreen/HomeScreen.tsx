@@ -123,7 +123,6 @@ const HomeScreen: React.FC = () => {
 
     const allMonthsSet = new Set<string>();
     charges.forEach((c) => {
-      console.log("categorie charge", c.categorie);
       if (c.type === "variable" && c.categorie === "cat_remboursement") return;
       allMonthsSet.add(dayjs(c.dateStatistiques).format("YYYY-MM"));
     });
@@ -412,6 +411,12 @@ const HomeScreen: React.FC = () => {
                 onPress={() => navigation.navigate("ChargesFixes")}
               >
                 <Text style={styles.actionText}>Charges fixes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#f39c12" }]}
+                onPress={() => navigation.navigate("Epargne")}
+              >
+                <Text style={styles.actionText}>Épargne</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}

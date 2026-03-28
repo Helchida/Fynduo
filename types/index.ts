@@ -162,6 +162,20 @@ export interface Toast {
   duration?: number;
 }
 
+export interface ITirelire extends FirestoreDocument {
+  householdId: string;
+  montantCible: number;
+  montantActuel: number;
+  description: string;
+  icon: string;
+}
+
+export interface IEpargneMensuelle extends FirestoreDocument {
+  householdId: string;
+  moisAnnee: string;
+  montant: number;
+}
+
 export type StatPeriod = "mois" | "annee" | "tout";
 
 // NAVIGATION TYPES
@@ -172,6 +186,7 @@ export type RootStackParamList = {
   Charges: undefined;
   Revenus: undefined;
   Regulation: undefined;
+  Epargne: undefined;
   SummaryRegulation: undefined;
   Login: undefined;
   Register: undefined;
