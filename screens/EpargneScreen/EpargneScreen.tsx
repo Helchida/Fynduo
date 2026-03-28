@@ -282,7 +282,7 @@ const EpargneScreen: React.FC = () => {
             disabled={epargneDisponible <= 0}
           >
             <Text style={styles.dispatchButtonText}>
-              Placer les {epargneDisponible.toFixed(0)}€
+              Placer les {epargneDisponible.toFixed(2)}€
             </Text>
             <ArrowRight size={18} color="#FFF" />
           </TouchableOpacity>
