@@ -34,7 +34,7 @@ const EpargneScreen: React.FC = () => {
     return <NoAuthenticatedUser />;
   }
   const [selectedDate, setSelectedDate] = useState(
-    dayjs().subtract(1, "month"),
+    dayjs(),
   );
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isDispatchModalVisible, setIsDispatchModalVisible] = useState(false);
@@ -109,9 +109,9 @@ const EpargneScreen: React.FC = () => {
   const isPositive = statsMois.solde > 0;
   const statusColor = isPositive ? "#27ae60" : "#e74c3c";
 
-  const isMonthFinished = selectedDate.isBefore(dayjs().startOf("month"));
+  const isMonthFinished = selectedDate.isBefore(dayjs().add(1, "month").startOf("month"));
   const isLatestPossibleMonth = selectedDate.isSame(
-    dayjs().subtract(1, "month"),
+    dayjs(),
     "month",
   );
 
