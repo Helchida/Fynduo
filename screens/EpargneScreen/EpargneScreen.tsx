@@ -39,7 +39,7 @@ const EpargneScreen: React.FC = () => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isDispatchModalVisible, setIsDispatchModalVisible] = useState(false);
   const [montantSaisi, setMontantSaisi] = useState("");
-  const [newTirelire, setNewTirelire] = useState({ nom: "", objectif: "" });
+  const [newTirelire, setNewTirelire] = useState({ nom: "", objectif: "", montantInitial: "" });
 
   const { revenus, charges } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
@@ -164,6 +164,7 @@ const EpargneScreen: React.FC = () => {
       );
     }
 
+
     try {
       const budget = parseFloat(newTirelire.objectif.replace(",", "."));
 
@@ -174,18 +175,26 @@ const EpargneScreen: React.FC = () => {
         );
       }
 
+      const montantInitial = parseFloat(newTirelire.montantInitial.replace(",", "."));
+
+      if (isNaN(montantInitial)) {
+        return toast.error(
+          "Format invalide",
+          "Le montant initial doit être un nombre.",
+        );
+      }
+
       await addTirelire(user.id, {
         description: newTirelire.nom,
         objectif: budget,
+        montantInitial: parseFloat(newTirelire.montantInitial.replace(",", ".")) || 0,
       });
 
       toast.success("Succès", "Nouvel objectif créé !");
       setIsAddModalVisible(false);
-      setNewTirelire({ nom: "", objectif: "" });
+      setNewTirelire({ nom: "", objectif: "", montantInitial: "" });
       refresh();
     } catch (e: any) {
-      console.error("DEBUG CREATION TIRELIRE:", e);
-
       toast.error("Erreur", e.message || "La création a échoué.");
     }
   };
@@ -349,11 +358,21 @@ const EpargneScreen: React.FC = () => {
               value={newTirelire.nom}
               onChangeText={(t) => setNewTirelire({ ...newTirelire, nom: t })}
             />
+            <Text style={styles.inputLabel}>Montant initial (€)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="ex: 2000"
+              keyboardType="decimal-pad"
+              value={newTirelire.montantInitial}
+              onChangeText={(t) =>
+                setNewTirelire({ ...newTirelire, montantInitial: t })
+              }
+            />
             <Text style={styles.inputLabel}>Budget total (€)</Text>
             <TextInput
               style={styles.input}
               placeholder="ex: 1200"
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               value={newTirelire.objectif}
               onChangeText={(t) =>
                 setNewTirelire({ ...newTirelire, objectif: t })

@@ -1444,26 +1444,34 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
       `)
       .eq('user_id', userId);
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    const mapped = (data || []).map((row) => ({
-      id: row.id,
-      userId: row.user_id,
-      description: row.description,
-      objectif: Number(row.objectif),
-      montantActuel: row.epargne_mouvements?.reduce((acc: number, m: any) => acc + Number(m.montant), 0) || 0,
-    }));
+    const mapped = (data || []).map((row) => {
+      const sommeMouvements = row.epargne_mouvements?.reduce(
+        (acc: number, m: any) => acc + Number(m.montant), 
+        0
+      ) || 0;
+
+      const initial = Number(row.montant_initial) || 0;
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        description: row.description,
+        objectif: Number(row.objectif),
+        montantActuel: initial + sommeMouvements, 
+        montantInitial: initial,
+      };
+    });
 
     return mapped;
-
   } catch (error) {
+    console.error("Erreur getTirelires:", error);
     return [];
   }
 }
 
-export async function addTirelire(userId: string, tirelire: { description: string, objectif: number }) {
+export async function addTirelire(userId: string, tirelire: { description: string, objectif: number, montantInitial: number }) {
   const newId = generateId(); 
 
   const { error } = await supabase.from('tirelires').insert({
@@ -1471,6 +1479,7 @@ export async function addTirelire(userId: string, tirelire: { description: strin
     user_id: userId, 
     description: tirelire.description,
     objectif: tirelire.objectif,
+    montant_initial: tirelire.montantInitial,
   });
 
   if (error) {

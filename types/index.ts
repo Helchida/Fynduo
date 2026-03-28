@@ -166,6 +166,7 @@ export interface ITirelire extends FirestoreDocument {
   objectif: number;
   montantActuel: number;
   description: string;
+  montantInitial: number;
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";
