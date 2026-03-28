@@ -10,6 +10,7 @@ import {
   IChargeFixeTemplate,
   ICategorieRevenu,
   IRevenu,
+  ITirelire,
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 import { supabase } from "../supabase/config";
@@ -1431,4 +1432,85 @@ export async function deleteRevenu(householdId: string, revenuId: string) {
     console.error("Erreur deleteRevenu:", error);
     throw error;
   }
+}
+
+export async function getTirelires(userId: string): Promise<ITirelire[]> {
+  try {
+    const { data, error } = await supabase
+      .from('tirelires')
+      .select(`
+        *,
+        epargne_mouvements (montant)
+      `)
+      .eq('user_id', userId);
+
+    if (error) {
+      throw error;
+    }
+
+    const mapped = (data || []).map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      description: row.description,
+      objectif: Number(row.objectif),
+      montantActuel: row.epargne_mouvements?.reduce((acc: number, m: any) => acc + Number(m.montant), 0) || 0,
+    }));
+
+    return mapped;
+
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function addTirelire(userId: string, tirelire: { description: string, objectif: number }) {
+  const newId = generateId(); 
+
+  const { error } = await supabase.from('tirelires').insert({
+    id: newId,  
+    user_id: userId, 
+    description: tirelire.description,
+    objectif: tirelire.objectif,
+  });
+
+  if (error) {
+    console.error("Erreur addTirelire:", error.message);
+    throw error;
+  }
+}
+
+export async function placeEpargne(userId: string, tirelireId: string, montant: number, moisAnnee: string) {
+  const movementId = generateId();
+
+  const { error } = await supabase.from('epargne_mouvements').insert({
+    id: movementId,
+    tirelire_id: tirelireId,
+    user_id: userId,
+    montant: montant,
+    date_mouvement: `${moisAnnee}-01`,
+  });
+
+  if (error) {
+    console.error("Erreur placeEpargne:", error.message);
+    throw error;
+  }
+}
+
+export async function getTotalPlaceMois(userId: string, moisAnnee: string): Promise<number> {
+  const startOfMonth = `${moisAnnee}-01`;
+  const endOfMonth = dayjs(startOfMonth).endOf('month').format('YYYY-MM-DD');
+
+  const { data, error } = await supabase
+    .from('epargne_mouvements')
+    .select('montant')
+    .eq('user_id', userId)
+    .filter('date_mouvement', 'gte', startOfMonth)
+    .filter('date_mouvement', 'lte', endOfMonth);
+
+  if (error) {
+    console.error("Erreur getTotalPlaceMois:", error.message);
+    throw error;
+  }
+  
+  return (data || []).reduce((acc, curr) => acc + Number(curr.montant), 0);
 }

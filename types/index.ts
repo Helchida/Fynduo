@@ -163,17 +163,9 @@ export interface Toast {
 }
 
 export interface ITirelire extends FirestoreDocument {
-  householdId: string;
-  montantCible: number;
+  objectif: number;
   montantActuel: number;
   description: string;
-  icon: string;
-}
-
-export interface IEpargneMensuelle extends FirestoreDocument {
-  householdId: string;
-  moisAnnee: string;
-  montant: number;
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";
