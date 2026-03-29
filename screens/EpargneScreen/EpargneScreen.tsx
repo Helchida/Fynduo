@@ -39,11 +39,14 @@ import { ITirelire } from "@/types";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-  .replace(/,/g, '.') + '€';
+  return (
+    new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+      .format(amount)
+      .replace(/,/g, ".") + "€"
+  );
 };
 
 const EpargneScreen: React.FC = () => {
@@ -367,27 +370,9 @@ const EpargneScreen: React.FC = () => {
             {selectedDate.format("MMMM YYYY")}
           </Text>
           {isCurrentMonth && (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 2,
-              }}
-            >
-              <View
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: "#27ae60",
-                  marginRight: 6,
-                }}
-              />
-              <Text
-                style={{ fontSize: 12, color: "#27ae60", fontWeight: "600" }}
-              >
-                Mois en cours
-              </Text>
+            <View style={styles.currentMonthBadge}>
+              <View style={styles.dot} />
+              <Text style={styles.currentMonthText}>Mois en cours</Text>
             </View>
           )}
         </View>
@@ -419,26 +404,9 @@ const EpargneScreen: React.FC = () => {
         </Text>
 
         {isCurrentMonth && (
-          <View
-            style={{
-              backgroundColor: "#fcf3cf",
-              padding: 8,
-              borderRadius: 8,
-              marginTop: 10,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
+          <View style={styles.infoBox}>
             <AlertCircle size={16} color="#f39c12" />
-            <Text
-              style={{
-                fontSize: 12,
-                color: "#d35400",
-                marginLeft: 8,
-                flex: 1,
-                fontStyle: "italic",
-              }}
-            >
+            <Text style={styles.infoText}>
               Le mois n'est pas fini. Ce montant peut varier selon vos dépenses
               à venir.
             </Text>
@@ -494,54 +462,16 @@ const EpargneScreen: React.FC = () => {
             </View>
           </View>
 
-          <View
-            style={{
-              backgroundColor: "#fff",
-              marginHorizontal: 20,
-              marginBottom: 15,
-              padding: 15,
-              borderRadius: 12,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              borderWidth: 1,
-              borderColor: "#ecf0f1",
-              elevation: 2,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.1,
-              shadowRadius: 2,
-            }}
-          >
+          <View style={styles.totalAccumulatedContainer}>
             <View>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: "#7f8c8d",
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                }}
-              >
+              <Text style={styles.totalAccumulatedLabel}>
                 Épargne Totale Accumulée
               </Text>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: "800",
-                  color: "#2c3e50",
-                  marginTop: 4,
-                }}
-              >
+              <Text style={styles.totalAccumulatedAmount}>
                 {formatCurrency(totalCumuleTirelires)}
               </Text>
             </View>
-            <View
-              style={{
-                backgroundColor: "#ebf5fb",
-                padding: 10,
-                borderRadius: 50,
-              }}
-            >
+            <View style={styles.totalAccumulatedIcon}>
               <Briefcase size={24} color="#3498db" />
             </View>
           </View>
@@ -765,25 +695,10 @@ const EpargneScreen: React.FC = () => {
               </Text>
             </View>
 
-            <Text
-              style={{
-                textAlign: "center",
-                marginBottom: 15,
-                color: "#2c3e50",
-                fontWeight: "600",
-              }}
-            >
+            <Text style={styles.breakTirelireName}>
               Tirelire : "{selectedTirelireForBreak?.description}"
             </Text>
-            <Text
-              style={{
-                textAlign: "center",
-                marginBottom: 20,
-                color: "#27ae60",
-                fontSize: 16,
-                fontWeight: "700",
-              }}
-            >
+            <Text style={styles.breakCurrentAmount}>
               Contenu actuel :{" "}
               {formatCurrency(selectedTirelireForBreak?.montantActuel || 0)}
             </Text>
@@ -800,22 +715,8 @@ const EpargneScreen: React.FC = () => {
               onChangeText={setMontantRetrait}
             />
 
-            <View
-              style={{
-                backgroundColor: "#fdf2e9",
-                padding: 12,
-                borderRadius: 8,
-                marginBottom: 20,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: "#d35400",
-                  textAlign: "center",
-                  fontStyle: "italic",
-                }}
-              >
+            <View style={styles.breakInfoBox}>
+              <Text style={styles.breakInfoText}>
                 Ce montant sera retiré de la tirelire et ajouté à vos revenus de
                 ce mois afin de couvrir votre dépense réelle.
               </Text>
