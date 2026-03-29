@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,13 +14,14 @@ import {
   PiggyBank,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
   AlertCircle,
   ArrowRight,
   PlusCircle,
   Pencil,
   Trash2,
   Hammer,
+  Coins,
+  Briefcase,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -130,6 +131,10 @@ const EpargneScreen: React.FC = () => {
     const dispo = statsMois.solde - dejaPlaceCeMois;
     return dispo > 0 ? dispo : 0;
   }, [statsMois.solde, dejaPlaceCeMois, loading]);
+
+  const totalCumuleTirelires = useMemo(() => {
+    return tirelires.reduce((sum, t) => sum + (t.montantActuel || 0), 0);
+  }, [tirelires]);
 
   const isPositive = statsMois.solde > 0;
   const statusColor = isPositive ? "#27ae60" : "#e74c3c";
@@ -395,7 +400,7 @@ const EpargneScreen: React.FC = () => {
         <View style={styles.rowBetween}>
           <Text style={styles.cardLabel}>Capacité d'épargne</Text>
           {isPositive ? (
-            <TrendingUp size={20} color={statusColor} />
+            <Coins size={20} color={statusColor} />
           ) : (
             <AlertCircle size={20} color={statusColor} />
           )}
@@ -448,13 +453,6 @@ const EpargneScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.sectionHeader}>
-        <View style={styles.titleWithIcon}>
-          <PiggyBank size={22} color="#2c3e50" />
-          <Text style={styles.sectionTitle}>Mes Tirelires</Text>
-        </View>
-      </View>
-
       {!isPositive || !isMonthFinished ? (
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
@@ -480,6 +478,65 @@ const EpargneScreen: React.FC = () => {
             </Text>
             <ArrowRight size={18} color="#FFF" />
           </TouchableOpacity>
+
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleWithIcon}>
+              <PiggyBank size={22} color="#2c3e50" />
+              <Text style={styles.sectionTitle}>Mes Tirelires</Text>
+            </View>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: "#fff",
+              marginHorizontal: 20,
+              marginBottom: 15,
+              padding: 15,
+              borderRadius: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              borderWidth: 1,
+              borderColor: "#ecf0f1",
+              elevation: 2,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+            }}
+          >
+            <View>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: "#7f8c8d",
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                }}
+              >
+                Épargne Totale Accumulée
+              </Text>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: "800",
+                  color: "#2c3e50",
+                  marginTop: 4,
+                }}
+              >
+                {totalCumuleTirelires.toFixed(2)}€
+              </Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: "#ebf5fb",
+                padding: 10,
+                borderRadius: 50,
+              }}
+            >
+              <Briefcase size={24} color="#3498db" />
+            </View>
+          </View>
 
           <View style={styles.tireliresList}>
             {tirelires.map((item) => {
