@@ -1488,6 +1488,22 @@ export async function addTirelire(userId: string, tirelire: { description: strin
   }
 }
 
+export async function updateTirelire(id: string, updates: { description?: string, objectif?: number, montant_initial?: number }) {
+  const { error } = await supabase
+    .from('tirelires')
+    .update(updates)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteTirelire(id: string) {
+  const { error } = await supabase
+    .from('tirelires')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}
+
 export async function placeEpargne(userId: string, tirelireId: string, montant: number, moisAnnee: string) {
   const movementId = generateId();
 

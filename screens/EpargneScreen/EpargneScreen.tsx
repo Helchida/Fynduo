@@ -18,13 +18,22 @@ import {
   AlertCircle,
   ArrowRight,
   PlusCircle,
+  Pencil,
+  Trash2,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
-import { addTirelire, placeEpargne } from "../../services/supabase/db";
+import {
+  addTirelire,
+  deleteTirelire,
+  placeEpargne,
+  updateTirelire,
+} from "../../services/supabase/db";
 import { useEpargneData } from "../../hooks/useEpargneData";
+import { ITirelire } from "@/types";
+import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 
 const EpargneScreen: React.FC = () => {
   const { user } = useAuth();
@@ -33,13 +42,20 @@ const EpargneScreen: React.FC = () => {
   if (!user) {
     return <NoAuthenticatedUser />;
   }
-  const [selectedDate, setSelectedDate] = useState(
-    dayjs(),
-  );
+  const [selectedDate, setSelectedDate] = useState(dayjs());
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isDispatchModalVisible, setIsDispatchModalVisible] = useState(false);
   const [montantSaisi, setMontantSaisi] = useState("");
-  const [newTirelire, setNewTirelire] = useState({ nom: "", objectif: "", montantInitial: "" });
+  const [newTirelire, setNewTirelire] = useState({
+    nom: "",
+    objectif: "",
+    montantInitial: "",
+  });
+  const [editingTirelire, setEditingTirelire] = useState<ITirelire | null>(
+    null,
+  );
+  const [tirelireToDelete, setTirelireToDelete] = useState<string | null>(null);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const { revenus, charges } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
@@ -109,12 +125,11 @@ const EpargneScreen: React.FC = () => {
   const isPositive = statsMois.solde > 0;
   const statusColor = isPositive ? "#27ae60" : "#e74c3c";
 
-  const isMonthFinished = selectedDate.isBefore(dayjs().add(1, "month").startOf("month"));
-  const isLatestPossibleMonth = selectedDate.isSame(
-    dayjs(),
-    "month",
+  const isMonthFinished = selectedDate.isBefore(
+    dayjs().add(1, "month").startOf("month"),
   );
-
+  const isLatestPossibleMonth = selectedDate.isSame(dayjs(), "month");
+  const isCurrentMonth = selectedDate.isSame(dayjs(), "month");
 
   const handlePlaceEpargne = async (tirelireId: string) => {
     const montant = parseFloat(montantSaisi.replace(",", "."));
@@ -164,7 +179,6 @@ const EpargneScreen: React.FC = () => {
       );
     }
 
-
     try {
       const budget = parseFloat(newTirelire.objectif.replace(",", "."));
 
@@ -175,7 +189,9 @@ const EpargneScreen: React.FC = () => {
         );
       }
 
-      const montantInitial = parseFloat(newTirelire.montantInitial.replace(",", "."));
+      const montantInitial = parseFloat(
+        newTirelire.montantInitial.replace(",", "."),
+      );
 
       if (isNaN(montantInitial)) {
         return toast.error(
@@ -187,7 +203,8 @@ const EpargneScreen: React.FC = () => {
       await addTirelire(user.id, {
         description: newTirelire.nom,
         objectif: budget,
-        montantInitial: parseFloat(newTirelire.montantInitial.replace(",", ".")) || 0,
+        montantInitial:
+          parseFloat(newTirelire.montantInitial.replace(",", ".")) || 0,
       });
 
       toast.success("Succès", "Nouvel objectif créé !");
@@ -197,6 +214,68 @@ const EpargneScreen: React.FC = () => {
     } catch (e: any) {
       toast.error("Erreur", e.message || "La création a échoué.");
     }
+  };
+
+  const handleUpdateTirelire = async () => {
+    if (!editingTirelire) return;
+
+    try {
+      const budget = parseFloat(newTirelire.objectif.replace(",", "."));
+      const initial = parseFloat(newTirelire.montantInitial.replace(",", "."));
+
+      if (isNaN(budget) || isNaN(initial)) {
+        return toast.error(
+          "Format invalide",
+          "Veuillez entrer des nombres valides.",
+        );
+      }
+
+      await updateTirelire(editingTirelire.id, {
+        description: newTirelire.nom,
+        objectif: budget,
+        montant_initial: initial,
+      });
+
+      toast.success("Mis à jour", "Tirelire modifiée avec succès.");
+
+      setIsAddModalVisible(false);
+      setEditingTirelire(null);
+      setNewTirelire({ nom: "", objectif: "", montantInitial: "" });
+
+      refresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Erreur", "Impossible de modifier la tirelire.");
+    }
+  };
+
+  const openDeleteModal = (id: string) => {
+    setTirelireToDelete(id);
+    setIsDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tirelireToDelete) return;
+    try {
+      await deleteTirelire(tirelireToDelete);
+      toast.success("Supprimé", "La tirelire a été supprimée.");
+      refresh();
+    } catch (e) {
+      toast.error("Erreur", "Impossible de supprimer la tirelire.");
+    } finally {
+      setIsDeleteModalVisible(false);
+      setTirelireToDelete(null);
+    }
+  };
+
+  const openEditModal = (tirelire: ITirelire) => {
+    setEditingTirelire(tirelire);
+    setNewTirelire({
+      nom: tirelire.description,
+      objectif: tirelire.objectif.toString(),
+      montantInitial: tirelire.montantInitial.toString(),
+    });
+    setIsAddModalVisible(true);
   };
 
   if (loading && tirelires.length === 0) {
@@ -217,9 +296,35 @@ const EpargneScreen: React.FC = () => {
           <ChevronLeft size={24} color="#2c3e50" />
         </TouchableOpacity>
 
-        <Text style={styles.monthLabel}>
-          {selectedDate.format("MMMM YYYY")}
-        </Text>
+        <View style={{ alignItems: "center" }}>
+          <Text style={styles.monthLabel}>
+            {selectedDate.format("MMMM YYYY")}
+          </Text>
+          {isCurrentMonth && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 2,
+              }}
+            >
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: "#27ae60",
+                  marginRight: 6,
+                }}
+              />
+              <Text
+                style={{ fontSize: 12, color: "#27ae60", fontWeight: "600" }}
+              >
+                Mois en cours
+              </Text>
+            </View>
+          )}
+        </View>
 
         <TouchableOpacity
           style={[styles.monthArrow, isLatestPossibleMonth && { opacity: 0.3 }]}
@@ -246,6 +351,33 @@ const EpargneScreen: React.FC = () => {
         <Text style={[styles.bigAmount, { color: statusColor }]}>
           {loading ? "..." : `${epargneDisponible.toFixed(2)}€`}
         </Text>
+
+        {isCurrentMonth && (
+          <View
+            style={{
+              backgroundColor: "#fcf3cf",
+              padding: 8,
+              borderRadius: 8,
+              marginTop: 10,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <AlertCircle size={16} color="#f39c12" />
+            <Text
+              style={{
+                fontSize: 12,
+                color: "#d35400",
+                marginLeft: 8,
+                flex: 1,
+                fontStyle: "italic",
+              }}
+            >
+              Le mois n'est pas fini. Ce montant peut varier selon vos dépenses
+              à venir.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.miniStatsRow}>
           <View>
@@ -283,12 +415,12 @@ const EpargneScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.dispatchButton,
-              epargneDisponible <= 0.00 && { opacity: 0.5 },
+              epargneDisponible <= 0.0 && { opacity: 0.5 },
             ]}
             onPress={() =>
-              epargneDisponible > 0.00 && setIsDispatchModalVisible(true)
+              epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
             }
-            disabled={epargneDisponible <= 0.00}
+            disabled={epargneDisponible <= 0.0}
           >
             <Text style={styles.dispatchButtonText}>
               Placer les {epargneDisponible.toFixed(2)}€
@@ -306,13 +438,28 @@ const EpargneScreen: React.FC = () => {
               return (
                 <View key={item.id} style={styles.tirelireCard}>
                   <View style={styles.tirelireHeader}>
-                    <Text style={styles.tirelireName}>{item.description}</Text>
-                    <Text style={styles.tirelireAmount}>
-                      {item.montantActuel.toFixed(2)}€{" "}
-                      <Text style={styles.objectivSmall}>
-                        / {item.objectif}€
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.tirelireName}>
+                        {item.description}
                       </Text>
-                    </Text>
+                      <Text style={styles.tirelireAmount}>
+                        {item.montantActuel.toFixed(2)}€{" "}
+                        <Text style={styles.objectivSmall}>
+                          / {item.objectif}€
+                        </Text>
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: "row", gap: 15 }}>
+                      <TouchableOpacity onPress={() => openEditModal(item)}>
+                        <Pencil size={18} color="#3498db" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => openDeleteModal(item.id)}
+                      >
+                        <Trash2 size={18} color="#e74c3c" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
                   <View style={styles.progressBarContainer}>
@@ -350,7 +497,24 @@ const EpargneScreen: React.FC = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Nouvel Objectif 🎯</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 20,
+              }}
+            >
+              {editingTirelire ? (
+                <Pencil size={22} color="#3498db" />
+              ) : (
+                <PiggyBank size={22} color="#2c3e50" />
+              )}
+              <Text style={[styles.modalTitle, { marginBottom: 0 }]}>
+                {editingTirelire ? "Modifier l'objectif" : "Nouvel Objectif"}
+              </Text>
+            </View>
             <Text style={styles.inputLabel}>Nom du projet</Text>
             <TextInput
               style={styles.input}
@@ -381,15 +545,23 @@ const EpargneScreen: React.FC = () => {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.btnCancel}
-                onPress={() => setIsAddModalVisible(false)}
+                onPress={() => {
+                  setIsAddModalVisible(false);
+                  setEditingTirelire(null);
+                  setNewTirelire({ nom: "", objectif: "", montantInitial: "" });
+                }}
               >
                 <Text style={styles.btnCancelText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.btnConfirm}
-                onPress={handleAddTirelire}
+                onPress={
+                  editingTirelire ? handleUpdateTirelire : handleAddTirelire
+                }
               >
-                <Text style={styles.btnConfirmText}>Créer</Text>
+                <Text style={styles.btnConfirmText}>
+                  {editingTirelire ? "Modifier" : "Créer"}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -449,6 +621,19 @@ const EpargneScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <ConfirmModal
+        visible={isDeleteModalVisible}
+        title="Supprimer la tirelire"
+        message="Voulez-vous vraiment supprimer cette tirelire ? L'argent placé redeviendra disponible dans vos soldes mensuels."
+        confirmText="Supprimer"
+        isDestructive={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setIsDeleteModalVisible(false);
+          setTirelireToDelete(null);
+        }}
+      />
     </ScrollView>
   );
 };
