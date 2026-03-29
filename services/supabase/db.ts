@@ -32,16 +32,18 @@ const makeUniqueId = (householdId: string, docId: string) => {
  * Ex: "household123_doc456" => "doc456"
  */
 const extractDocId = (uniqueId: string) => {
-  const parts = uniqueId.split('_');
-  return parts.slice(1).join('_'); // Au cas où l'ID contient des underscores
+  const parts = uniqueId.split("_");
+  return parts.slice(1).join("_"); // Au cas où l'ID contient des underscores
 };
 
 /**
  * Génère un ID aléatoire (compatible Firebase)
  */
 const generateId = () => {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return (
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15)
+  );
 };
 
 // ============================================
@@ -61,7 +63,7 @@ export async function createUserProfile(
   },
 ) {
   try {
-    const { error } = await supabase.from('users').insert({
+    const { error } = await supabase.from("users").insert({
       id: uid,
       email: data.email,
       display_name: data.displayName,
@@ -72,7 +74,7 @@ export async function createUserProfile(
     if (error) throw error;
 
     // Créer le foyer solo (household avec même ID que l'user)
-    await supabase.from('households').insert({
+    await supabase.from("households").insert({
       id: uid,
       name: `Foyer de ${data.displayName}`,
       members: [uid],
@@ -92,16 +94,17 @@ export async function createUserProfile(
  */
 export async function updateUserInfo(uid: string, data: any) {
   const supabaseUpdates: any = {};
-  
-  if (data.displayName !== undefined) supabaseUpdates.display_name = data.displayName;
+
+  if (data.displayName !== undefined)
+    supabaseUpdates.display_name = data.displayName;
   if (data.email !== undefined) supabaseUpdates.email = data.email;
 
   try {
     const { error } = await supabase
-      .from('users')
+      .from("users")
       .update(supabaseUpdates)
-      .eq('id', uid);
-    
+      .eq("id", uid);
+
     if (error) throw error;
   } catch (error) {
     console.error("Erreur updateUserInfo:", error);
@@ -114,11 +117,8 @@ export async function updateUserInfo(uid: string, data: any) {
  */
 export async function deleteUserInfo(uid: string) {
   try {
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', uid);
-    
+    const { error } = await supabase.from("users").delete().eq("id", uid);
+
     if (error) throw error;
   } catch (error) {
     console.error("Erreur lors de la suppression du profil:", error);
@@ -133,9 +133,9 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
   try {
     // 1. Récupérer les membres du household
     const { data: householdData, error: householdError } = await supabase
-      .from('households')
-      .select('members')
-      .eq('id', householdId)
+      .from("households")
+      .select("members")
+      .eq("id", householdId)
       .single();
 
     if (householdError || !householdData) {
@@ -150,9 +150,9 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
 
     // 2. Récupérer tous les users
     const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('*')
-      .in('id', memberIds);
+      .from("users")
+      .select("*")
+      .in("id", memberIds);
 
     if (usersError) throw usersError;
 
@@ -179,18 +179,18 @@ export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {
 export async function getLoyerConfig(
   householdId: string,
 ): Promise<ILoyerConfig | null> {
-  const uniqueId = makeUniqueId(householdId, 'current');
-  
+  const uniqueId = makeUniqueId(householdId, "current");
+
   const { data, error } = await supabase
-    .from('loyer_config')
-    .select('*')
-    .eq('id', uniqueId)
+    .from("loyer_config")
+    .select("*")
+    .eq("id", uniqueId)
     .single();
 
   if (error || !data) return null;
 
   return {
-    id: 'current',
+    id: "current",
     loyerTotal: data.loyer_total,
     apportsAPL: data.apports_apl,
     loyerPayeurUid: data.loyer_payeur_uid,
@@ -207,18 +207,16 @@ export async function updateLoyerConfig(
   apportsAPL: Record<string, number>,
   loyerPayeurUid: string,
 ): Promise<void> {
-  const uniqueId = makeUniqueId(householdId, 'current');
+  const uniqueId = makeUniqueId(householdId, "current");
 
-  const { error } = await supabase
-    .from('loyer_config')
-    .upsert({
-      id: uniqueId,
-      household_id: householdId,
-      loyer_total: loyerTotal,
-      apports_apl: apportsAPL,
-      loyer_payeur_uid: loyerPayeurUid,
-      date_modification: new Date().toISOString(),
-    });
+  const { error } = await supabase.from("loyer_config").upsert({
+    id: uniqueId,
+    household_id: householdId,
+    loyer_total: loyerTotal,
+    apports_apl: apportsAPL,
+    loyer_payeur_uid: loyerPayeurUid,
+    date_modification: new Date().toISOString(),
+  });
 
   if (error) throw error;
 }
@@ -252,19 +250,17 @@ export async function createCompteMensuel(
   try {
     const uniqueId = makeUniqueId(householdId, data.id);
 
-    const { error } = await supabase
-      .from('comptes_mensuels')
-      .upsert({
-        id: uniqueId,
-        household_id: householdId,
-        mois_annee: data.moisAnnee,
-        statut: data.statut === 'finalisé' ? 'finalise' : data.statut,
-        apports_apl: data.apportsAPL,
-        dettes: data.dettes,
-        charges_fixes_snapshot: data.chargesFixesSnapshot,
-        loyer_total: data.loyerTotal,
-        loyer_payeur_uid: data.loyerPayeurUid,
-      });
+    const { error } = await supabase.from("comptes_mensuels").upsert({
+      id: uniqueId,
+      household_id: householdId,
+      mois_annee: data.moisAnnee,
+      statut: data.statut === "finalisé" ? "finalise" : data.statut,
+      apports_apl: data.apportsAPL,
+      dettes: data.dettes,
+      charges_fixes_snapshot: data.chargesFixesSnapshot,
+      loyer_total: data.loyerTotal,
+      loyer_payeur_uid: data.loyerPayeurUid,
+    });
 
     if (error) throw error;
   } catch (error) {
@@ -283,9 +279,9 @@ export async function getCompteMensuel(
   const uniqueId = makeUniqueId(householdId, moisAnnee);
 
   const { data, error } = await supabase
-    .from('comptes_mensuels')
-    .select('*')
-    .eq('id', uniqueId)
+    .from("comptes_mensuels")
+    .select("*")
+    .eq("id", uniqueId)
     .single();
 
   if (error || !data) return null;
@@ -293,7 +289,7 @@ export async function getCompteMensuel(
   return {
     id: moisAnnee,
     moisAnnee: data.mois_annee,
-    statut: data.statut === 'finalise' ? 'finalisé' : data.statut,
+    statut: data.statut === "finalise" ? "finalisé" : data.statut,
     apportsAPL: data.apports_apl,
     dettes: data.dettes,
     chargesFixesSnapshot: data.charges_fixes_snapshot,
@@ -315,13 +311,13 @@ export async function updateLoyerApl(
   const uniqueId = makeUniqueId(householdId, compteDocId);
 
   const { error } = await supabase
-    .from('comptes_mensuels')
+    .from("comptes_mensuels")
     .update({
       loyer_total: loyerTotal,
       apports_apl: apportsAPL,
       loyer_payeur_uid: loyerPayeurUid,
     })
-    .eq('id', uniqueId);
+    .eq("id", uniqueId);
 
   if (error) throw error;
 }
@@ -336,9 +332,9 @@ export async function setMoisFinalise(
   const uniqueId = makeUniqueId(householdId, compteDocId);
 
   const { error } = await supabase
-    .from('comptes_mensuels')
-    .update({ statut: 'finalise' })
-    .eq('id', uniqueId);
+    .from("comptes_mensuels")
+    .update({ statut: "finalise" })
+    .eq("id", uniqueId);
 
   if (error) throw error;
 }
@@ -351,17 +347,17 @@ export async function getHistoryMonths(
 ): Promise<ICompteMensuel[]> {
   try {
     const { data, error } = await supabase
-      .from('comptes_mensuels')
-      .select('*')
-      .eq('household_id', householdId)
-      .eq('statut', 'finalise');
+      .from("comptes_mensuels")
+      .select("*")
+      .eq("household_id", householdId)
+      .eq("statut", "finalise");
 
     if (error) throw error;
 
     return (data || []).map((row) => ({
       id: extractDocId(row.id),
       moisAnnee: row.mois_annee,
-      statut: 'finalisé',
+      statut: "finalisé",
       apportsAPL: row.apports_apl,
       dettes: row.dettes,
       chargesFixesSnapshot: row.charges_fixes_snapshot,
@@ -387,12 +383,12 @@ export async function updateRegularisationDettes(
     const uniqueId = makeUniqueId(householdId, moisAnnee);
 
     const { error } = await supabase
-      .from('comptes_mensuels')
+      .from("comptes_mensuels")
       .update({
         dettes: dettes,
         charges_fixes_snapshot: chargesFixesSnapshot,
       })
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -412,9 +408,9 @@ export async function getChargesFixesConfigs(
   householdId: string,
 ): Promise<IChargeFixeTemplate[]> {
   const { data, error } = await supabase
-    .from('charges_fixes')
-    .select('*')
-    .eq('household_id', householdId);
+    .from("charges_fixes")
+    .select("*")
+    .eq("household_id", householdId);
 
   if (error) throw error;
 
@@ -441,19 +437,17 @@ export async function addChargeFixeConfig(
   const docId = generateId();
   const uniqueId = makeUniqueId(householdId, docId);
 
-  const { error } = await supabase
-    .from('charges_fixes')
-    .insert({
-      id: uniqueId,
-      household_id: householdId,
-      categorie: charge.categorie || null,
-      description: charge.description,
-      montant_total: charge.montantTotal,
-      payeur: charge.payeur,
-      beneficiaires: charge.beneficiaires || [],
-      jour_prelevement_mensuel: charge.jourPrelevementMensuel,
-      scope: charge.scope || 'solo',
-    });
+  const { error } = await supabase.from("charges_fixes").insert({
+    id: uniqueId,
+    household_id: householdId,
+    categorie: charge.categorie || null,
+    description: charge.description,
+    montant_total: charge.montantTotal,
+    payeur: charge.payeur,
+    beneficiaires: charge.beneficiaires || [],
+    jour_prelevement_mensuel: charge.jourPrelevementMensuel,
+    scope: charge.scope || "solo",
+  });
 
   if (error) throw error;
 
@@ -471,18 +465,23 @@ export async function updateChargeFixeConfig(
   const uniqueId = makeUniqueId(householdId, chargeId);
   const supabaseUpdates: any = {};
 
-  if (updates.categorie !== undefined) supabaseUpdates.categorie = updates.categorie;
-  if (updates.description !== undefined) supabaseUpdates.description = updates.description;
-  if (updates.montantTotal !== undefined) supabaseUpdates.montant_total = updates.montantTotal;
+  if (updates.categorie !== undefined)
+    supabaseUpdates.categorie = updates.categorie;
+  if (updates.description !== undefined)
+    supabaseUpdates.description = updates.description;
+  if (updates.montantTotal !== undefined)
+    supabaseUpdates.montant_total = updates.montantTotal;
   if (updates.payeur !== undefined) supabaseUpdates.payeur = updates.payeur;
-  if (updates.beneficiaires !== undefined) supabaseUpdates.beneficiaires = updates.beneficiaires;
-  if (updates.jourPrelevementMensuel !== undefined) supabaseUpdates.jour_prelevement_mensuel = updates.jourPrelevementMensuel;
+  if (updates.beneficiaires !== undefined)
+    supabaseUpdates.beneficiaires = updates.beneficiaires;
+  if (updates.jourPrelevementMensuel !== undefined)
+    supabaseUpdates.jour_prelevement_mensuel = updates.jourPrelevementMensuel;
   if (updates.scope !== undefined) supabaseUpdates.scope = updates.scope;
 
   const { error } = await supabase
-    .from('charges_fixes')
+    .from("charges_fixes")
     .update(supabaseUpdates)
-    .eq('id', uniqueId);
+    .eq("id", uniqueId);
 
   if (error) throw error;
 }
@@ -497,9 +496,9 @@ export async function deleteChargeFixeConfig(
   const uniqueId = makeUniqueId(householdId, chargeId);
 
   const { error } = await supabase
-    .from('charges_fixes')
+    .from("charges_fixes")
     .delete()
-    .eq('id', uniqueId);
+    .eq("id", uniqueId);
 
   if (error) throw error;
 }
@@ -516,10 +515,10 @@ export async function getChargesByType<T extends ICharge>(
   type: "fixe" | "variable",
 ): Promise<T[]> {
   const { data, error } = await supabase
-    .from('charges')
-    .select('*')
-    .eq('household_id', householdId)
-    .eq('type', type);
+    .from("charges")
+    .select("*")
+    .eq("household_id", householdId)
+    .eq("type", type);
 
   if (error) throw error;
 
@@ -541,13 +540,11 @@ export async function getChargesByType<T extends ICharge>(
 /**
  * Récupère toutes les charges d'un foyer
  */
-export async function getAllCharges(
-  householdId: string,
-): Promise<ICharge[]> {
+export async function getAllCharges(householdId: string): Promise<ICharge[]> {
   const { data, error } = await supabase
-    .from('charges')
-    .select('*')
-    .eq('household_id', householdId);
+    .from("charges")
+    .select("*")
+    .eq("household_id", householdId);
 
   if (error) throw error;
 
@@ -575,11 +572,11 @@ export async function getSoloChargesByType<T extends ICharge>(
   type: "fixe" | "variable",
 ): Promise<T[]> {
   const { data, error } = await supabase
-    .from('charges')
-    .select('*')
-    .in('household_id', householdIds)
-    .eq('type', type)
-    .contains('beneficiaires', [userId]);
+    .from("charges")
+    .select("*")
+    .in("household_id", householdIds)
+    .eq("type", type)
+    .contains("beneficiaires", [userId]);
 
   if (error) throw error;
 
@@ -610,35 +607,33 @@ export async function getSoloChargesByType<T extends ICharge>(
  */
 export async function addCharge(
   householdId: string,
-  charge: Omit<ICharge, "id" | "householdId">
+  charge: Omit<ICharge, "id" | "householdId">,
 ) {
   const docId = generateId();
   const uniqueId = makeUniqueId(householdId, docId);
 
-  const { error } = await supabase
-    .from('charges')
-    .insert({
-      id: uniqueId,
-      household_id: householdId,
-      type: charge.type || 'variable',
-      categorie: charge.categorie || null,
-      description: charge.description,
-      montant_total: charge.montantTotal,
-      payeur: charge.payeur,
-      beneficiaires: charge.beneficiaires || [],
-      date_statistiques: (charge as any).dateStatistiques,
-      mois_annee: (charge as any).moisAnnee,
-      scope: charge.scope,
-      jour_prelevement_mensuel: (charge as any).jourPrelevementMensuel,
-    });
+  const { error } = await supabase.from("charges").insert({
+    id: uniqueId,
+    household_id: householdId,
+    type: charge.type || "variable",
+    categorie: charge.categorie || null,
+    description: charge.description,
+    montant_total: charge.montantTotal,
+    payeur: charge.payeur,
+    beneficiaires: charge.beneficiaires || [],
+    date_statistiques: (charge as any).dateStatistiques,
+    mois_annee: (charge as any).moisAnnee,
+    scope: charge.scope,
+    jour_prelevement_mensuel: (charge as any).jourPrelevementMensuel,
+  });
 
   if (error) throw error;
 
   try {
     const { data: householdData } = await supabase
-      .from('households')
-      .select('members')
-      .eq('id', householdId)
+      .from("households")
+      .select("members")
+      .eq("id", householdId)
       .single();
 
     if (householdData) {
@@ -650,9 +645,9 @@ export async function addCharge(
       if (realUserBeneficiaires.length > 0 && charge.categorie) {
         const catUniqueId = makeUniqueId(householdId, charge.categorie);
         const { data: categoryData } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('id', catUniqueId)
+          .from("categories")
+          .select("*")
+          .eq("id", catUniqueId)
           .single();
 
         if (categoryData) {
@@ -665,8 +660,8 @@ export async function addCharge(
           }));
 
           await supabase
-            .from('categories')
-            .upsert(categoriesToInsert, { onConflict: 'id' });
+            .from("categories")
+            .upsert(categoriesToInsert, { onConflict: "id" });
         }
       }
     }
@@ -689,19 +684,27 @@ export async function updateCharge(
     const uniqueId = makeUniqueId(householdId, chargeId);
     const supabaseUpdates: any = {};
 
-    if (updateData.categorie !== undefined) supabaseUpdates.categorie = updateData.categorie;
-    if (updateData.description !== undefined) supabaseUpdates.description = updateData.description;
-    if ((updateData as any).montantTotal !== undefined) supabaseUpdates.montant_total = (updateData as any).montantTotal;
-    if (updateData.payeur !== undefined) supabaseUpdates.payeur = updateData.payeur;
-    if (updateData.beneficiaires !== undefined) supabaseUpdates.beneficiaires = updateData.beneficiaires;
-    if ((updateData as any).dateStatistiques !== undefined) supabaseUpdates.date_statistiques = (updateData as any).dateStatistiques;
-    if ((updateData as any).moisAnnee !== undefined) supabaseUpdates.mois_annee = (updateData as any).moisAnnee;
-    if ((updateData as any).scope !== undefined) supabaseUpdates.scope = (updateData as any).scope;
+    if (updateData.categorie !== undefined)
+      supabaseUpdates.categorie = updateData.categorie;
+    if (updateData.description !== undefined)
+      supabaseUpdates.description = updateData.description;
+    if ((updateData as any).montantTotal !== undefined)
+      supabaseUpdates.montant_total = (updateData as any).montantTotal;
+    if (updateData.payeur !== undefined)
+      supabaseUpdates.payeur = updateData.payeur;
+    if (updateData.beneficiaires !== undefined)
+      supabaseUpdates.beneficiaires = updateData.beneficiaires;
+    if ((updateData as any).dateStatistiques !== undefined)
+      supabaseUpdates.date_statistiques = (updateData as any).dateStatistiques;
+    if ((updateData as any).moisAnnee !== undefined)
+      supabaseUpdates.mois_annee = (updateData as any).moisAnnee;
+    if ((updateData as any).scope !== undefined)
+      supabaseUpdates.scope = (updateData as any).scope;
 
     const { error } = await supabase
-      .from('charges')
+      .from("charges")
       .update(supabaseUpdates)
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -718,9 +721,9 @@ export async function deleteCharge(householdId: string, chargeId: string) {
     const uniqueId = makeUniqueId(householdId, chargeId);
 
     const { error } = await supabase
-      .from('charges')
+      .from("charges")
       .delete()
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -738,12 +741,14 @@ export async function addChargeVariableRegularisation(
   moisCloture: string,
   dettesRegularisation: IDette[],
 ) {
-  const moisClotureFormate = dayjs(moisCloture).locale('fr').format('MMMM YYYY');
-  const dateRegul = dayjs().startOf('month').toISOString();
+  const moisClotureFormate = dayjs(moisCloture)
+    .locale("fr")
+    .format("MMMM YYYY");
+  const dateRegul = dayjs().startOf("month").toISOString();
   const dettesRegularisationPositives = dettesRegularisation.filter(
     (d) => d.montant > 0,
   );
-  
+
   for (const detteRegularisation of dettesRegularisationPositives) {
     await addCharge(householdId, {
       description: `Régularisation ${moisClotureFormate.charAt(0).toUpperCase() + moisClotureFormate.slice(1)}`,
@@ -773,9 +778,9 @@ export async function getHouseholdCategories(
 ): Promise<ICategorie[]> {
   try {
     const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('household_id', householdId);
+      .from("categories")
+      .select("*")
+      .eq("household_id", householdId);
 
     if (error) throw error;
 
@@ -803,23 +808,21 @@ export async function addCategory(
     const uniqueId = makeUniqueId(householdId, newCatId);
 
     // 1. Créer la catégorie dans le foyer principal
-    const { error } = await supabase
-      .from('categories')
-      .insert({
-        id: uniqueId,
-        household_id: householdId,
-        label: category.label,
-        icon: category.icon,
-        is_default: category.isDefault || false,
-      });
+    const { error } = await supabase.from("categories").insert({
+      id: uniqueId,
+      household_id: householdId,
+      label: category.label,
+      icon: category.icon,
+      is_default: category.isDefault || false,
+    });
 
     if (error) throw error;
 
     // 2. Propager aux foyers solo des membres
     const { data: householdData } = await supabase
-      .from('households')
-      .select('members')
-      .eq('id', householdId)
+      .from("households")
+      .select("members")
+      .eq("id", householdId)
       .single();
 
     if (householdData) {
@@ -836,8 +839,8 @@ export async function addCategory(
 
       if (categoriesToInsert.length > 0) {
         await supabase
-          .from('categories')
-          .upsert(categoriesToInsert, { onConflict: 'id' });
+          .from("categories")
+          .upsert(categoriesToInsert, { onConflict: "id" });
       }
     }
 
@@ -860,34 +863,35 @@ export async function updateCategory(
     const uniqueId = makeUniqueId(householdId, categoryId);
     const supabaseUpdates: any = {};
 
-    if (updateData.label !== undefined) supabaseUpdates.label = updateData.label;
+    if (updateData.label !== undefined)
+      supabaseUpdates.label = updateData.label;
     if (updateData.icon !== undefined) supabaseUpdates.icon = updateData.icon;
 
     // 1. Mettre à jour dans le foyer principal
     const { error } = await supabase
-      .from('categories')
+      .from("categories")
       .update(supabaseUpdates)
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
 
     // 2. Propager aux foyers solo
     const { data: householdData } = await supabase
-      .from('households')
-      .select('members')
-      .eq('id', householdId)
+      .from("households")
+      .select("members")
+      .eq("id", householdId)
       .single();
 
     if (householdData) {
       const members = householdData.members || [];
-      
+
       for (const uid of members) {
         if (uid !== householdId) {
           const soloCatId = makeUniqueId(uid, categoryId);
           await supabase
-            .from('categories')
+            .from("categories")
             .update(supabaseUpdates)
-            .eq('id', soloCatId);
+            .eq("id", soloCatId);
         }
       }
     }
@@ -905,9 +909,9 @@ export async function deleteCategory(householdId: string, categoryId: string) {
     const uniqueId = makeUniqueId(householdId, categoryId);
 
     const { error } = await supabase
-      .from('categories')
+      .from("categories")
       .delete()
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -925,10 +929,10 @@ export async function migrateChargesOnDelete(
   defaultCategoryId: string,
 ) {
   const { error } = await supabase
-    .from('charges')
+    .from("charges")
     .update({ categorie: defaultCategoryId })
-    .eq('household_id', householdId)
-    .eq('categorie', oldCategoryId);
+    .eq("household_id", householdId)
+    .eq("categorie", oldCategoryId);
 
   if (error) throw error;
 }
@@ -946,9 +950,9 @@ export async function switchActiveHousehold(
 ) {
   try {
     const { error } = await supabase
-      .from('users')
+      .from("users")
       .update({ active_household_id: newHouseholdId })
-      .eq('id', userId);
+      .eq("id", userId);
 
     if (error) throw error;
   } catch (error) {
@@ -965,21 +969,19 @@ export async function createHousehold(userId: string, name: string) {
     const householdId = generateId();
 
     // 1. Créer le household
-    const { error: householdError } = await supabase
-      .from('households')
-      .insert({
-        id: householdId,
-        name,
-        members: [userId],
-      });
+    const { error: householdError } = await supabase.from("households").insert({
+      id: householdId,
+      name,
+      members: [userId],
+    });
 
     if (householdError) throw householdError;
 
     // 2. Ajouter à la liste de l'utilisateur
     const { data: userData, error: userFetchError } = await supabase
-      .from('users')
-      .select('households')
-      .eq('id', userId)
+      .from("users")
+      .select("households")
+      .eq("id", userId)
       .single();
 
     if (userFetchError) throw userFetchError;
@@ -987,9 +989,9 @@ export async function createHousehold(userId: string, name: string) {
     const updatedHouseholds = [...(userData?.households || []), householdId];
 
     const { error: userUpdateError } = await supabase
-      .from('users')
+      .from("users")
       .update({ households: updatedHouseholds })
-      .eq('id', userId);
+      .eq("id", userId);
 
     if (userUpdateError) throw userUpdateError;
 
@@ -1012,12 +1014,12 @@ export async function generateInvitationCode(householdId: string) {
     const expiresAt = dayjs().add(24, "hours").toISOString();
 
     const { error } = await supabase
-      .from('households')
+      .from("households")
       .update({
         invitation_code: code,
         invitation_expires_at: expiresAt,
       })
-      .eq('id', householdId);
+      .eq("id", householdId);
 
     if (error) throw error;
 
@@ -1038,9 +1040,9 @@ export async function joinHouseholdByCode(userId: string, code: string) {
 
   // 1. Trouver le household avec ce code
   const { data: households, error: searchError } = await supabase
-    .from('households')
-    .select('*')
-    .eq('invitation_code', cleanCode)
+    .from("households")
+    .select("*")
+    .eq("invitation_code", cleanCode)
     .limit(1);
 
   if (searchError) throw searchError;
@@ -1069,17 +1071,17 @@ export async function joinHouseholdByCode(userId: string, code: string) {
   // 4. Ajouter l'utilisateur au household
   const updatedMembers = [...currentMembers, userId];
   const { error: householdUpdateError } = await supabase
-    .from('households')
+    .from("households")
     .update({ members: updatedMembers })
-    .eq('id', householdId);
+    .eq("id", householdId);
 
   if (householdUpdateError) throw householdUpdateError;
 
   // 5. Ajouter le household à l'utilisateur
   const { data: userData, error: userFetchError } = await supabase
-    .from('users')
-    .select('households')
-    .eq('id', userId)
+    .from("users")
+    .select("households")
+    .eq("id", userId)
     .single();
 
   if (userFetchError) throw userFetchError;
@@ -1087,9 +1089,9 @@ export async function joinHouseholdByCode(userId: string, code: string) {
   const updatedHouseholds = [...(userData?.households || []), householdId];
 
   const { error: userUpdateError } = await supabase
-    .from('users')
+    .from("users")
     .update({ households: updatedHouseholds })
-    .eq('id', userId);
+    .eq("id", userId);
 
   if (userUpdateError) throw userUpdateError;
 
@@ -1104,9 +1106,9 @@ export async function updateHouseholdName(
   newName: string,
 ) {
   const { error } = await supabase
-    .from('households')
+    .from("households")
     .update({ name: newName })
-    .eq('id', householdId);
+    .eq("id", householdId);
 
   if (error) throw error;
 }
@@ -1117,9 +1119,9 @@ export async function updateHouseholdName(
 export async function leaveHousehold(userId: string, householdId: string) {
   // 1. Vérifier si c'est le foyer actif
   const { data: userData, error: userFetchError } = await supabase
-    .from('users')
-    .select('households, active_household_id')
-    .eq('id', userId)
+    .from("users")
+    .select("households, active_household_id")
+    .eq("id", userId)
     .single();
 
   if (userFetchError) throw userFetchError;
@@ -1128,27 +1130,27 @@ export async function leaveHousehold(userId: string, householdId: string) {
 
   // 2. Retirer du household
   const { data: householdData, error: householdFetchError } = await supabase
-    .from('households')
-    .select('members')
-    .eq('id', householdId)
+    .from("households")
+    .select("members")
+    .eq("id", householdId)
     .single();
 
   if (householdFetchError) throw householdFetchError;
 
   const updatedMembers = (householdData?.members || []).filter(
-    (m: string) => m !== userId
+    (m: string) => m !== userId,
   );
 
   const { error: householdUpdateError } = await supabase
-    .from('households')
+    .from("households")
     .update({ members: updatedMembers })
-    .eq('id', householdId);
+    .eq("id", householdId);
 
   if (householdUpdateError) throw householdUpdateError;
 
   // 3. Retirer de la liste de l'utilisateur
   const updatedHouseholds = (userData?.households || []).filter(
-    (h: string) => h !== householdId
+    (h: string) => h !== householdId,
   );
 
   const updates: any = { households: updatedHouseholds };
@@ -1158,9 +1160,9 @@ export async function leaveHousehold(userId: string, householdId: string) {
   }
 
   const { error: userUpdateError } = await supabase
-    .from('users')
+    .from("users")
     .update(updates)
-    .eq('id', userId);
+    .eq("id", userId);
 
   if (userUpdateError) throw userUpdateError;
 }
@@ -1181,7 +1183,7 @@ export async function createDefaultCategories(householdId: string) {
   });
 
   const { error } = await supabase
-    .from('categories')
+    .from("categories")
     .insert(categoriesToInsert);
 
   if (error) throw error;
@@ -1195,9 +1197,9 @@ export async function getCategoriesRevenus(
 ): Promise<ICategorieRevenu[]> {
   try {
     const { data, error } = await supabase
-      .from('categories_revenus')
-      .select('*')
-      .eq('household_id', householdId);
+      .from("categories_revenus")
+      .select("*")
+      .eq("household_id", householdId);
 
     if (error) throw error;
 
@@ -1224,15 +1226,13 @@ export async function addCategorieRevenu(
     const newCatId = generateId();
     const uniqueId = makeUniqueId(householdId, newCatId);
 
-    const { error } = await supabase
-      .from('categories_revenus')
-      .insert({
-        id: uniqueId,
-        household_id: householdId,
-        label: category.label,
-        icon: category.icon,
-        is_default: category.isDefault || false,
-      });
+    const { error } = await supabase.from("categories_revenus").insert({
+      id: uniqueId,
+      household_id: householdId,
+      label: category.label,
+      icon: category.icon,
+      is_default: category.isDefault || false,
+    });
 
     if (error) throw error;
     return newCatId;
@@ -1258,9 +1258,9 @@ export async function updateCategorieRevenu(
     if (updates.icon !== undefined) supabaseUpdates.icon = updates.icon;
 
     const { error } = await supabase
-      .from('categories_revenus')
+      .from("categories_revenus")
       .update(supabaseUpdates)
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -1280,9 +1280,9 @@ export async function deleteCategorieRevenu(
     const uniqueId = makeUniqueId(householdId, categoryId);
 
     const { error } = await supabase
-      .from('categories_revenus')
+      .from("categories_revenus")
       .delete()
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -1307,12 +1307,11 @@ export async function createDefaultCategoriesRevenus(householdId: string) {
   });
 
   const { error } = await supabase
-    .from('categories_revenus')
+    .from("categories_revenus")
     .insert(categoriesToInsert);
 
   if (error) throw error;
 }
-
 
 /**
  * Récupère tous les revenus d'un foyer
@@ -1323,15 +1322,17 @@ export async function getRevenus(
 ): Promise<IRevenu[]> {
   try {
     let query = supabase
-      .from('revenus')
-      .select('*')
-      .eq('household_id', householdId);
+      .from("revenus")
+      .select("*")
+      .eq("household_id", householdId);
 
     if (moisAnnee) {
-      query = query.eq('mois_annee', moisAnnee);
+      query = query.eq("mois_annee", moisAnnee);
     }
 
-    const { data, error } = await query.order('date_reception', { ascending: false });
+    const { data, error } = await query.order("date_reception", {
+      ascending: false,
+    });
 
     if (error) throw error;
 
@@ -1362,18 +1363,16 @@ export async function addRevenu(
     const docId = generateId();
     const uniqueId = makeUniqueId(householdId, docId);
 
-    const { error } = await supabase
-      .from('revenus')
-      .insert({
-        id: uniqueId,
-        household_id: householdId,
-        categorie: revenu.categorie,
-        description: revenu.description,
-        montant: revenu.montant,
-        beneficiaire: revenu.beneficiaire,
-        date_reception: revenu.dateReception,
-        mois_annee: revenu.moisAnnee,
-      });
+    const { error } = await supabase.from("revenus").insert({
+      id: uniqueId,
+      household_id: householdId,
+      categorie: revenu.categorie,
+      description: revenu.description,
+      montant: revenu.montant,
+      beneficiaire: revenu.beneficiaire,
+      date_reception: revenu.dateReception,
+      mois_annee: revenu.moisAnnee,
+    });
 
     if (error) throw error;
     return docId;
@@ -1395,18 +1394,25 @@ export async function updateRevenu(
     const uniqueId = makeUniqueId(householdId, revenuId);
     const supabaseUpdates: any = {};
 
-    if (updates.categorie !== undefined) supabaseUpdates.categorie = updates.categorie;
-    if (updates.description !== undefined) supabaseUpdates.description = updates.description;
-    if (updates.montant !== undefined) supabaseUpdates.montant = updates.montant;
-    if (updates.beneficiaire !== undefined) supabaseUpdates.beneficiaire = updates.beneficiaire;
-    if (updates.dateReception !== undefined) supabaseUpdates.date_reception = updates.dateReception;
-    if (updates.moisAnnee !== undefined) supabaseUpdates.mois_annee = updates.moisAnnee;
-    if (updates.moisAnnee !== undefined) supabaseUpdates.mois_annee = updates.moisAnnee;
+    if (updates.categorie !== undefined)
+      supabaseUpdates.categorie = updates.categorie;
+    if (updates.description !== undefined)
+      supabaseUpdates.description = updates.description;
+    if (updates.montant !== undefined)
+      supabaseUpdates.montant = updates.montant;
+    if (updates.beneficiaire !== undefined)
+      supabaseUpdates.beneficiaire = updates.beneficiaire;
+    if (updates.dateReception !== undefined)
+      supabaseUpdates.date_reception = updates.dateReception;
+    if (updates.moisAnnee !== undefined)
+      supabaseUpdates.mois_annee = updates.moisAnnee;
+    if (updates.moisAnnee !== undefined)
+      supabaseUpdates.mois_annee = updates.moisAnnee;
 
     const { error } = await supabase
-      .from('revenus')
+      .from("revenus")
       .update(supabaseUpdates)
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -1423,9 +1429,9 @@ export async function deleteRevenu(householdId: string, revenuId: string) {
     const uniqueId = makeUniqueId(householdId, revenuId);
 
     const { error } = await supabase
-      .from('revenus')
+      .from("revenus")
       .delete()
-      .eq('id', uniqueId);
+      .eq("id", uniqueId);
 
     if (error) throw error;
   } catch (error) {
@@ -1437,20 +1443,23 @@ export async function deleteRevenu(householdId: string, revenuId: string) {
 export async function getTirelires(userId: string): Promise<ITirelire[]> {
   try {
     const { data, error } = await supabase
-      .from('tirelires')
-      .select(`
+      .from("tirelires")
+      .select(
+        `
         *,
         epargne_mouvements (montant)
-      `)
-      .eq('user_id', userId);
+      `,
+      )
+      .eq("user_id", userId);
 
     if (error) throw error;
 
     const mapped = (data || []).map((row) => {
-      const sommeMouvements = row.epargne_mouvements?.reduce(
-        (acc: number, m: any) => acc + Number(m.montant), 
-        0
-      ) || 0;
+      const sommeMouvements =
+        row.epargne_mouvements?.reduce(
+          (acc: number, m: any) => acc + Number(m.montant),
+          0,
+        ) || 0;
 
       const initial = Number(row.montant_initial) || 0;
 
@@ -1459,7 +1468,7 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
         userId: row.user_id,
         description: row.description,
         objectif: Number(row.objectif),
-        montantActuel: initial + sommeMouvements, 
+        montantActuel: initial + sommeMouvements,
         montantInitial: initial,
       };
     });
@@ -1471,12 +1480,15 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
   }
 }
 
-export async function addTirelire(userId: string, tirelire: { description: string, objectif: number, montantInitial: number }) {
-  const newId = generateId(); 
+export async function addTirelire(
+  userId: string,
+  tirelire: { description: string; objectif: number; montantInitial: number },
+) {
+  const newId = generateId();
 
-  const { error } = await supabase.from('tirelires').insert({
-    id: newId,  
-    user_id: userId, 
+  const { error } = await supabase.from("tirelires").insert({
+    id: newId,
+    user_id: userId,
     description: tirelire.description,
     objectif: tirelire.objectif,
     montant_initial: tirelire.montantInitial,
@@ -1488,26 +1500,35 @@ export async function addTirelire(userId: string, tirelire: { description: strin
   }
 }
 
-export async function updateTirelire(id: string, updates: { description?: string, objectif?: number, montant_initial?: number }) {
+export async function updateTirelire(
+  id: string,
+  updates: {
+    description?: string;
+    objectif?: number;
+    montant_initial?: number;
+  },
+) {
   const { error } = await supabase
-    .from('tirelires')
+    .from("tirelires")
     .update(updates)
-    .eq('id', id);
+    .eq("id", id);
   if (error) throw error;
 }
 
 export async function deleteTirelire(id: string) {
-  const { error } = await supabase
-    .from('tirelires')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from("tirelires").delete().eq("id", id);
   if (error) throw error;
 }
 
-export async function placeEpargne(userId: string, tirelireId: string, montant: number, moisAnnee: string) {
+export async function placeEpargne(
+  userId: string,
+  tirelireId: string,
+  montant: number,
+  moisAnnee: string,
+) {
   const movementId = generateId();
 
-  const { error } = await supabase.from('epargne_mouvements').insert({
+  const { error } = await supabase.from("epargne_mouvements").insert({
     id: movementId,
     tirelire_id: tirelireId,
     user_id: userId,
@@ -1521,21 +1542,69 @@ export async function placeEpargne(userId: string, tirelireId: string, montant: 
   }
 }
 
-export async function getTotalPlaceMois(userId: string, moisAnnee: string): Promise<number> {
+export async function getTotalPlaceMois(
+  userId: string,
+  moisAnnee: string,
+): Promise<number> {
   const startOfMonth = `${moisAnnee}-01`;
-  const endOfMonth = dayjs(startOfMonth).endOf('month').format('YYYY-MM-DD');
+  const endOfMonth = dayjs(startOfMonth).endOf("month").format("YYYY-MM-DD");
 
   const { data, error } = await supabase
-    .from('epargne_mouvements')
-    .select('montant')
-    .eq('user_id', userId)
-    .filter('date_mouvement', 'gte', startOfMonth)
-    .filter('date_mouvement', 'lte', endOfMonth);
+    .from("epargne_mouvements")
+    .select("montant")
+    .eq("user_id", userId)
+    .filter("date_mouvement", "gte", startOfMonth)
+    .filter("date_mouvement", "lte", endOfMonth);
 
   if (error) {
     console.error("Erreur getTotalPlaceMois:", error.message);
     throw error;
   }
-  
+
   return (data || []).reduce((acc, curr) => acc + Number(curr.montant), 0);
+}
+
+export async function breakTirelire(
+  userId: string,
+  tirelire: ITirelire,
+  montant: number,
+): Promise<void> {
+  try {
+    const moisActuel = dayjs().format("YYYY-MM");
+    const dateDuJour = dayjs().format("YYYY-MM-DD");
+
+    const moveDocId = generateId();
+    const moveUniqueId = makeUniqueId(userId, moveDocId);
+
+    const { error: moveError } = await supabase
+      .from("epargne_mouvements")
+      .insert({
+        id: moveUniqueId,
+        tirelire_id: tirelire.id,
+        user_id: userId,
+        montant: -montant,
+        date_mouvement: `${moisActuel}-01`,
+      });
+
+    if (moveError) throw moveError;
+
+    const revDocId = generateId();
+    const revUniqueId = makeUniqueId(userId, revDocId);
+
+    const { error: revError } = await supabase.from("revenus").insert({
+      id: revUniqueId,
+      household_id: userId,
+      categorie: "cat_retrait_epargne",
+      description: `Retrait : ${tirelire.description}`,
+      montant: montant,
+      beneficiaire: userId,
+      date_reception: dateDuJour,
+      mois_annee: moisActuel,
+    });
+
+    if (revError) throw revError;
+  } catch (error) {
+    console.error("Erreur breakTirelire:", error);
+    throw error;
+  }
 }

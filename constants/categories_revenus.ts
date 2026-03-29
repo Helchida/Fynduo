@@ -1,6 +1,5 @@
 import { ICategorieRevenu } from "@/types";
 
-
 export const DEFAULT_CATEGORIES_REVENUS: ICategorieRevenu[] = [
   {
     id: "cat_salaire",
@@ -61,5 +60,11 @@ export const DEFAULT_CATEGORIES_REVENUS: ICategorieRevenu[] = [
     label: "Autre",
     icon: "💵",
     isDefault: true,
+  },
+  {
+    id: "cat_retrait_epargne",
+    label: "Retrait Épargne",
+    icon: "🔨",
+    isDefault: false,
   },
 ];

@@ -20,6 +20,7 @@ import {
   PlusCircle,
   Pencil,
   Trash2,
+  Hammer,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -27,6 +28,7 @@ import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthent
 import { useToast } from "hooks/useToast";
 import {
   addTirelire,
+  breakTirelire,
   deleteTirelire,
   placeEpargne,
   updateTirelire,
@@ -56,8 +58,13 @@ const EpargneScreen: React.FC = () => {
   );
   const [tirelireToDelete, setTirelireToDelete] = useState<string | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isBreakConfirmVisible, setIsBreakConfirmVisible] = useState(false);
+  const [selectedTirelireForBreak, setSelectedTirelireForBreak] =
+    useState<ITirelire | null>(null);
+  const [montantRetrait, setMontantRetrait] = useState("");
+  const [isBreakModalVisible, setIsBreakModalVisible] = useState(false);
 
-  const { revenus, charges } = useComptes();
+  const { revenus, charges, loadData } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
 
   const { tirelires, dejaPlaceCeMois, loading, refresh } = useEpargneData(
@@ -99,9 +106,11 @@ const EpargneScreen: React.FC = () => {
       }
     });
 
-    const monthRevenus = revenus.filter(
-      (r) => dayjs(r.dateReception).format("YYYY-MM") === moisKey,
-    );
+    const monthRevenus = revenus.filter((r) => {
+      const isSameMonth = dayjs(r.dateReception).format("YYYY-MM") === moisKey;
+      const isNotRetraitEpargne = r.categorie !== "cat_retrait_epargne";
+      return isSameMonth && isNotRetraitEpargne;
+    });
 
     let totalRevenus = 0;
     monthRevenus.forEach((r) => {
@@ -278,6 +287,50 @@ const EpargneScreen: React.FC = () => {
     setIsAddModalVisible(true);
   };
 
+  const handleConfirmBreak = async () => {
+    if (!selectedTirelireForBreak) return;
+
+    const montant = parseFloat(montantRetrait.replace(",", "."));
+
+    if (isNaN(montant) || montant <= 0) {
+      return toast.error(
+        "Montant invalide",
+        "Veuillez entrer un chiffre positif.",
+      );
+    }
+
+    if (montant > selectedTirelireForBreak.montantActuel + 0.01) {
+      return toast.warning(
+        "Solde insuffisant",
+        `Cette tirelire ne contient que ${selectedTirelireForBreak.montantActuel.toFixed(2)}€.`,
+      );
+    }
+
+    try {
+      await breakTirelire(user.id, selectedTirelireForBreak, montant);
+
+      toast.success(
+        "Argent récupéré !",
+        `${montant.toFixed(2)}€ ont été ajoutés à vos revenus de ce mois.`,
+      );
+
+      await loadData();
+
+      setIsBreakModalVisible(false);
+      setSelectedTirelireForBreak(null);
+      setMontantRetrait("");
+      refresh();
+    } catch (e) {
+      toast.error("Erreur", "Impossible de casser la tirelire.");
+    }
+  };
+
+  const openBreakModal = (tirelire: ITirelire) => {
+    setSelectedTirelireForBreak(tirelire);
+    setMontantRetrait("");
+    setIsBreakModalVisible(true);
+  };
+
   if (loading && tirelires.length === 0) {
     return (
       <View style={styles.container}>
@@ -451,6 +504,9 @@ const EpargneScreen: React.FC = () => {
                     </View>
 
                     <View style={{ flexDirection: "row", gap: 15 }}>
+                      <TouchableOpacity onPress={() => openBreakModal(item)}>
+                        <Hammer size={18} color="#e67e22" />{" "}
+                      </TouchableOpacity>
                       <TouchableOpacity onPress={() => openEditModal(item)}>
                         <Pencil size={18} color="#3498db" />
                       </TouchableOpacity>
@@ -622,6 +678,107 @@ const EpargneScreen: React.FC = () => {
         </View>
       </Modal>
 
+      <Modal
+        visible={isBreakModalVisible}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 20,
+              }}
+            >
+              <Hammer size={24} color="#e67e22" />
+              <Text style={[styles.modalTitle, { marginBottom: 0 }]}>
+                Casser la tirelire
+              </Text>
+            </View>
+
+            <Text
+              style={{
+                textAlign: "center",
+                marginBottom: 15,
+                color: "#2c3e50",
+                fontWeight: "600",
+              }}
+            >
+              Tirelire : "{selectedTirelireForBreak?.description}"
+            </Text>
+            <Text
+              style={{
+                textAlign: "center",
+                marginBottom: 20,
+                color: "#27ae60",
+                fontSize: 16,
+                fontWeight: "700",
+              }}
+            >
+              Contenu actuel :{" "}
+              {selectedTirelireForBreak?.montantActuel.toFixed(2)}€
+            </Text>
+
+            <Text style={styles.inputLabel}>
+              Combien voulez-vous retirer ? (€)
+            </Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="decimal-pad"
+              autoFocus
+              placeholder="0.00"
+              value={montantRetrait}
+              onChangeText={setMontantRetrait}
+            />
+
+            <View
+              style={{
+                backgroundColor: "#fdf2e9",
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 20,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: "#d35400",
+                  textAlign: "center",
+                  fontStyle: "italic",
+                }}
+              >
+                Ce montant sera retiré de la tirelire et ajouté à vos revenus de
+                ce mois afin de couvrir votre dépense réelle.
+              </Text>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.btnCancel}
+                onPress={() => {
+                  setIsBreakModalVisible(false);
+                  setSelectedTirelireForBreak(null);
+                  setMontantRetrait("");
+                }}
+              >
+                <Text style={styles.btnCancelText}>Annuler</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.btnConfirm, { backgroundColor: "#e67e22" }]}
+                onPress={handleConfirmBreak}
+              >
+                <Text style={styles.btnConfirmText}>Retirer l'argent</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ConfirmModal
         visible={isDeleteModalVisible}
         title="Supprimer la tirelire"
@@ -633,6 +790,15 @@ const EpargneScreen: React.FC = () => {
           setIsDeleteModalVisible(false);
           setTirelireToDelete(null);
         }}
+      />
+
+      <ConfirmModal
+        visible={isBreakConfirmVisible}
+        title="Confirmer le retrait"
+        message={`Voulez-vous vraiment retirer ${montantSaisi}€ de la tirelire "${selectedTirelireForBreak?.description}" ? Ce montant sera ajouté à vos revenus de ce mois.`}
+        confirmText="Retirer l'argent"
+        onConfirm={handleConfirmBreak}
+        onCancel={() => setIsBreakConfirmVisible(false)}
       />
     </ScrollView>
   );
