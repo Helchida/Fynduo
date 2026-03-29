@@ -38,6 +38,14 @@ import { useEpargneData } from "../../hooks/useEpargneData";
 import { ITirelire } from "@/types";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+  .replace(/,/g, '.') + '€';
+};
+
 const EpargneScreen: React.FC = () => {
   const { user } = useAuth();
   const toast = useToast();
@@ -159,7 +167,7 @@ const EpargneScreen: React.FC = () => {
     if (montant > epargneDisponible + 0.01) {
       return toast.warning(
         "Solde insuffisant",
-        `Il ne vous reste que ${epargneDisponible.toFixed(2)}€ à placer.`,
+        `Il ne vous reste que ${formatCurrency(epargneDisponible)} à placer.`,
       );
     }
 
@@ -167,7 +175,7 @@ const EpargneScreen: React.FC = () => {
       const reste = tirelire.objectif - tirelire.montantActuel;
       return toast.info(
         "Objectif atteint",
-        `Cette tirelire n'a besoin que de ${reste.toFixed(2)}€.`,
+        `Cette tirelire n'a besoin que de ${formatCurrency(reste)}.`,
       );
     }
 
@@ -175,7 +183,7 @@ const EpargneScreen: React.FC = () => {
       await placeEpargne(user.id, tirelireId, montant, moisCle);
       toast.success(
         "Épargne placée !",
-        `${montant}€ ajoutés à ${tirelire?.description}`,
+        `${formatCurrency(montant)} ajoutés à ${tirelire?.description}`,
       );
       setMontantSaisi("");
       setIsDispatchModalVisible(false);
@@ -307,7 +315,7 @@ const EpargneScreen: React.FC = () => {
     if (montant > selectedTirelireForBreak.montantActuel + 0.01) {
       return toast.warning(
         "Solde insuffisant",
-        `Cette tirelire ne contient que ${selectedTirelireForBreak.montantActuel.toFixed(2)}€.`,
+        `Cette tirelire ne contient que ${formatCurrency(selectedTirelireForBreak.montantActuel)}.`,
       );
     }
 
@@ -316,7 +324,7 @@ const EpargneScreen: React.FC = () => {
 
       toast.success(
         "Argent récupéré !",
-        `${montant.toFixed(2)}€ ont été ajoutés à vos revenus de ce mois.`,
+        `${formatCurrency(montant)} ont été ajoutés à vos revenus de ce mois.`,
       );
 
       await loadData();
@@ -407,7 +415,7 @@ const EpargneScreen: React.FC = () => {
         </View>
 
         <Text style={[styles.bigAmount, { color: statusColor }]}>
-          {loading ? "..." : `${epargneDisponible.toFixed(2)}€`}
+          {loading ? "..." : `${formatCurrency(epargneDisponible)}`}
         </Text>
 
         {isCurrentMonth && (
@@ -441,13 +449,13 @@ const EpargneScreen: React.FC = () => {
           <View>
             <Text style={styles.miniStatLabel}>Total Revenus</Text>
             <Text style={styles.miniStatValue}>
-              {statsMois.revenus.toFixed(2)}€
+              {formatCurrency(statsMois.revenus)}
             </Text>
           </View>
           <View style={{ marginLeft: 20 }}>
             <Text style={styles.miniStatLabel}>Total Dépenses</Text>
             <Text style={styles.miniStatValue}>
-              {statsMois.depenses.toFixed(2)}€
+              {formatCurrency(statsMois.depenses)}
             </Text>
           </View>
         </View>
@@ -474,7 +482,7 @@ const EpargneScreen: React.FC = () => {
             disabled={epargneDisponible <= 0.0}
           >
             <Text style={styles.dispatchButtonText}>
-              Placer les {epargneDisponible.toFixed(2)}€
+              Placer les {formatCurrency(epargneDisponible)}
             </Text>
             <ArrowRight size={18} color="#FFF" />
           </TouchableOpacity>
@@ -524,7 +532,7 @@ const EpargneScreen: React.FC = () => {
                   marginTop: 4,
                 }}
               >
-                {totalCumuleTirelires.toFixed(2)}€
+                {formatCurrency(totalCumuleTirelires)}
               </Text>
             </View>
             <View
@@ -553,9 +561,9 @@ const EpargneScreen: React.FC = () => {
                         {item.description}
                       </Text>
                       <Text style={styles.tirelireAmount}>
-                        {item.montantActuel.toFixed(2)}€{" "}
+                        {formatCurrency(item.montantActuel)}{" "}
                         <Text style={styles.objectivSmall}>
-                          / {item.objectif}€
+                          / {formatCurrency(item.objectif)}
                         </Text>
                       </Text>
                     </View>
@@ -584,7 +592,7 @@ const EpargneScreen: React.FC = () => {
                   <Text style={styles.remainingText}>
                     {item.montantActuel >= item.objectif
                       ? "Objectif atteint ! 🎉"
-                      : `Il manque ${(item.objectif - item.montantActuel).toFixed(2)}€`}
+                      : `Il manque ${formatCurrency(item.objectif - item.montantActuel)}`}
                   </Text>
                 </View>
               );
@@ -696,7 +704,7 @@ const EpargneScreen: React.FC = () => {
                 color: "#7f8c8d",
               }}
             >
-              Disponible ce mois : {epargneDisponible.toFixed(2)}€
+              Disponible ce mois : {formatCurrency(epargneDisponible)}
             </Text>
 
             <Text style={styles.inputLabel}>Montant à placer (€)</Text>
@@ -719,7 +727,7 @@ const EpargneScreen: React.FC = () => {
                 >
                   <Text style={styles.dispatchItemName}>{t.description}</Text>
                   <Text style={styles.dispatchItemReste}>
-                    Reste {(t.objectif - t.montantActuel).toFixed(0)}€
+                    Reste {formatCurrency(t.objectif - t.montantActuel)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -777,7 +785,7 @@ const EpargneScreen: React.FC = () => {
               }}
             >
               Contenu actuel :{" "}
-              {selectedTirelireForBreak?.montantActuel.toFixed(2)}€
+              {formatCurrency(selectedTirelireForBreak?.montantActuel || 0)}
             </Text>
 
             <Text style={styles.inputLabel}>
