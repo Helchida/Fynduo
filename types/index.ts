@@ -167,6 +167,7 @@ export interface ITirelire extends FirestoreDocument {
   montantActuel: number;
   description: string;
   montantInitial: number;
+  parentId?: string;
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";
@@ -191,6 +192,7 @@ export type RootStackParamList = {
   HistoryDetail: { moisAnnee: string };
   ChargeDetail: { chargeId: string; description: string };
   RevenuDetail: { revenuId: string; description: string };
+  Tirelire: { tirelire : ITirelire };
 };
 
 export type RootStackNavigationProp =

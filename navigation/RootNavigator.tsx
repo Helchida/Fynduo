@@ -25,6 +25,7 @@ import StatsScreen from "screens/StatsScreen/StatsScreen";
 import EpargneScreen from "screens/EpargneScreen/EpargneScreen";
 import ChargeDetailScreen from "screens/ChargeDetail/ChargeDetailScreen";
 import RevenuDetailScreen from "screens/RevenuDetail/RevenuDetailScreen";
+import TirelireScreen from "screens/EpargneScreen/TirelireScreen/TirelireScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -136,6 +137,13 @@ const AppStack = () => (
       name="Epargne"
       component={EpargneScreen}
       options={{ title: "Epargne" }}
+    />
+    <Stack.Screen
+      name="Tirelire"
+      component={TirelireScreen}
+      options={({ route }) => ({
+        title: `Détail de ${route.params.tirelire.description}`,
+      })}
     />
   </Stack.Navigator>
 );

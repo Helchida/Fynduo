@@ -1450,7 +1450,8 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
         epargne_mouvements (montant)
       `,
       )
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .is("parent_id", null);
 
     if (error) throw error;
 
@@ -1607,4 +1608,83 @@ export async function breakTirelire(
     console.error("Erreur breakTirelire:", error);
     throw error;
   }
+}
+
+export async function getSubTirelires(parentId: string): Promise<ITirelire[]> {
+  const { data, error } = await supabase
+    .from("tirelires")
+    .select("*")
+    .eq("parent_id", parentId);
+
+  if (error) throw error;
+
+  return (data || []).map(row => ({
+    id: row.id,
+    description: row.description,
+    objectif: row.objectif || 0,
+    montantInitial: row.montant_initial || 0,
+    montantActuel: row.montant_initial || 0, 
+    parentId: row.parent_id,
+    user_id: row.user_id
+  }));
+}
+
+export async function addSubTirelire(
+  userId: string,
+  parentId: string,
+  description: string,
+  objectif: number
+): Promise<void> {
+  const uniqueId = generateId();
+
+  const { error } = await supabase.from("tirelires").insert({
+    id: uniqueId,
+    user_id: userId,
+    parent_id: parentId,
+    description: description,
+    objectif: objectif,
+    montant_initial: 0,
+  });
+
+  if (error) throw error;
+}
+
+export async function affecterMontantSub(
+  subId: string,
+  montant: number
+): Promise<void> {
+  const { data, error: fetchError } = await supabase
+    .from("tirelires")
+    .select("montant_initial")
+    .eq("id", subId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  const nouveauMontant = (data.montant_initial || 0) + montant;
+
+  const { error } = await supabase
+    .from("tirelires")
+    .update({ montant_initial: nouveauMontant })
+    .eq("id", subId);
+
+  if (error) throw error;
+}
+
+export async function breakSubTirelire(subId: string): Promise<void> {
+  const { error } = await supabase
+    .from("tirelires")
+    .update({ montant_initial: 0 })
+    .eq("id", subId);
+
+  if (error) throw error;
+}
+
+export async function deleteSubTirelire(subId: string): Promise<void> {
+  const { error } = await supabase
+    .from("tirelires")
+    .delete()
+    .eq("id", subId);
+
+  if (error) throw error;
 }

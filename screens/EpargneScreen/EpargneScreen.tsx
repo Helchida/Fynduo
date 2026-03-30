@@ -35,8 +35,9 @@ import {
   updateTirelire,
 } from "../../services/supabase/db";
 import { useEpargneData } from "../../hooks/useEpargneData";
-import { ITirelire } from "@/types";
+import { ITirelire, RootStackNavigationProp } from "@/types";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
+import { useNavigation } from "@react-navigation/native";
 
 const formatCurrency = (amount: number) => {
   return (
@@ -56,6 +57,7 @@ const EpargneScreen: React.FC = () => {
   if (!user) {
     return <NoAuthenticatedUser />;
   }
+  const navigation = useNavigation<RootStackNavigationProp>();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isDispatchModalVisible, setIsDispatchModalVisible] = useState(false);
@@ -458,7 +460,7 @@ const EpargneScreen: React.FC = () => {
           <View style={styles.sectionHeader}>
             <View style={styles.titleWithIcon}>
               <PiggyBank size={22} color="#2c3e50" />
-              <Text style={styles.sectionTitle}>Mes Tirelires</Text>
+              <Text style={styles.sectionTitle}>Mes tirelires</Text>
             </View>
           </View>
 
@@ -484,47 +486,57 @@ const EpargneScreen: React.FC = () => {
               );
 
               return (
-                <View key={item.id} style={styles.tirelireCard}>
-                  <View style={styles.tirelireHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.tirelireName}>
-                        {item.description}
-                      </Text>
-                      <Text style={styles.tirelireAmount}>
-                        {formatCurrency(item.montantActuel)}{" "}
-                        <Text style={styles.objectivSmall}>
-                          / {formatCurrency(item.objectif)}
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() =>
+                    navigation.navigate("Tirelire", { tirelire: item })
+                  }
+                >
+                  <View key={item.id} style={styles.tirelireCard}>
+                    <View style={styles.tirelireHeader}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.tirelireName}>
+                          {item.description}
                         </Text>
-                      </Text>
+                        <Text style={styles.tirelireAmount}>
+                          {formatCurrency(item.montantActuel)}{" "}
+                          <Text style={styles.objectivSmall}>
+                            / {formatCurrency(item.objectif)}
+                          </Text>
+                        </Text>
+                      </View>
+
+                      <View style={{ flexDirection: "row", gap: 15 }}>
+                        <TouchableOpacity onPress={() => openBreakModal(item)}>
+                          <Hammer size={18} color="#e67e22" />{" "}
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => openEditModal(item)}>
+                          <Pencil size={18} color="#3498db" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => openDeleteModal(item.id)}
+                        >
+                          <Trash2 size={18} color="#e74c3c" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
 
-                    <View style={{ flexDirection: "row", gap: 15 }}>
-                      <TouchableOpacity onPress={() => openBreakModal(item)}>
-                        <Hammer size={18} color="#e67e22" />{" "}
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => openEditModal(item)}>
-                        <Pencil size={18} color="#3498db" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => openDeleteModal(item.id)}
-                      >
-                        <Trash2 size={18} color="#e74c3c" />
-                      </TouchableOpacity>
+                    <View style={styles.progressBarContainer}>
+                      <View
+                        style={[
+                          styles.progressBar,
+                          { width: `${progression}%` },
+                        ]}
+                      />
                     </View>
-                  </View>
 
-                  <View style={styles.progressBarContainer}>
-                    <View
-                      style={[styles.progressBar, { width: `${progression}%` }]}
-                    />
+                    <Text style={styles.remainingText}>
+                      {item.montantActuel >= item.objectif
+                        ? "Objectif atteint ! 🎉"
+                        : `Il manque ${formatCurrency(item.objectif - item.montantActuel)}`}
+                    </Text>
                   </View>
-
-                  <Text style={styles.remainingText}>
-                    {item.montantActuel >= item.objectif
-                      ? "Objectif atteint ! 🎉"
-                      : `Il manque ${formatCurrency(item.objectif - item.montantActuel)}`}
-                  </Text>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>

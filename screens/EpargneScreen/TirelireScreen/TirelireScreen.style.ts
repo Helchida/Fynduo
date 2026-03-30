@@ -1,0 +1,280 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
+  },
+  mainCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  amountContainer: { 
+    alignItems: "center", 
+    marginBottom: 15 
+  },
+  label: {
+    fontSize: 14,
+    color: "#7f8c8d",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  mainAmount: { 
+    fontSize: 36,
+    fontWeight: "900",
+    color: "#2c3e50",
+    marginVertical: 5,
+  },
+  goalSmall: { 
+    fontSize: 16, 
+    color: "#bdc3c7",
+    fontWeight: "400",
+  },
+  infoText: {
+    fontSize: 12,
+    color: "#d35400", 
+    textAlign: "center",
+    marginTop: 10,
+    fontWeight: "600",
+    fontStyle: "italic",
+  },
+  divider: { 
+    height: 1, 
+    backgroundColor: "#F1F3F5", 
+    marginVertical: 15 
+  },
+  vracRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  vracText: {
+    fontSize: 14,
+    color: "#7f8c8d",
+    marginLeft: 8,
+    fontWeight: "600",
+  },
+  vracAmount: { 
+    color: "#e67e22", 
+    fontWeight: "800",
+    fontSize: 16, 
+  },
+
+  progressBarBg: {
+    height: 10,
+    backgroundColor: "#f1f3f5",
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  progressBarFill: { 
+    height: "100%", 
+    borderRadius: 5,
+    backgroundColor: "#27ae60",
+  },
+
+  placeMoneyBtn: {
+    backgroundColor: "#3498db",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 15,
+    elevation: 3,
+  },
+  placeMoneyBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800", 
+    marginLeft: 10,
+  },
+
+  sectionContainer: { 
+    paddingHorizontal: 20, 
+    paddingBottom: 40 
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#2c3e50",
+  },
+
+  subCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#edf2f7",
+  },
+  subCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  subTitle: { 
+    fontSize: 16,
+    fontWeight: "700", 
+    color: "#34495e",
+  },
+  subAmountRow: { 
+    flexDirection: "row", 
+    alignItems: "baseline" 
+  },
+  subAmountRangé: { 
+    fontSize: 14,
+    fontWeight: "600", 
+    color: "#7f8c8d", 
+  },
+  subAmountGoal: { 
+    fontSize: 12,
+    color: "#95a5a6", 
+    fontWeight: "400",
+  },
+  subActions: { 
+    flexDirection: "row" 
+  },
+  actionIcon: { 
+    padding: 8, 
+    borderRadius: 10, 
+    marginLeft: 6 
+  },
+  addButtonSecondary: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    marginTop: 25,
+    borderWidth: 2,
+    borderColor: "#3498db",
+    borderStyle: "dashed",
+    borderRadius: 15,
+    gap: 10,
+    marginBottom: 40,
+  },
+  addButtonSecondaryText: {
+    color: "#3498db",
+    fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    padding: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#2c3e50",
+    textAlign: "center",
+  },
+  vracInfoBox: {
+    backgroundColor: "#FEF9E7",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    alignItems: "center",
+  },
+  vracInfoText: { 
+    color: "#e67e22", 
+    fontWeight: "700" 
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#7f8c8d",
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    padding: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 20,
+  },
+  dispatchItem: {
+    padding: 15,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  dispatchItemName: {
+    fontWeight: "700",
+    color: "#2c3e50",
+  },
+  dispatchItemReste: {
+    fontSize: 12,
+    color: "#27ae60",
+    fontWeight: "600",
+  },
+  modalButtons: { 
+    flexDirection: "row", 
+    gap: 15,
+    marginTop: 10 
+  },
+  cancelBtn: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: "#F1F3F5",
+    alignItems: "center",
+  },
+  cancelBtnText: { 
+    color: "#7f8c8d", 
+    fontWeight: "700"
+  },
+  confirmBtn: {
+    flex: 2,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: "#3498db",
+    alignItems: "center",
+  },
+  confirmBtnText: { 
+    color: "#FFFFFF", 
+    fontWeight: "700"
+  },
+  btnCancel: {
+    backgroundColor: "#f1f3f5",
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  btnCancelText: {
+    color: "#7f8c8d",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  titleWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 15,
+  },
+});
