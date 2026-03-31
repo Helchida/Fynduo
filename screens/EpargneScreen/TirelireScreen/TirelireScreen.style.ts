@@ -99,7 +99,6 @@ export const styles = StyleSheet.create({
 
   sectionContainer: { 
     paddingHorizontal: 20, 
-    paddingBottom: 40 
   },
   sectionTitle: {
     fontSize: 18,
@@ -114,6 +113,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#edf2f7",
+    userSelect: "none",
   },
   subCardHeader: {
     flexDirection: "row",
@@ -276,5 +276,39 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     marginBottom: 15,
+  },
+  priorityBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  priorityBadgeNormal: {
+    backgroundColor: "#ecf0f1",
+  },
+  priorityBadgeHigh: {
+    backgroundColor: "#fdf2e9", 
+    borderWidth: 1,
+    borderColor: "#e67e22",
+  },
+  priorityText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#7f8c8d",
+  },
+  fuseBadge: {
+    backgroundColor: "#FEE2E2",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  fuseText: {
+    fontSize: 10,
+    color: "#e74c3c",
+    fontWeight: "800",
+    textTransform: "uppercase",
   },
 });

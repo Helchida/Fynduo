@@ -1571,16 +1571,48 @@ export async function breakTirelire(
   montant: number,
 ): Promise<void> {
   try {
+
+    const { data: subTirelires } = await supabase
+    .from("tirelires")
+    .select("*")
+    .eq("parent_id", tirelire.id)
+    .order("position", { ascending: false });
+
+  const totalRangé = (subTirelires || []).reduce((acc, sub) => acc + (sub.montant_initial || 0), 0);
+  const vracActuel = tirelire.montantActuel - totalRangé;
+
+  let resteAPrelever = montant;
+
+  if (vracActuel > 0) {
+    const prelevementVrac = Math.min(vracActuel, resteAPrelever);
+    resteAPrelever -= prelevementVrac;
+  }
+
+  if (resteAPrelever > 0 && subTirelires) {
+    for (const sub of subTirelires) {
+      if (resteAPrelever <= 0) break;
+
+      const montantDisponible = sub.montant_initial || 0;
+      const aPrelever = Math.min(montantDisponible, resteAPrelever);
+
+      if (aPrelever > 0) {
+        await supabase
+          .from("tirelires")
+          .update({ montant_initial: montantDisponible - aPrelever })
+          .eq("id", sub.id);
+        
+        resteAPrelever -= aPrelever;
+      }
+    }
+  }
+
     const moisActuel = dayjs().format("YYYY-MM");
     const dateDuJour = dayjs().format("YYYY-MM-DD");
-
-    const moveDocId = generateId();
-    const moveUniqueId = makeUniqueId(userId, moveDocId);
 
     const { error: moveError } = await supabase
       .from("epargne_mouvements")
       .insert({
-        id: moveUniqueId,
+        id: generateId(),
         tirelire_id: tirelire.id,
         user_id: userId,
         montant: -montant,
@@ -1614,7 +1646,8 @@ export async function getSubTirelires(parentId: string): Promise<ITirelire[]> {
   const { data, error } = await supabase
     .from("tirelires")
     .select("*")
-    .eq("parent_id", parentId);
+    .eq("parent_id", parentId)
+    .order("position", { ascending: true });
 
   if (error) throw error;
 
@@ -1625,7 +1658,8 @@ export async function getSubTirelires(parentId: string): Promise<ITirelire[]> {
     montantInitial: row.montant_initial || 0,
     montantActuel: row.montant_initial || 0, 
     parentId: row.parent_id,
-    user_id: row.user_id
+    user_id: row.user_id,
+    position: row.position,
   }));
 }
 
@@ -1687,4 +1721,19 @@ export async function deleteSubTirelire(subId: string): Promise<void> {
     .eq("id", subId);
 
   if (error) throw error;
+}
+
+export async function updateSubTireliresOrder(
+  positions: { id: string; position: number }[]
+): Promise<void> {
+  const promises = positions.map((item) =>
+    supabase
+      .from("tirelires")
+      .update({ position: item.position })
+      .eq("id", item.id)
+  );
+
+  const results = await Promise.all(promises);
+  const firstError = results.find(r => r.error);
+  if (firstError) throw firstError.error;
 }

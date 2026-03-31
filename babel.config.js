@@ -10,7 +10,9 @@ module.exports = function (api) {
             '@/types': './types'
           }
         }
-      ]
-    ]
+      ],
+      // CE PLUGIN EST OBLIGATOIRE POUR LE DRAG N DROP
+      'react-native-reanimated/plugin', 
+    ],
   };
 };
