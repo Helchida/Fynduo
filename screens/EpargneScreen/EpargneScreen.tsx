@@ -361,8 +361,17 @@ const EpargneScreen: React.FC = () => {
     <ScrollView style={styles.container}>
       <View style={styles.monthSelector}>
         <TouchableOpacity
-          style={styles.monthArrow}
-          onPress={() => setSelectedDate(selectedDate.subtract(1, "month"))}
+          style={[
+            styles.monthArrow,
+            selectedDate.format("YYYY-MM") === "2026-01" && { opacity: 0.3 },
+          ]}
+          onPress={() => {
+            const prevMonth = selectedDate.subtract(1, "month");
+            if (prevMonth.isAfter(dayjs("2025-12-31"), "day")) {
+              setSelectedDate(prevMonth);
+            }
+          }}
+          disabled={selectedDate.format("YYYY-MM") === "2026-01"}
         >
           <ChevronLeft size={24} color="#2c3e50" />
         </TouchableOpacity>
