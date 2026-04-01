@@ -183,7 +183,7 @@ const TirelireScreen: React.FC = () => {
   const subProg = subObj > 0 ? (subRangé / subObj) * 100 : 0;
 
   return (
-    <ScaleDecorator>
+    <ScaleDecorator activeScale={1.05}>
       <View
         style={[
           styles.subCard,
@@ -200,9 +200,10 @@ const TirelireScreen: React.FC = () => {
           <TouchableOpacity
             onLongPress={drag}
             delayLongPress={100}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             style={{
               paddingVertical: 10,
-              paddingRight: 10,
+              paddingRight: 15,
               justifyContent: "center",
             }}
           >
@@ -268,11 +269,13 @@ const TirelireScreen: React.FC = () => {
         onDragEnd={handleDragEnd}
         keyExtractor={(item) => item.id}
         renderItem={renderSubTirelire}
-        activationDistance={5}
+        activationDistance={10}
         autoscrollThreshold={50}
         dragItemOverflow={true}
         containerStyle={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1 }}
+        bounces={false}
+        simultaneousHandlers={[]}
         ListHeaderComponent={
           <>
             <View style={[styles.mainCard, { marginTop: 20 }]}>
