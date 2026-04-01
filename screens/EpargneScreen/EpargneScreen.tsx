@@ -142,7 +142,7 @@ const EpargneScreen: React.FC = () => {
     if (loading) return 0;
 
     const dispo = statsMois.solde - dejaPlaceCeMois;
-    return dispo > 0 ? dispo : 0;
+    return dispo;
   }, [statsMois.solde, dejaPlaceCeMois, loading]);
 
   const totalCumuleTirelires = useMemo(() => {
