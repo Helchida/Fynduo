@@ -440,7 +440,7 @@ const EpargneScreen: React.FC = () => {
         </View>
       </View>
 
-      {!isPositive || !isMonthFinished ? (
+      {(!isPositive || !isMonthFinished) && (
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
             {!isMonthFinished
@@ -448,9 +448,9 @@ const EpargneScreen: React.FC = () => {
               : "Solde insuffisant pour épargner ce mois-ci."}
           </Text>
         </View>
-      ) : (
+      )} 
         <>
-          <TouchableOpacity
+          {isPositive && <TouchableOpacity
             style={[
               styles.dispatchButton,
               epargneDisponible <= 0.0 && { opacity: 0.5 },
@@ -464,7 +464,7 @@ const EpargneScreen: React.FC = () => {
               Placer les {formatCurrency(epargneDisponible)}
             </Text>
             <ArrowRight size={18} color="#FFF" />
-          </TouchableOpacity>
+          </TouchableOpacity>}
 
           <View style={styles.sectionHeader}>
             <View style={styles.titleWithIcon}>
@@ -560,7 +560,7 @@ const EpargneScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </>
-      )}
+      
 
       <Modal
         visible={isAddModalVisible}
