@@ -278,6 +278,9 @@ const TirelireScreen: React.FC = () => {
             <View style={[styles.mainCard, { marginTop: 20 }]}>
               <View style={styles.amountContainer}>
                 <Text style={styles.label}>Tirelire {tirelire.description}</Text>
+                <Text style={styles.infoText}>
+                  Total tirelire : 
+                </Text>
                 <Text style={styles.mainAmount}>
                   {formatCurrency(montantTotalReel)}
                   <Text style={styles.goalSmall}>
@@ -289,11 +292,11 @@ const TirelireScreen: React.FC = () => {
               <Text style={styles.infoText}>
                 {progressionGlobale >= 100
                   ? "Objectif atteint !"
-                  : `Reste ${formatCurrency(objectifGlobal - montantTotalReel)}`}
+                  : `${formatCurrency(objectifGlobal - montantTotalReel)} restant pour atteindre l'objectif`}
               </Text>
               <View style={styles.divider} />
               <View style={styles.vracRow}>
-                <Coins size={18} color="#e67e22" />
+                <Coins size={24} color="#3498db" />
                 <Text style={styles.vracText}>
                   Non réparti :{" "}
                   <Text style={styles.vracAmount}>

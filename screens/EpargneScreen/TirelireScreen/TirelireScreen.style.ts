@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   mainAmount: { 
-    fontSize: 36,
+    fontSize: 16,
     fontWeight: "900",
     color: "#2c3e50",
     marginVertical: 5,
@@ -40,8 +40,8 @@ export const styles = StyleSheet.create({
     fontWeight: "400",
   },
   infoText: {
-    fontSize: 12,
-    color: "#d35400", 
+    fontSize: 14,
+    color: "#27ae60", 
     textAlign: "center",
     marginTop: 10,
     fontWeight: "600",
@@ -58,15 +58,15 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   vracText: {
-    fontSize: 14,
+    fontSize: 20,
     color: "#7f8c8d",
     marginLeft: 8,
     fontWeight: "600",
   },
   vracAmount: { 
-    color: "#e67e22", 
+    color: "#3498db", 
     fontWeight: "800",
-    fontSize: 16, 
+    fontSize: 20, 
   },
 
   progressBarBg: {
