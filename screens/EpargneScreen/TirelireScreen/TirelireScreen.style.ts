@@ -17,9 +17,9 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
-  amountContainer: { 
-    alignItems: "center", 
-    marginBottom: 15 
+  amountContainer: {
+    alignItems: "center",
+    marginBottom: 15,
   },
   label: {
     fontSize: 14,
@@ -28,29 +28,29 @@ export const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  mainAmount: { 
+  mainAmount: {
     fontSize: 16,
     fontWeight: "900",
     color: "#2c3e50",
     marginVertical: 5,
   },
-  goalSmall: { 
-    fontSize: 16, 
+  goalSmall: {
+    fontSize: 16,
     color: "#bdc3c7",
     fontWeight: "400",
   },
   infoText: {
     fontSize: 14,
-    color: "#27ae60", 
+    color: "#27ae60",
     textAlign: "center",
     marginTop: 10,
     fontWeight: "600",
     fontStyle: "italic",
   },
-  divider: { 
-    height: 1, 
-    backgroundColor: "#F1F3F5", 
-    marginVertical: 15 
+  divider: {
+    height: 1,
+    backgroundColor: "#F1F3F5",
+    marginVertical: 15,
   },
   vracRow: {
     flexDirection: "row",
@@ -63,10 +63,10 @@ export const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "600",
   },
-  vracAmount: { 
-    color: "#3498db", 
+  vracAmount: {
+    color: "#3498db",
     fontWeight: "800",
-    fontSize: 20, 
+    fontSize: 20,
   },
 
   progressBarBg: {
@@ -75,8 +75,8 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: "hidden",
   },
-  progressBarFill: { 
-    height: "100%", 
+  progressBarFill: {
+    height: "100%",
     borderRadius: 5,
     backgroundColor: "#27ae60",
   },
@@ -93,12 +93,12 @@ export const styles = StyleSheet.create({
   placeMoneyBtnText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "800", 
+    fontWeight: "800",
     marginLeft: 10,
   },
 
-  sectionContainer: { 
-    paddingHorizontal: 20, 
+  sectionContainer: {
+    paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -121,32 +121,32 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  subTitle: { 
+  subTitle: {
     fontSize: 16,
-    fontWeight: "700", 
+    fontWeight: "700",
     color: "#34495e",
   },
-  subAmountRow: { 
-    flexDirection: "row", 
-    alignItems: "baseline" 
+  subAmountRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
   },
-  subAmountRangé: { 
+  subAmountRange: {
     fontSize: 14,
-    fontWeight: "600", 
-    color: "#7f8c8d", 
+    fontWeight: "600",
+    color: "#7f8c8d",
   },
-  subAmountGoal: { 
+  subAmountGoal: {
     fontSize: 12,
-    color: "#95a5a6", 
+    color: "#95a5a6",
     fontWeight: "400",
   },
-  subActions: { 
-    flexDirection: "row" 
+  subActions: {
+    flexDirection: "row",
   },
-  actionIcon: { 
-    padding: 8, 
-    borderRadius: 10, 
-    marginLeft: 6 
+  actionIcon: {
+    padding: 8,
+    borderRadius: 10,
+    marginLeft: 6,
   },
   addButtonSecondary: {
     flexDirection: "row",
@@ -194,9 +194,9 @@ export const styles = StyleSheet.create({
     marginBottom: 15,
     alignItems: "center",
   },
-  vracInfoText: { 
-    color: "#e67e22", 
-    fontWeight: "700" 
+  vracInfoText: {
+    color: "#e67e22",
+    fontWeight: "700",
   },
   inputLabel: {
     fontSize: 14,
@@ -233,10 +233,10 @@ export const styles = StyleSheet.create({
     color: "#27ae60",
     fontWeight: "600",
   },
-  modalButtons: { 
-    flexDirection: "row", 
+  modalButtons: {
+    flexDirection: "row",
     gap: 15,
-    marginTop: 10 
+    marginTop: 10,
   },
   cancelBtn: {
     flex: 1,
@@ -245,9 +245,9 @@ export const styles = StyleSheet.create({
     backgroundColor: "#F1F3F5",
     alignItems: "center",
   },
-  cancelBtnText: { 
-    color: "#7f8c8d", 
-    fontWeight: "700"
+  cancelBtnText: {
+    color: "#7f8c8d",
+    fontWeight: "700",
   },
   confirmBtn: {
     flex: 2,
@@ -256,9 +256,9 @@ export const styles = StyleSheet.create({
     backgroundColor: "#3498db",
     alignItems: "center",
   },
-  confirmBtnText: { 
-    color: "#FFFFFF", 
-    fontWeight: "700"
+  confirmBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
   btnCancel: {
     backgroundColor: "#f1f3f5",
@@ -289,7 +289,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#ecf0f1",
   },
   priorityBadgeHigh: {
-    backgroundColor: "#fdf2e9", 
+    backgroundColor: "#fdf2e9",
     borderWidth: 1,
     borderColor: "#e67e22",
   },

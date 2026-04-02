@@ -40,6 +40,7 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginBottom: 25,
+    marginHorizontal: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -88,6 +89,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
     marginTop: 10,
+    marginHorizontal: 20,
   },
   titleWithIcon: {
     flexDirection: "row",
@@ -109,6 +111,7 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     borderColor: "#edf2f7",
+    marginBottom: 12,
   },
   tirelireHeader: {
     flexDirection: "row",
@@ -156,6 +159,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     gap: 10,
+    marginHorizontal: 20,
   },
   dispatchButtonText: {
     color: "#FFF",
@@ -186,6 +190,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FEB2B2",
     alignItems: "center",
+    marginHorizontal: 20,
   },
   warningText: {
     color: "#C53030",
@@ -366,5 +371,79 @@ export const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
     fontStyle: "italic",
+  },
+  subCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#edf2f7",
+    userSelect: "none",
+  },
+  subCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  priorityBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  priorityBadgeNormal: {
+    backgroundColor: "#ecf0f1",
+  },
+  priorityBadgeHigh: {
+    backgroundColor: "#fdf2e9",
+    borderWidth: 1,
+    borderColor: "#e67e22",
+  },
+  priorityText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#7f8c8d",
+  },
+  subTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#34495e",
+  },
+  subAmountRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  subAmountRange: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#7f8c8d",
+  },
+  subAmountGoal: {
+    fontSize: 12,
+    color: "#95a5a6",
+    fontWeight: "400",
+  },
+  subActions: {
+    flexDirection: "row",
+  },
+  actionIcon: {
+    padding: 8,
+    borderRadius: 10,
+    marginLeft: 6,
+  },
+  progressBarBg: {
+    height: 10,
+    backgroundColor: "#f1f3f5",
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 5,
+    backgroundColor: "#27ae60",
   },
 });

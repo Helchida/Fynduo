@@ -163,7 +163,7 @@ const TirelireScreen: React.FC = () => {
 
     try {
       await updateSubTireliresOrder(newPositions);
-      refresh(); 
+      refresh();
     } catch (error) {
       console.error(error);
       showToast("error", "Erreur lors du changement d'ordre");
@@ -172,95 +172,100 @@ const TirelireScreen: React.FC = () => {
   };
 
   const renderSubTirelire = ({
-  item: sub,
-  drag,
-  isActive,
-  getIndex,
-}: RenderItemParams<ITirelire>) => {
-  const index = getIndex() ?? 0;
-  const subObj = sub.objectif || 0;
-  const subRangé = sub.montantInitial || 0;
-  const subProg = subObj > 0 ? (subRangé / subObj) * 100 : 0;
+    item: sub,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<ITirelire>) => {
+    const index = getIndex() ?? 0;
+    const subObj = sub.objectif || 0;
+    const subRangé = sub.montantInitial || 0;
+    const subProg = subObj > 0 ? (subRangé / subObj) * 100 : 0;
 
-  return (
-    <ScaleDecorator activeScale={1.05}>
-      <View
-        style={[
-          styles.subCard,
-          { marginHorizontal: 20 },
-          isActive && {
-            backgroundColor: "#f8f9fa",
-            elevation: 8,
-            shadowOpacity: 0.3,
-            transform: [{ scale: 1.02 }],
-          },
-        ]}
-      >
-        <View style={styles.subCardHeader}>
-          <TouchableOpacity
-            onLongPress={drag}
-            delayLongPress={100}
-            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            style={{
-              paddingVertical: 10,
-              paddingRight: 15,
-              justifyContent: "center",
-            }}
-          >
-            <GripVertical size={20} color="#bdc3c7" />
-          </TouchableOpacity>
+    return (
+      <ScaleDecorator activeScale={1.05}>
+        <View
+          style={[
+            styles.subCard,
+            { marginHorizontal: 20 },
+            isActive && {
+              backgroundColor: "#f8f9fa",
+              elevation: 8,
+              shadowOpacity: 0.3,
+              transform: [{ scale: 1.02 }],
+            },
+          ]}
+        >
+          <View style={styles.subCardHeader}>
+            <TouchableOpacity
+              onLongPress={drag}
+              delayLongPress={100}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              style={{
+                paddingVertical: 10,
+                paddingRight: 15,
+                justifyContent: "center",
+              }}
+            >
+              <GripVertical size={20} color="#bdc3c7" />
+            </TouchableOpacity>
 
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-              <View style={[
-                styles.priorityBadge,
-                styles.priorityBadgeNormal,
-              ]}>
-                <Text style={styles.priorityText}>{index + 1}</Text>
+            <View style={{ flex: 1 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 4,
+                }}
+              >
+                <View
+                  style={[styles.priorityBadge, styles.priorityBadgeNormal]}
+                >
+                  <Text style={styles.priorityText}>{index + 1}</Text>
+                </View>
+                <Text style={styles.subTitle}>{sub.description}</Text>
               </View>
-              <Text style={styles.subTitle}>{sub.description}</Text>
+
+              <View style={styles.subAmountRow}>
+                <Text style={styles.subAmountRange}>
+                  {formatCurrency(subRangé)}
+                </Text>
+                {subObj > 0 && (
+                  <Text style={styles.subAmountGoal}>
+                    {" "}
+                    / {formatCurrency(subObj)}
+                  </Text>
+                )}
+              </View>
             </View>
 
-            <View style={styles.subAmountRow}>
-              <Text style={styles.subAmountRangé}>{formatCurrency(subRangé)}</Text>
-              {subObj > 0 && (
-                <Text style={styles.subAmountGoal}> / {formatCurrency(subObj)}</Text>
-              )}
+            <View style={styles.subActions}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSubToAction(sub);
+                  setIsBreakModalVisible(true);
+                }}
+                style={styles.actionIcon}
+              >
+                <Hammer size={18} color="#e67e22" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setSubToAction(sub);
+                  setIsDeleteModalVisible(true);
+                }}
+                style={styles.actionIcon}
+              >
+                <Trash2 size={18} color="#e74c3c" />
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.subActions}>
-            <TouchableOpacity
-              onPress={() => {
-                setSubToAction(sub);
-                setIsBreakModalVisible(true);
-              }}
-              style={styles.actionIcon}
-            >
-              <Hammer size={18} color="#e67e22" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setSubToAction(sub);
-                setIsDeleteModalVisible(true);
-              }}
-              style={styles.actionIcon}
-            >
-              <Trash2 size={18} color="#e74c3c" />
-            </TouchableOpacity>
-          </View>
+          {subObj > 0 && <ProgressBar progress={subProg} color={"#3498db"} />}
         </View>
-
-        {subObj > 0 && (
-          <ProgressBar
-            progress={subProg}
-            color={"#3498db"}
-          />
-        )}
-      </View>
-    </ScaleDecorator>
-  );
-};
+      </ScaleDecorator>
+    );
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#F8F9FA" }}>
@@ -280,14 +285,15 @@ const TirelireScreen: React.FC = () => {
           <>
             <View style={[styles.mainCard, { marginTop: 20 }]}>
               <View style={styles.amountContainer}>
-                <Text style={styles.label}>Tirelire {tirelire.description}</Text>
-                <Text style={styles.infoText}>
-                  Total tirelire : 
+                <Text style={styles.label}>
+                  Tirelire {tirelire.description}
                 </Text>
+                <Text style={styles.infoText}>Total tirelire :</Text>
                 <Text style={styles.mainAmount}>
                   {formatCurrency(montantTotalReel)}
                   <Text style={styles.goalSmall}>
-                    {" "} / {formatCurrency(objectifGlobal)}
+                    {" "}
+                    / {formatCurrency(objectifGlobal)}
                   </Text>
                 </Text>
               </View>
@@ -355,7 +361,13 @@ const TirelireScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Répartir l'argent</Text>
-            <Text style={{ textAlign: "center", marginBottom: 20, color: "#7f8c8d" }}>
+            <Text
+              style={{
+                textAlign: "center",
+                marginBottom: 20,
+                color: "#7f8c8d",
+              }}
+            >
               Non réparti : {formatCurrency(montantEnVrac)}
             </Text>
 
@@ -379,7 +391,10 @@ const TirelireScreen: React.FC = () => {
                 >
                   <Text style={styles.dispatchItemName}>{sub.description}</Text>
                   <Text style={styles.dispatchItemReste}>
-                    Reste {formatCurrency((sub.objectif || 0) - (sub.montantInitial || 0))}
+                    Reste{" "}
+                    {formatCurrency(
+                      (sub.objectif || 0) - (sub.montantInitial || 0),
+                    )}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -401,7 +416,15 @@ const TirelireScreen: React.FC = () => {
       <Modal visible={isAddModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 20,
+              }}
+            >
               <Target size={22} color="#2c3e50" />
               <Text style={styles.modalTitle}>Nouvelle cagnotte</Text>
             </View>

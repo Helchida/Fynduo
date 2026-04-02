@@ -7,6 +7,7 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { styles } from "./EpargneScreen.style";
@@ -22,6 +23,7 @@ import {
   Hammer,
   Coins,
   Briefcase,
+  GripVertical,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -32,12 +34,18 @@ import {
   breakTirelire,
   deleteTirelire,
   placeEpargne,
+  updateSubTireliresOrder,
   updateTirelire,
 } from "../../services/supabase/db";
 import { useEpargneData } from "../../hooks/useEpargneData";
 import { ITirelire, RootStackNavigationProp } from "@/types";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useNavigation } from "@react-navigation/native";
+import DraggableFlatList, {
+  ScaleDecorator,
+  RenderItemParams,
+} from "react-native-draggable-flatlist";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const formatCurrency = (amount: number) => {
   return (
@@ -122,8 +130,14 @@ const EpargneScreen: React.FC = () => {
 
     const monthRevenus = revenus.filter((r) => {
       const isSameMonth = dayjs(r.dateReception).format("YYYY-MM") === moisKey;
-      const isNotRetraitEpargne = r.categorie !== "cat_retrait_epargne";
-      return isSameMonth && isNotRetraitEpargne;
+      const isNotEpargneRetrait = r.categorie !== "cat_retrait_epargne";
+      return isSameMonth && isNotEpargneRetrait;
+    });
+
+    const monthRetraitEpargne = revenus.filter((r) => {
+      const isSameMonth = dayjs(r.dateReception).format("YYYY-MM") === moisKey;
+      const isEpargneRetrait = r.categorie === "cat_retrait_epargne";
+      return isSameMonth && isEpargneRetrait;
     });
 
     let totalRevenus = 0;
@@ -131,10 +145,16 @@ const EpargneScreen: React.FC = () => {
       totalRevenus += Number(r.montant) || 0;
     });
 
+    let totalRetraits = 0;
+    monthRetraitEpargne.forEach((r) => {
+      totalRetraits += Number(r.montant) || 0;
+    });
+
     return {
       revenus: totalRevenus,
       depenses: totalDepenses,
       solde: totalRevenus - totalDepenses,
+      retraits: totalRetraits,
     };
   }, [selectedDate, charges, revenus, user]);
 
@@ -149,7 +169,7 @@ const EpargneScreen: React.FC = () => {
     return tirelires.reduce((sum, t) => sum + (t.montantActuel || 0), 0);
   }, [tirelires]);
 
-  const isPositive = statsMois.solde > 0;
+  const isPositive = epargneDisponible > 0;
   const statusColor = isPositive ? "#27ae60" : "#e74c3c";
 
   const isMonthFinished = selectedDate.isBefore(
@@ -357,210 +377,296 @@ const EpargneScreen: React.FC = () => {
     );
   }
 
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.monthSelector}>
-        <TouchableOpacity
+  const handleDragEnd = async ({ data }: { data: ITirelire[] }) => {
+    const newPositions = data.map((item, index) => ({
+      id: item.id,
+      position: index + 1,
+    }));
+
+    try {
+      await updateSubTireliresOrder(newPositions);
+      refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("error", "Erreur lors du changement d'ordre");
+      refresh();
+    }
+  };
+
+  const renderTirelire = ({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<ITirelire>) => {
+    const progression = Math.min(
+      (item.montantActuel / item.objectif) * 100,
+      100,
+    );
+
+    return (
+      <ScaleDecorator>
+        <Pressable
+          onPress={() => navigation.navigate("Tirelire", { tirelire: item })}
           style={[
-            styles.monthArrow,
-            selectedDate.format("YYYY-MM") === "2026-01" && { opacity: 0.3 },
+            styles.tirelireCard,
+            { marginHorizontal: 20 },
+            isActive && { backgroundColor: "#f1f3f5", elevation: 4 },
           ]}
-          onPress={() => {
-            const prevMonth = selectedDate.subtract(1, "month");
-            if (prevMonth.isAfter(dayjs("2025-12-31"), "day")) {
-              setSelectedDate(prevMonth);
-            }
-          }}
-          disabled={selectedDate.format("YYYY-MM") === "2026-01"}
         >
-          <ChevronLeft size={24} color="#2c3e50" />
-        </TouchableOpacity>
+          <View style={styles.tirelireHeader}>
+            <TouchableOpacity
+              onLongPress={drag}
+              delayLongPress={100}
+              style={{ paddingRight: 10, paddingVertical: 5 }}
+            >
+              <GripVertical size={20} color="#bdc3c7" />
+            </TouchableOpacity>
 
-        <View style={{ alignItems: "center" }}>
-          <Text style={styles.monthLabel}>
-            {selectedDate.format("MMMM YYYY")}
-          </Text>
-          {isCurrentMonth && (
-            <View style={styles.currentMonthBadge}>
-              <View style={styles.dot} />
-              <Text style={styles.currentMonthText}>Mois en cours</Text>
-            </View>
-          )}
-        </View>
-
-        <TouchableOpacity
-          style={[styles.monthArrow, isLatestPossibleMonth && { opacity: 0.3 }]}
-          onPress={() => {
-            if (!isLatestPossibleMonth)
-              setSelectedDate(selectedDate.add(1, "month"));
-          }}
-          disabled={isLatestPossibleMonth}
-        >
-          <ChevronRight size={24} color="#2c3e50" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.mainSavingsCard}>
-        <View style={styles.rowBetween}>
-          <Text style={styles.cardLabel}>Capacité d'épargne</Text>
-          {isPositive ? (
-            <Coins size={20} color={statusColor} />
-          ) : (
-            <AlertCircle size={20} color={statusColor} />
-          )}
-        </View>
-
-        <Text style={[styles.bigAmount, { color: statusColor }]}>
-          {loading ? "..." : `${formatCurrency(epargneDisponible)}`}
-        </Text>
-
-        {isCurrentMonth && (
-          <View style={styles.infoBox}>
-            <AlertCircle size={16} color="#f39c12" />
-            <Text style={styles.infoText}>
-              Le mois n'est pas fini. Ce montant peut varier selon vos dépenses
-              à venir.
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.miniStatsRow}>
-          <View>
-            <Text style={styles.miniStatLabel}>Total Revenus</Text>
-            <Text style={styles.miniStatValue}>
-              {formatCurrency(statsMois.revenus)}
-            </Text>
-          </View>
-          <View style={{ marginLeft: 20 }}>
-            <Text style={styles.miniStatLabel}>Total Dépenses</Text>
-            <Text style={styles.miniStatValue}>
-              {formatCurrency(statsMois.depenses)}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {(!isPositive || !isMonthFinished) && (
-        <View style={styles.warningBox}>
-          <Text style={styles.warningText}>
-            {!isMonthFinished
-              ? "Attendez la fin du mois pour placer votre épargne."
-              : "Solde insuffisant pour épargner ce mois-ci."}
-          </Text>
-        </View>
-      )} 
-        <>
-          {isPositive && <TouchableOpacity
-            style={[
-              styles.dispatchButton,
-              epargneDisponible <= 0.0 && { opacity: 0.5 },
-            ]}
-            onPress={() =>
-              epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
-            }
-            disabled={epargneDisponible <= 0.0}
-          >
-            <Text style={styles.dispatchButtonText}>
-              Placer les {formatCurrency(epargneDisponible)}
-            </Text>
-            <ArrowRight size={18} color="#FFF" />
-          </TouchableOpacity>}
-
-          <View style={styles.sectionHeader}>
-            <View style={styles.titleWithIcon}>
-              <PiggyBank size={22} color="#2c3e50" />
-              <Text style={styles.sectionTitle}>Mes tirelires</Text>
-            </View>
-          </View>
-
-          <View style={styles.totalAccumulatedContainer}>
-            <View>
-              <Text style={styles.totalAccumulatedLabel}>
-                Épargne Totale Accumulée
-              </Text>
-              <Text style={styles.totalAccumulatedAmount}>
-                {formatCurrency(totalCumuleTirelires)}
-              </Text>
-            </View>
-            <View style={styles.totalAccumulatedIcon}>
-              <Briefcase size={24} color="#3498db" />
-            </View>
-          </View>
-
-          <View style={styles.tireliresList}>
-            {tirelires.map((item) => {
-              const progression = Math.min(
-                (item.montantActuel / item.objectif) * 100,
-                100,
-              );
-
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  onPress={() =>
-                    navigation.navigate("Tirelire", { tirelire: item })
-                  }
+            <View style={{ flex: 1 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 4,
+                }}
+              >
+                <View
+                  style={[styles.priorityBadge, styles.priorityBadgeNormal]}
                 >
-                  <View key={item.id} style={styles.tirelireCard}>
-                    <View style={styles.tirelireHeader}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.tirelireName}>
-                          {item.description}
-                        </Text>
-                        <Text style={styles.tirelireAmount}>
-                          {formatCurrency(item.montantActuel)}{" "}
-                          <Text style={styles.objectivSmall}>
-                            / {formatCurrency(item.objectif)}
-                          </Text>
-                        </Text>
-                      </View>
+                  <Text style={styles.priorityText}>
+                    {(getIndex() ?? 0) + 1}
+                  </Text>
+                </View>
+                <Text style={styles.subTitle}>{item.description}</Text>
+              </View>
+              <Text style={styles.tirelireAmount}>
+                {formatCurrency(item.montantActuel)}{" "}
+                <Text style={styles.objectivSmall}>
+                  / {formatCurrency(item.objectif)}
+                </Text>
+              </Text>
+            </View>
 
-                      <View style={{ flexDirection: "row", gap: 15 }}>
-                        <TouchableOpacity onPress={() => openBreakModal(item)}>
-                          <Hammer size={18} color="#e67e22" />{" "}
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => openEditModal(item)}>
-                          <Pencil size={18} color="#3498db" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => openDeleteModal(item.id)}
-                        >
-                          <Trash2 size={18} color="#e74c3c" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <View style={styles.progressBarContainer}>
-                      <View
-                        style={[
-                          styles.progressBar,
-                          { width: `${progression}%` },
-                        ]}
-                      />
-                    </View>
-
-                    <Text style={styles.remainingText}>
-                      {item.montantActuel >= item.objectif
-                        ? "Objectif atteint ! 🎉"
-                        : `Il manque ${formatCurrency(item.objectif - item.montantActuel)}`}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            <View style={{ flexDirection: "row", gap: 15 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  openBreakModal(item);
+                }}
+              >
+                <Hammer size={18} color="#e67e22" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setEditingTirelire(item);
+                  setNewTirelire({
+                    nom: item.description,
+                    objectif: item.objectif.toString(),
+                    montantInitial: item.montantInitial.toString(),
+                  });
+                  setIsAddModalVisible(true);
+                }}
+              >
+                <Pencil size={18} color="#3498db" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setTirelireToDelete(item.id);
+                  setIsDeleteModalVisible(true);
+                }}
+              >
+                <Trash2 size={18} color="#e74c3c" />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.addButtonSecondary}
-            onPress={() => setIsAddModalVisible(true)}
-          >
-            <PlusCircle size={20} color="#3498db" />
-            <Text style={styles.addButtonSecondaryText}>
-              Créer un nouvel objectif
-            </Text>
-          </TouchableOpacity>
-        </>
-      
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${progression}%` }]} />
+          </View>
+
+          <Text style={styles.remainingText}>
+            {item.montantActuel >= item.objectif
+              ? "Objectif atteint ! 🎉"
+              : `Il manque ${formatCurrency(item.objectif - item.montantActuel)}`}
+          </Text>
+        </Pressable>
+      </ScaleDecorator>
+    );
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#F8F9FA" }}>
+      <DraggableFlatList
+        data={tirelires}
+        onDragEnd={handleDragEnd}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTirelire}
+        activationDistance={10}
+        autoscrollThreshold={50}
+        dragItemOverflow={true}
+        containerStyle={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        bounces={false}
+        simultaneousHandlers={[]}
+        ListHeaderComponent={
+          <>
+            <View style={styles.monthSelector}>
+              <TouchableOpacity
+                style={[
+                  styles.monthArrow,
+                  selectedDate.format("YYYY-MM") === "2026-01" && {
+                    opacity: 0.3,
+                  },
+                ]}
+                onPress={() => {
+                  const prevMonth = selectedDate.subtract(1, "month");
+                  if (prevMonth.isAfter(dayjs("2025-12-31"), "day")) {
+                    setSelectedDate(prevMonth);
+                  }
+                }}
+                disabled={selectedDate.format("YYYY-MM") === "2026-01"}
+              >
+                <ChevronLeft size={24} color="#2c3e50" />
+              </TouchableOpacity>
+
+              <View style={{ alignItems: "center" }}>
+                <Text style={styles.monthLabel}>
+                  {selectedDate.format("MMMM YYYY")}
+                </Text>
+                {isCurrentMonth && (
+                  <View style={styles.currentMonthBadge}>
+                    <View style={styles.dot} />
+                    <Text style={styles.currentMonthText}>Mois en cours</Text>
+                  </View>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.monthArrow,
+                  isLatestPossibleMonth && { opacity: 0.3 },
+                ]}
+                onPress={() => {
+                  if (!isLatestPossibleMonth)
+                    setSelectedDate(selectedDate.add(1, "month"));
+                }}
+                disabled={isLatestPossibleMonth}
+              >
+                <ChevronRight size={24} color="#2c3e50" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.mainSavingsCard}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.cardLabel}>Capacité d'épargne</Text>
+                {isPositive ? (
+                  <Coins size={20} color={statusColor} />
+                ) : (
+                  <AlertCircle size={20} color={statusColor} />
+                )}
+              </View>
+
+              <Text style={[styles.bigAmount, { color: statusColor }]}>
+                {loading ? "..." : `${formatCurrency(epargneDisponible)}`}
+              </Text>
+
+              {isCurrentMonth && (
+                <View style={styles.infoBox}>
+                  <AlertCircle size={16} color="#f39c12" />
+                  <Text style={styles.infoText}>
+                    Le mois n'est pas fini. Ce montant peut varier selon vos
+                    dépenses à venir.
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.miniStatsRow}>
+                <View>
+                  <Text style={styles.miniStatLabel}>Total Revenus</Text>
+                  <Text style={styles.miniStatValue}>
+                    {formatCurrency(statsMois.revenus)}
+                    {statsMois.retraits > 0 && (
+                      <Text style={{ fontSize: 10 }}>
+                        {" "}
+                        (+{formatCurrency(statsMois.retraits)} épargne)
+                      </Text>
+                    )}
+                  </Text>
+                </View>
+                <View style={{ marginLeft: 20 }}>
+                  <Text style={styles.miniStatLabel}>Total Dépenses</Text>
+                  <Text style={styles.miniStatValue}>
+                    {formatCurrency(statsMois.depenses)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {(!isPositive || !isMonthFinished) && (
+              <View style={styles.warningBox}>
+                <Text style={styles.warningText}>
+                  {!isMonthFinished
+                    ? "Attendez la fin du mois pour placer votre épargne."
+                    : "Solde insuffisant pour épargner ce mois-ci."}
+                </Text>
+              </View>
+            )}
+            <>
+              {isPositive && (
+                <TouchableOpacity
+                  style={[
+                    styles.dispatchButton,
+                    epargneDisponible <= 0.0 && { opacity: 0.5 },
+                  ]}
+                  onPress={() =>
+                    epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
+                  }
+                  disabled={epargneDisponible <= 0.0}
+                >
+                  <Text style={styles.dispatchButtonText}>
+                    Placer les {formatCurrency(epargneDisponible)}
+                  </Text>
+                  <ArrowRight size={18} color="#FFF" />
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.sectionHeader}>
+                <View style={styles.titleWithIcon}>
+                  <PiggyBank size={22} color="#2c3e50" />
+                  <Text style={styles.sectionTitle}>Mes tirelires</Text>
+                </View>
+              </View>
+
+              <View style={styles.totalAccumulatedContainer}>
+                <View>
+                  <Text style={styles.totalAccumulatedLabel}>
+                    Épargne Totale Accumulée
+                  </Text>
+                  <Text style={styles.totalAccumulatedAmount}>
+                    {formatCurrency(totalCumuleTirelires)}
+                  </Text>
+                </View>
+                <View style={styles.totalAccumulatedIcon}>
+                  <Briefcase size={24} color="#3498db" />
+                </View>
+              </View>
+            </>
+          </>
+        }
+        ListFooterComponent={
+          <View style={{ paddingHorizontal: 20, paddingBottom: 40 }}>
+            <TouchableOpacity
+              style={styles.addButtonSecondary}
+              onPress={() => setIsAddModalVisible(true)}
+            >
+              <PlusCircle size={20} color="#3498db" />
+              <Text style={styles.addButtonSecondaryText}>
+                Créer un nouvel objectif
+              </Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
 
       <Modal
         visible={isAddModalVisible}
@@ -787,7 +893,7 @@ const EpargneScreen: React.FC = () => {
         onConfirm={handleConfirmBreak}
         onCancel={() => setIsBreakConfirmVisible(false)}
       />
-    </ScrollView>
+    </GestureHandlerRootView>
   );
 };
 
