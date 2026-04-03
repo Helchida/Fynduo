@@ -1451,7 +1451,8 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
       `,
       )
       .eq("user_id", userId)
-      .is("parent_id", null);
+      .is("parent_id", null)
+      .order("position", { ascending: true });
 
     if (error) throw error;
 
@@ -1471,6 +1472,7 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
         objectif: Number(row.objectif),
         montantActuel: initial + sommeMouvements,
         montantInitial: initial,
+        position: row.position,
       };
     });
 
