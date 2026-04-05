@@ -632,11 +632,11 @@ const EpargneScreen: React.FC = () => {
             )}
             <>
               <View style={styles.sectionHeader}>
-                {isPositive && (
+                
                   <TouchableOpacity
                     style={[
                       styles.dispatchButton,
-                      epargneDisponible <= 0.0 && { opacity: 0.5 },
+                      epargneDisponible <= 0.0 && { opacity: 0.3 },
                       { borderColor: "#27ae60", borderWidth: 1 },
                     ]}
                     onPress={() =>
@@ -651,14 +651,16 @@ const EpargneScreen: React.FC = () => {
                       Placer
                     </Text>
                   </TouchableOpacity>
-                )}
+                
 
                 <TouchableOpacity
                   style={[
                     styles.dispatchButton,
                     { borderColor: "#e67e22", borderWidth: 1 },
+                      totalCumuleTirelires < 0.01 && { opacity: 0.3 },
                   ]}
                   onPress={() => openBreakModal()}
+                  disabled={totalCumuleTirelires < 0.01}
                 >
                   <Hammer size={24} color="#e67e22" />
                   <Text

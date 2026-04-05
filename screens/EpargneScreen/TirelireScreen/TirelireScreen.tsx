@@ -447,7 +447,7 @@ const TirelireScreen: React.FC = () => {
               </Text>
               <View style={styles.divider} />
               <View style={styles.vracRow}>
-                <Coins size={24} color="#3498db" />
+                <Coins size={24} color="#27ae60" />
                 <Text style={styles.vracText}>
                   Non réparti :{" "}
                   <Text style={styles.vracAmount}>
@@ -462,8 +462,10 @@ const TirelireScreen: React.FC = () => {
                 style={[
                   styles.dispatchButton,
                   { borderColor: "#27ae60", borderWidth: 1 },
+                  montantEnVrac < 0.01 && { opacity: 0.3 },
                 ]}
                 onPress={() => setIsTransferModalVisible(true)}
+                disabled={montantEnVrac < 0.01}
               >
                 <Archive size={24} color="#27ae60" />
                 <Text style={[styles.dispatchButtonText, { color: "#27ae60" }]}>
@@ -475,8 +477,10 @@ const TirelireScreen: React.FC = () => {
                 style={[
                   styles.dispatchButton,
                   { borderColor: "#e67e22", borderWidth: 1 },
+                  montantRangé < 0.01 && { opacity: 0.3 },
                 ]}
                 onPress={() => openBreakModal()}
+                disabled={montantRangé < 0.01}
               >
                 <PackageOpen size={24} color="#e67e22" />
                 <Text style={[styles.dispatchButtonText, { color: "#e67e22" }]}>

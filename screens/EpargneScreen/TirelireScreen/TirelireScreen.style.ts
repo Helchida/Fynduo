@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   vracAmount: {
-    color: "#3498db",
+    color: "#27ae60",
     fontWeight: "800",
     fontSize: 20,
   },
