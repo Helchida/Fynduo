@@ -636,31 +636,41 @@ const EpargneScreen: React.FC = () => {
                     style={[
                       styles.dispatchButton,
                       epargneDisponible <= 0.0 && { opacity: 0.5 },
+                      {borderColor: "#27ae60", borderWidth: 2},
                     ]}
                     onPress={() =>
                       epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
                     }
                     disabled={epargneDisponible <= 0.0}
                   >
-                    <HandCoins size={18} color="#FFF" />
+                    <HandCoins size={24} color="#27ae60" />
+                    <Text style={[styles.dispatchButtonText, { color: "#27ae60" }]}>
+                      Placer
+                    </Text>
                   </TouchableOpacity>
                 )}
 
                 <TouchableOpacity
                   style={[
                     styles.dispatchButton,
-                    { backgroundColor: "#e67e22" },
+                    {borderColor: "#e67e22", borderWidth: 2},
                   ]}
                   onPress={() => openBreakModal()}
                 >
-                  <Hammer size={18} color="#FFF" />
+                  <Hammer size={24} color="#e67e22" />
+                  <Text style={[styles.dispatchButtonText, { color: "#e67e22" }]}>
+                    Casser
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.dispatchButton, { backgroundColor: "#3498db" }]}
+                  style={[styles.dispatchButton, {borderColor: "#3498db", borderWidth: 2}]}
                   onPress={() => setIsAddModalVisible(true)}
                 >
-                  <PlusCircle size={20} color="#FFF" />
+                  <PlusCircle size={24} color="#3498db" />
+                  <Text style={[styles.dispatchButtonText, { color: "#3498db" }]}>
+                    Ajouter
+                  </Text>
                 </TouchableOpacity>
               </View>
 

@@ -17,7 +17,7 @@ import {
   Coins,
   Hammer,
   Trash2,
-  ArrowRight,
+  Archive,
   Target,
   GripVertical,
 } from "lucide-react-native";
@@ -315,15 +315,26 @@ const TirelireScreen: React.FC = () => {
               </View>
             </View>
 
-            <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+            <View style={styles.sectionHeader}>
               <TouchableOpacity
-                style={styles.placeMoneyBtn}
+                style={[
+                  styles.dispatchButton,
+                  { borderColor: "#27ae60", borderWidth: 2 },
+                ]}
                 onPress={() => setIsTransferModalVisible(true)}
               >
-                <Text style={styles.placeMoneyBtnText}>
-                  Répartir les {formatCurrency(montantEnVrac)}
+                <Archive size={20} color="#27ae60" />
+                <Text style={[styles.dispatchButtonText, { color: "#27ae60" }]}>
+                  Répartir
                 </Text>
-                <ArrowRight size={18} color="#FFF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.dispatchButton, { borderColor: "#3498db", borderWidth: 2 }]}
+                onPress={() => setIsAddModalVisible(true)}
+              >
+                <PlusCircle size={20} color="#3498db" />
+                <Text style={[styles.dispatchButtonText, { color: "#3498db"}]}>Ajouter</Text>
               </TouchableOpacity>
             </View>
 
@@ -337,19 +348,6 @@ const TirelireScreen: React.FC = () => {
               )}
             </View>
           </>
-        }
-        ListFooterComponent={
-          <View style={{ paddingHorizontal: 20, paddingBottom: 40 }}>
-            <TouchableOpacity
-              style={styles.addButtonSecondary}
-              onPress={() => setIsAddModalVisible(true)}
-            >
-              <PlusCircle size={20} color="#3498db" />
-              <Text style={styles.addButtonSecondaryText}>
-                Créer une nouvelle cagnotte
-              </Text>
-            </TouchableOpacity>
-          </View>
         }
       />
 
@@ -467,7 +465,8 @@ const TirelireScreen: React.FC = () => {
         message={`Voulez-vous remettre tout l'argent de "${subToAction?.description}" dans l'argent non réparti ?`}
         confirmText="Vider"
         onConfirm={async () => {
-          if (subToAction) await breakSubTirelire(subToAction.id, subToAction.montantInitial);
+          if (subToAction)
+            await breakSubTirelire(subToAction.id, subToAction.montantInitial);
           refresh();
           setIsBreakModalVisible(false);
           showToast("info", "Cagnotte vidée");

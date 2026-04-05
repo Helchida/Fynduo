@@ -152,12 +152,12 @@ export const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   dispatchButton: {
-    backgroundColor: "#27ae60",
+    backgroundColor: "#FFF",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
     borderRadius: 12,
     gap: 10,
     marginHorizontal: 4,
@@ -166,7 +166,7 @@ export const styles = StyleSheet.create({
   dispatchButtonText: {
     color: "#FFF",
     fontWeight: "800",
-    fontSize: 14,
+    fontSize: 16,
   },
   addButtonSecondary: {
     flexDirection: "row",
