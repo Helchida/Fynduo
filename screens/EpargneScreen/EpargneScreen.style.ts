@@ -448,4 +448,27 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#27ae60",
   },
+  dispatchItemAuto: {
+    backgroundColor: '#fff3e0', 
+    borderColor: '#e67e22', 
+    borderWidth: 1,
+    marginBottom: 12, 
+  },
+  dispatchItemAutoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', 
+    width: '100%',
+  },
+  dispatchItemAutoText: {
+    flex: 1, 
+    paddingRight: 10,
+  },
+  dispatchItemAutoName: {
+    color: '#e67e22', 
+    fontWeight: '800', 
+  },
+  dispatchItemAutoIcon: {
+    opacity: 0.9,
+  },
 });

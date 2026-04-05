@@ -1835,3 +1835,38 @@ function mapToITirelire(row: any, soldeCalcule: number): ITirelire {
     parentId: row.parent_id
   };
 }
+
+
+export async function breakSingleTirelireCagnottesOnly(
+  userId: string,
+  parentTirelire: ITirelire,
+  montantBesoin: number
+): Promise<number> {
+  const { data: cagnottesRaw, error } = await supabase
+    .from("tirelires")
+    .select("*")
+    .eq("parent_id", parentTirelire.id)
+    .order("position", { ascending: false });
+
+  if (error) throw error;
+
+  let resteAFinds = montantBesoin;
+
+  if (cagnottesRaw && cagnottesRaw.length > 0) {
+    for (const cagnotte of cagnottesRaw) {
+      if (resteAFinds <= 0) break;
+
+      const soldeCagnotte = Number(cagnotte.montant_initial) || 0;
+      
+      if (soldeCagnotte > 0) {
+        const aPrelever = Math.min(soldeCagnotte, resteAFinds);
+
+        await breakSubTirelire(cagnotte.id, aPrelever);
+
+        resteAFinds -= aPrelever;
+      }
+    }
+  }
+
+  return montantBesoin - resteAFinds;
+}

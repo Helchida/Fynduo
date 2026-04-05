@@ -336,4 +336,39 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 16,
   },
+  breakInfoText: {
+    fontSize: 12,
+    color: "#d35400",
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  breakInfoBox: {
+    backgroundColor: "#fdf2e9",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  dispatchItemAuto: {
+    backgroundColor: '#fff3e0', 
+    borderColor: '#e67e22', 
+    borderWidth: 1,
+    marginBottom: 12, 
+  },
+  dispatchItemAutoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', 
+    width: '100%',
+  },
+  dispatchItemAutoText: {
+    flex: 1, 
+    paddingRight: 10,
+  },
+  dispatchItemAutoName: {
+    color: '#e67e22', 
+    fontWeight: '800', 
+  },
+  dispatchItemAutoIcon: {
+    opacity: 0.9,
+  },
 });

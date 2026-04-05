@@ -20,10 +20,12 @@ import {
   Archive,
   Target,
   GripVertical,
+  Zap,
 } from "lucide-react-native";
 import {
   addSubTirelire,
   affecterMontantSub,
+  breakSingleTirelireCagnottesOnly,
   breakSubTirelire,
   deleteSubTirelire,
   updateSubTireliresOrder,
@@ -36,6 +38,7 @@ import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 type TirelireRouteProp = RootStackRouteProp<"Tirelire">;
 
@@ -67,6 +70,10 @@ const TirelireScreen: React.FC = () => {
   const route = useRoute<TirelireRouteProp>();
   const { tirelire } = route.params;
   const { user } = useAuth();
+
+  if (!user) {
+    return <NoAuthenticatedUser />;
+  }
   const { showToast } = useToast();
   const { subTirelires, loading, refresh } = useSubTirelires(tirelire.id);
 
@@ -79,6 +86,7 @@ const TirelireScreen: React.FC = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newGoal, setNewGoal] = useState("");
   const [amountToStore, setAmountToStore] = useState("");
+  const [montantSaisi, setMontantSaisi] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
   const montantTotalReel = tirelire.montantActuel;
@@ -171,6 +179,83 @@ const TirelireScreen: React.FC = () => {
     }
   };
 
+  const openBreakModal = () => {
+    setMontantSaisi("");
+    setIsBreakModalVisible(true);
+  };
+
+  const handleConfirmBreak = async (cagnotteToBreak: ITirelire) => {
+    const montant = parseFloat(montantSaisi.replace(",", "."));
+
+    if (isNaN(montant) || montant <= 0) {
+      return showToast(
+        "error",
+        "Montant invalide",
+        "Veuillez entrer un chiffre positif.",
+      );
+    }
+
+    if (montant > cagnotteToBreak.montantInitial + 0.01) {
+      return showToast(
+        "warning",
+        "Solde insuffisant",
+        `Cette tirelire ne contient que ${formatCurrency(cagnotteToBreak.montantInitial)}.`,
+      );
+    }
+
+    try {
+      await breakSubTirelire(cagnotteToBreak.id, montant);
+
+      showToast(
+        "success",
+        "Argent récupéré !",
+        `${formatCurrency(montant)} ont été ajoutés à votre argent non réparti.`,
+      );
+
+      setIsBreakModalVisible(false);
+      setMontantSaisi("");
+      refresh();
+    } catch (e) {
+      showToast("error", "Erreur", "Impossible de casser la cagnotte.");
+    }
+  };
+
+  const handleConfirmBreakLessImportant = async (tirelireParent: ITirelire) => {
+    const montant = parseFloat(montantSaisi.replace(",", "."));
+
+    if (isNaN(montant) || montant <= 0) {
+      return showToast(
+        "error",
+        "Montant invalide",
+        "Veuillez entrer un chiffre positif.",
+      );
+    }
+
+    if (montant > montantTotalReel + 0.01) {
+      return showToast(
+        "warning",
+        "Solde insuffisant",
+        `L'épargne totale ne contient que ${formatCurrency(montantTotalReel)}.`,
+      );
+    }
+
+    try {
+      await breakSingleTirelireCagnottesOnly(user.id, tirelireParent, montant);
+
+      showToast(
+        "success",
+        "Argent récupéré !",
+        `${formatCurrency(montant)} ont été ajoutés à votre argent non réparti.`,
+      );
+
+      setIsBreakModalVisible(false);
+      setMontantSaisi("");
+      refresh();
+    } catch (e) {
+      showToast("error", "Erreur", "Impossible de casser la cagnotte.");
+    }
+  };
+
   const renderSubTirelire = ({
     item: sub,
     drag,
@@ -243,15 +328,6 @@ const TirelireScreen: React.FC = () => {
               <TouchableOpacity
                 onPress={() => {
                   setSubToAction(sub);
-                  setIsBreakModalVisible(true);
-                }}
-                style={styles.actionIcon}
-              >
-                <Hammer size={18} color="#e67e22" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setSubToAction(sub);
                   setIsDeleteModalVisible(true);
                 }}
                 style={styles.actionIcon}
@@ -319,7 +395,7 @@ const TirelireScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.dispatchButton,
-                  { borderColor: "#27ae60", borderWidth: 2 },
+                  { borderColor: "#27ae60", borderWidth: 1 },
                 ]}
                 onPress={() => setIsTransferModalVisible(true)}
               >
@@ -330,11 +406,29 @@ const TirelireScreen: React.FC = () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.dispatchButton, { borderColor: "#3498db", borderWidth: 2 }]}
+                style={[
+                  styles.dispatchButton,
+                  { borderColor: "#e67e22", borderWidth: 1 },
+                ]}
+                onPress={() => openBreakModal()}
+              >
+                <Hammer size={24} color="#e67e22" />
+                <Text style={[styles.dispatchButtonText, { color: "#e67e22" }]}>
+                  Casser
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.dispatchButton,
+                  { borderColor: "#3498db", borderWidth: 1 },
+                ]}
                 onPress={() => setIsAddModalVisible(true)}
               >
                 <PlusCircle size={20} color="#3498db" />
-                <Text style={[styles.dispatchButtonText, { color: "#3498db"}]}>Ajouter</Text>
+                <Text style={[styles.dispatchButtonText, { color: "#3498db" }]}>
+                  Ajouter
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -459,20 +553,89 @@ const TirelireScreen: React.FC = () => {
         </View>
       </Modal>
 
-      <ConfirmModal
+      <Modal
         visible={isBreakModalVisible}
-        title="Vider le rangement"
-        message={`Voulez-vous remettre tout l'argent de "${subToAction?.description}" dans l'argent non réparti ?`}
-        confirmText="Vider"
-        onConfirm={async () => {
-          if (subToAction)
-            await breakSubTirelire(subToAction.id, subToAction.montantInitial);
-          refresh();
-          setIsBreakModalVisible(false);
-          showToast("info", "Cagnotte vidée");
-        }}
-        onCancel={() => setIsBreakModalVisible(false)}
-      />
+        animationType="fade"
+        transparent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Vider une cagnotte</Text>
+            <Text style={styles.inputLabel}>Montant à retirer (€)</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="decimal-pad"
+              autoFocus
+              placeholder="ex: 100"
+              value={montantSaisi}
+              onChangeText={setMontantSaisi}
+            />
+
+            <View style={styles.breakInfoBox}>
+              <Text style={styles.breakInfoText}>
+                Ce montant sera retiré de la cagnotte et ajouté à l'argent non
+                réparti.
+              </Text>
+            </View>
+
+            <>
+              <Text style={styles.inputLabel}>De quelle cagnotte ?</Text>
+              <ScrollView style={{ maxHeight: 200 }}>
+                <TouchableOpacity
+                  style={[styles.dispatchItem, styles.dispatchItemAuto]}
+                  onPress={async () => {
+                    handleConfirmBreakLessImportant(tirelire);
+                  }}
+                >
+                  <View style={styles.dispatchItemAutoContent}>
+                    <View style={styles.dispatchItemAutoText}>
+                      <Text
+                        style={[
+                          styles.dispatchItemName,
+                          styles.dispatchItemAutoName,
+                        ]}
+                      >
+                        Retrait Automatique
+                      </Text>
+                      <Text style={styles.dispatchItemReste}>
+                        Piochera dans vos cagnottes selon leur priorité.
+                      </Text>
+                    </View>
+                    <Zap
+                      size={24}
+                      color="#e67e22"
+                      style={styles.dispatchItemAutoIcon}
+                    />
+                  </View>
+                </TouchableOpacity>
+                {subTirelires.map((t) => (
+                  <TouchableOpacity
+                    key={t.id}
+                    style={styles.dispatchItem}
+                    onPress={async () => {
+                      handleConfirmBreak(t);
+                    }}
+                  >
+                    <Text style={styles.dispatchItemName}>{t.description}</Text>
+                    <Text style={styles.dispatchItemReste}>
+                      Contient {formatCurrency(t.montantInitial)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+
+            <TouchableOpacity
+              style={[styles.btnCancel, { marginTop: 15 }]}
+              onPress={() => {
+                setIsBreakModalVisible(false);
+              }}
+            >
+              <Text style={styles.btnCancelText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <ConfirmModal
         visible={isDeleteModalVisible}

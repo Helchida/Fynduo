@@ -24,6 +24,7 @@ import {
   Coins,
   Briefcase,
   GripVertical,
+  Zap,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -636,7 +637,7 @@ const EpargneScreen: React.FC = () => {
                     style={[
                       styles.dispatchButton,
                       epargneDisponible <= 0.0 && { opacity: 0.5 },
-                      {borderColor: "#27ae60", borderWidth: 2},
+                      { borderColor: "#27ae60", borderWidth: 1 },
                     ]}
                     onPress={() =>
                       epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
@@ -644,7 +645,9 @@ const EpargneScreen: React.FC = () => {
                     disabled={epargneDisponible <= 0.0}
                   >
                     <HandCoins size={24} color="#27ae60" />
-                    <Text style={[styles.dispatchButtonText, { color: "#27ae60" }]}>
+                    <Text
+                      style={[styles.dispatchButtonText, { color: "#27ae60" }]}
+                    >
                       Placer
                     </Text>
                   </TouchableOpacity>
@@ -653,22 +656,29 @@ const EpargneScreen: React.FC = () => {
                 <TouchableOpacity
                   style={[
                     styles.dispatchButton,
-                    {borderColor: "#e67e22", borderWidth: 2},
+                    { borderColor: "#e67e22", borderWidth: 1 },
                   ]}
                   onPress={() => openBreakModal()}
                 >
                   <Hammer size={24} color="#e67e22" />
-                  <Text style={[styles.dispatchButtonText, { color: "#e67e22" }]}>
+                  <Text
+                    style={[styles.dispatchButtonText, { color: "#e67e22" }]}
+                  >
                     Casser
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.dispatchButton, {borderColor: "#3498db", borderWidth: 2}]}
+                  style={[
+                    styles.dispatchButton,
+                    { borderColor: "#3498db", borderWidth: 1 },
+                  ]}
                   onPress={() => setIsAddModalVisible(true)}
                 >
                   <PlusCircle size={24} color="#3498db" />
-                  <Text style={[styles.dispatchButtonText, { color: "#3498db" }]}>
+                  <Text
+                    style={[styles.dispatchButtonText, { color: "#3498db" }]}
+                  >
                     Ajouter
                   </Text>
                 </TouchableOpacity>
@@ -861,15 +871,31 @@ const EpargneScreen: React.FC = () => {
                 <Text style={styles.inputLabel}>De quelle tirelire ?</Text>
                 <ScrollView style={{ maxHeight: 200 }}>
                   <TouchableOpacity
-                    style={styles.dispatchItem}
+                    style={[styles.dispatchItem, styles.dispatchItemAuto]}
                     onPress={async () => {
                       handleConfirmBreakLessImportant();
                     }}
                   >
-                    <Text style={styles.dispatchItemName}>Automatique</Text>
-                    <Text style={styles.dispatchItemReste}>
-                      Prendra par ordre de priorité
-                    </Text>
+                    <View style={styles.dispatchItemAutoContent}>
+                      <View style={styles.dispatchItemAutoText}>
+                        <Text
+                          style={[
+                            styles.dispatchItemName,
+                            styles.dispatchItemAutoName,
+                          ]}
+                        >
+                          Retrait Automatique
+                        </Text>
+                        <Text style={styles.dispatchItemReste}>
+                          Piochera dans vos tirelires selon leur priorité.
+                        </Text>
+                      </View>
+                      <Zap
+                        size={24}
+                        color="#e67e22"
+                        style={styles.dispatchItemAutoIcon}
+                      />
+                    </View>
                   </TouchableOpacity>
                   {tirelires.map((t) => (
                     <TouchableOpacity
