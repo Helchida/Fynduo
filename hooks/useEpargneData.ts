@@ -1,11 +1,16 @@
 import { ITirelire } from "@/types";
 import { useCallback, useState } from "react";
-import { getTirelires, getTotalPlaceMois } from "services/supabase/db";
+import { getTirelires, getTotalPlaceMois, getSubTirelires } from "services/supabase/db";
 
 export const useEpargneData = (userId: string | undefined, moisAnnee: string) => {
   const [tirelires, setTirelires] = useState<ITirelire[]>([]);
   const [dejaPlaceCeMois, setDejaPlaceCeMois] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const getCagnottes = useCallback((idTirelire: string) => {
+    const cagnottes = getSubTirelires(idTirelire);
+    return cagnottes;
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!userId) return;
@@ -24,5 +29,5 @@ export const useEpargneData = (userId: string | undefined, moisAnnee: string) =>
     }
   }, [userId, moisAnnee]);
 
-  return { tirelires, dejaPlaceCeMois, loading, refresh };
+  return { tirelires, dejaPlaceCeMois, loading, refresh, getCagnottes };
 };

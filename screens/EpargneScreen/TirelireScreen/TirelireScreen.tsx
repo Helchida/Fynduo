@@ -467,7 +467,7 @@ const TirelireScreen: React.FC = () => {
         message={`Voulez-vous remettre tout l'argent de "${subToAction?.description}" dans l'argent non réparti ?`}
         confirmText="Vider"
         onConfirm={async () => {
-          if (subToAction) await breakSubTirelire(subToAction.id);
+          if (subToAction) await breakSubTirelire(subToAction.id, subToAction.montantInitial);
           refresh();
           setIsBreakModalVisible(false);
           showToast("info", "Cagnotte vidée");

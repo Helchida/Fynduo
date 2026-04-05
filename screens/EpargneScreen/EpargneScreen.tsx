@@ -16,11 +16,11 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
-  ArrowRight,
   PlusCircle,
   Pencil,
   Trash2,
   Hammer,
+  HandCoins,
   Coins,
   Briefcase,
   GripVertical,
@@ -31,6 +31,8 @@ import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthent
 import { useToast } from "hooks/useToast";
 import {
   addTirelire,
+  breakCascade,
+  breakSubTirelire,
   breakTirelire,
   deleteTirelire,
   placeEpargne,
@@ -80,22 +82,17 @@ const EpargneScreen: React.FC = () => {
   );
   const [tirelireToDelete, setTirelireToDelete] = useState<string | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-  const [isBreakConfirmVisible, setIsBreakConfirmVisible] = useState(false);
-  const [selectedTirelireForBreak, setSelectedTirelireForBreak] =
-    useState<ITirelire | null>(null);
-  const [montantRetrait, setMontantRetrait] = useState("");
   const [isBreakModalVisible, setIsBreakModalVisible] = useState(false);
+  const [isChooseTirelireToBreak, setIsChooseTirelireToBreak] = useState(false);
+  const [cagnottesOfTirelireToBreak, setCagnottesOfTirelireToBreak] = useState<
+    ITirelire[]
+  >([]);
 
   const { revenus, charges, loadData } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
 
-  const { tirelires, dejaPlaceCeMois, loading, refresh } = useEpargneData(
-    user.id,
-    moisCle,
-  );
-
-  console.log("ID Utilisateur actuel:", user?.id);
-  console.log("Nombre de tirelires reçues:", tirelires.length);
+  const { tirelires, dejaPlaceCeMois, loading, refresh, getCagnottes } =
+    useEpargneData(user.id, moisCle);
 
   useEffect(() => {
     if (user?.id) {
@@ -296,11 +293,6 @@ const EpargneScreen: React.FC = () => {
     }
   };
 
-  const openDeleteModal = (id: string) => {
-    setTirelireToDelete(id);
-    setIsDeleteModalVisible(true);
-  };
-
   const handleConfirmDelete = async () => {
     if (!tirelireToDelete) return;
     try {
@@ -315,20 +307,15 @@ const EpargneScreen: React.FC = () => {
     }
   };
 
-  const openEditModal = (tirelire: ITirelire) => {
-    setEditingTirelire(tirelire);
-    setNewTirelire({
-      nom: tirelire.description,
-      objectif: tirelire.objectif.toString(),
-      montantInitial: tirelire.montantInitial.toString(),
-    });
-    setIsAddModalVisible(true);
-  };
+  const handleConfirmBreak = async (tirelireToBreak: ITirelire) => {
+    let realTirelireMovement: ITirelire = tirelireToBreak;
+    if (tirelireToBreak.parentId !== null) {
+      realTirelireMovement =
+        tirelires.find((t) => t.id === tirelireToBreak.parentId) ||
+        tirelireToBreak;
+    }
 
-  const handleConfirmBreak = async () => {
-    if (!selectedTirelireForBreak) return;
-
-    const montant = parseFloat(montantRetrait.replace(",", "."));
+    const montant = parseFloat(montantSaisi.replace(",", "."));
 
     if (isNaN(montant) || montant <= 0) {
       return toast.error(
@@ -337,15 +324,18 @@ const EpargneScreen: React.FC = () => {
       );
     }
 
-    if (montant > selectedTirelireForBreak.montantActuel + 0.01) {
+    if (montant > realTirelireMovement.montantActuel + 0.01) {
       return toast.warning(
         "Solde insuffisant",
-        `Cette tirelire ne contient que ${formatCurrency(selectedTirelireForBreak.montantActuel)}.`,
+        `Cette tirelire ne contient que ${formatCurrency(realTirelireMovement.montantActuel)}.`,
       );
     }
 
     try {
-      await breakTirelire(user.id, selectedTirelireForBreak, montant);
+      if (tirelireToBreak.parentId !== null) {
+        await breakSubTirelire(tirelireToBreak.id, montant);
+      }
+      await breakTirelire(user.id, realTirelireMovement, montant);
 
       toast.success(
         "Argent récupéré !",
@@ -355,17 +345,52 @@ const EpargneScreen: React.FC = () => {
       await loadData();
 
       setIsBreakModalVisible(false);
-      setSelectedTirelireForBreak(null);
-      setMontantRetrait("");
+      setMontantSaisi("");
       refresh();
     } catch (e) {
       toast.error("Erreur", "Impossible de casser la tirelire.");
     }
   };
 
-  const openBreakModal = (tirelire: ITirelire) => {
-    setSelectedTirelireForBreak(tirelire);
-    setMontantRetrait("");
+  const handleConfirmBreakLessImportant = async () => {
+    const montant = parseFloat(montantSaisi.replace(",", "."));
+
+    if (isNaN(montant) || montant <= 0) {
+      return toast.error(
+        "Montant invalide",
+        "Veuillez entrer un chiffre positif.",
+      );
+    }
+
+    if (montant > totalCumuleTirelires + 0.01) {
+      return toast.warning(
+        "Solde insuffisant",
+        `L'épargne totale ne contient que ${formatCurrency(totalCumuleTirelires)}.`,
+      );
+    }
+
+    try {
+      await breakCascade(user.id, montant);
+
+      toast.success(
+        "Argent récupéré !",
+        `${formatCurrency(montant)} ont été ajoutés à vos revenus de ce mois.`,
+      );
+
+      await loadData();
+
+      setIsBreakModalVisible(false);
+      setMontantSaisi("");
+      refresh();
+    } catch (e) {
+      toast.error("Erreur", "Impossible de casser la tirelire.");
+    }
+  };
+
+  const openBreakModal = () => {
+    setMontantSaisi("");
+    setCagnottesOfTirelireToBreak([]);
+    setIsChooseTirelireToBreak(false);
     setIsBreakModalVisible(true);
   };
 
@@ -449,13 +474,6 @@ const EpargneScreen: React.FC = () => {
             </View>
 
             <View style={{ flexDirection: "row", gap: 15 }}>
-              <TouchableOpacity
-                onPress={() => {
-                  openBreakModal(item);
-                }}
-              >
-                <Hammer size={18} color="#e67e22" />
-              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   setEditingTirelire(item);
@@ -612,23 +630,39 @@ const EpargneScreen: React.FC = () => {
               </View>
             )}
             <>
-              {isPositive && (
+              <View style={styles.sectionHeader}>
+                {isPositive && (
+                  <TouchableOpacity
+                    style={[
+                      styles.dispatchButton,
+                      epargneDisponible <= 0.0 && { opacity: 0.5 },
+                    ]}
+                    onPress={() =>
+                      epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
+                    }
+                    disabled={epargneDisponible <= 0.0}
+                  >
+                    <HandCoins size={18} color="#FFF" />
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
                   style={[
                     styles.dispatchButton,
-                    epargneDisponible <= 0.0 && { opacity: 0.5 },
+                    { backgroundColor: "#e67e22" },
                   ]}
-                  onPress={() =>
-                    epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
-                  }
-                  disabled={epargneDisponible <= 0.0}
+                  onPress={() => openBreakModal()}
                 >
-                  <Text style={styles.dispatchButtonText}>
-                    Placer les {formatCurrency(epargneDisponible)}
-                  </Text>
-                  <ArrowRight size={18} color="#FFF" />
+                  <Hammer size={18} color="#FFF" />
                 </TouchableOpacity>
-              )}
+
+                <TouchableOpacity
+                  style={[styles.dispatchButton, { backgroundColor: "#3498db" }]}
+                  onPress={() => setIsAddModalVisible(true)}
+                >
+                  <PlusCircle size={20} color="#FFF" />
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.sectionHeader}>
                 <View style={styles.titleWithIcon}>
@@ -652,19 +686,6 @@ const EpargneScreen: React.FC = () => {
               </View>
             </>
           </>
-        }
-        ListFooterComponent={
-          <View style={{ paddingHorizontal: 20, paddingBottom: 40 }}>
-            <TouchableOpacity
-              style={styles.addButtonSecondary}
-              onPress={() => setIsAddModalVisible(true)}
-            >
-              <PlusCircle size={20} color="#3498db" />
-              <Text style={styles.addButtonSecondaryText}>
-                Créer un nouvel objectif
-              </Text>
-            </TouchableOpacity>
-          </View>
         }
       />
 
@@ -802,44 +823,20 @@ const EpargneScreen: React.FC = () => {
 
       <Modal
         visible={isBreakModalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                marginBottom: 20,
-              }}
-            >
-              <Hammer size={24} color="#e67e22" />
-              <Text style={[styles.modalTitle, { marginBottom: 0 }]}>
-                Casser la tirelire
-              </Text>
-            </View>
-
-            <Text style={styles.breakTirelireName}>
-              Tirelire : "{selectedTirelireForBreak?.description}"
-            </Text>
-            <Text style={styles.breakCurrentAmount}>
-              Contenu actuel :{" "}
-              {formatCurrency(selectedTirelireForBreak?.montantActuel || 0)}
-            </Text>
-
-            <Text style={styles.inputLabel}>
-              Combien voulez-vous retirer ? (€)
-            </Text>
+            <Text style={styles.modalTitle}>Retirer de l'argent</Text>
+            <Text style={styles.inputLabel}>Montant à retirer (€)</Text>
             <TextInput
               style={styles.input}
               keyboardType="decimal-pad"
               autoFocus
-              placeholder="0.00"
-              value={montantRetrait}
-              onChangeText={setMontantRetrait}
+              placeholder="ex: 100"
+              value={montantSaisi}
+              onChangeText={setMontantSaisi}
             />
 
             <View style={styles.breakInfoBox}>
@@ -849,25 +846,79 @@ const EpargneScreen: React.FC = () => {
               </Text>
             </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.btnCancel}
-                onPress={() => {
-                  setIsBreakModalVisible(false);
-                  setSelectedTirelireForBreak(null);
-                  setMontantRetrait("");
-                }}
-              >
-                <Text style={styles.btnCancelText}>Annuler</Text>
-              </TouchableOpacity>
+            {!isChooseTirelireToBreak ? (
+              <>
+                <Text style={styles.inputLabel}>De quelle tirelire ?</Text>
+                <ScrollView style={{ maxHeight: 200 }}>
+                  <TouchableOpacity
+                    style={styles.dispatchItem}
+                    onPress={async () => {
+                      handleConfirmBreakLessImportant();
+                    }}
+                  >
+                    <Text style={styles.dispatchItemName}>Automatique</Text>
+                    <Text style={styles.dispatchItemReste}>
+                      Prendra par ordre de priorité
+                    </Text>
+                  </TouchableOpacity>
+                  {tirelires.map((t) => (
+                    <TouchableOpacity
+                      key={t.id}
+                      style={styles.dispatchItem}
+                      onPress={async () => {
+                        const cagnottes = await getCagnottes(t.id);
+                        if (cagnottes.length > 0) {
+                          setIsChooseTirelireToBreak(true);
+                          setCagnottesOfTirelireToBreak(
+                            await getCagnottes(t.id),
+                          );
+                        } else {
+                          handleConfirmBreak(t);
+                        }
+                      }}
+                    >
+                      <Text style={styles.dispatchItemName}>
+                        {t.description}
+                      </Text>
+                      <Text style={styles.dispatchItemReste}>
+                        Contient {formatCurrency(t.montantActuel)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            ) : (
+              <>
+                <Text style={styles.inputLabel}>De quelle cagnotte ?</Text>
+                <ScrollView style={{ maxHeight: 200 }}>
+                  {cagnottesOfTirelireToBreak.map((c) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={styles.dispatchItem}
+                      onPress={() => handleConfirmBreak(c)}
+                    >
+                      <Text style={styles.dispatchItemName}>
+                        {c.description}
+                      </Text>
+                      <Text style={styles.dispatchItemReste}>
+                        Contient {formatCurrency(c.montantActuel)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
 
-              <TouchableOpacity
-                style={[styles.btnConfirm, { backgroundColor: "#e67e22" }]}
-                onPress={handleConfirmBreak}
-              >
-                <Text style={styles.btnConfirmText}>Retirer l'argent</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.btnCancel, { marginTop: 15 }]}
+              onPress={() => {
+                setIsBreakModalVisible(false);
+                setIsChooseTirelireToBreak(false);
+                setCagnottesOfTirelireToBreak([]);
+              }}
+            >
+              <Text style={styles.btnCancelText}>Annuler</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -883,15 +934,6 @@ const EpargneScreen: React.FC = () => {
           setIsDeleteModalVisible(false);
           setTirelireToDelete(null);
         }}
-      />
-
-      <ConfirmModal
-        visible={isBreakConfirmVisible}
-        title="Confirmer le retrait"
-        message={`Voulez-vous vraiment retirer ${montantSaisi}€ de la tirelire "${selectedTirelireForBreak?.description}" ? Ce montant sera ajouté à vos revenus de ce mois.`}
-        confirmText="Retirer l'argent"
-        onConfirm={handleConfirmBreak}
-        onCancel={() => setIsBreakConfirmVisible(false)}
       />
     </GestureHandlerRootView>
   );

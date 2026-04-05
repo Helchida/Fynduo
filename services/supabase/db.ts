@@ -1707,10 +1707,20 @@ export async function affecterMontantSub(
   if (error) throw error;
 }
 
-export async function breakSubTirelire(subId: string): Promise<void> {
+export async function breakSubTirelire(subId: string, montant: number): Promise<void> {
+  const { data: subTirelire } = await supabase
+    .from("tirelires")
+    .select("*")
+    .eq("id", subId);
+
+    if(!subTirelire || subTirelire.length === 0) {
+      throw new Error("Tirelire introuvable");
+    }
+
+    const montantSubTirelire = subTirelire[0].montant_initial || 0;
   const { error } = await supabase
     .from("tirelires")
-    .update({ montant_initial: 0 })
+    .update({ montant_initial: montantSubTirelire - montant })
     .eq("id", subId);
 
   if (error) throw error;
@@ -1738,4 +1748,90 @@ export async function updateSubTireliresOrder(
   const results = await Promise.all(promises);
   const firstError = results.find(r => r.error);
   if (firstError) throw firstError.error;
+}
+
+export async function breakCascade(
+  userId: string,
+  montantBesoin: number
+): Promise<number> {
+  const { data: allTirelires, error } = await supabase
+    .from("tirelires")
+    .select(`
+      *,
+      epargne_mouvements (montant)
+    `)
+    .eq("user_id", userId)
+    .order("position", { ascending: false });
+
+  if (error) throw error;
+
+  const parentsRaw = (allTirelires || []).filter((t) => t.parent_id === null);
+  const enfantsRaw = (allTirelires || []).filter((t) => t.parent_id !== null);
+
+  let resteAFinds = montantBesoin;
+
+  for (const parentRow of parentsRaw) {
+    if (resteAFinds <= 0) break;
+
+    const sommeMouvements = parentRow.epargne_mouvements?.reduce(
+      (acc: number, m: any) => acc + Number(m.montant),
+      0
+    ) || 0;
+    const soldeParentTotal = (Number(parentRow.montant_initial) || 0) + sommeMouvements;
+
+    if (soldeParentTotal <= 0) continue;
+
+    const cagnottesDuParent = enfantsRaw.filter((e) => e.parent_id === parentRow.id);
+    const totalAffecteAuxCagnottes = cagnottesDuParent.reduce(
+      (acc, c) => acc + (Number(c.montant_initial) || 0), 
+      0
+    );
+    const vracDisponible = soldeParentTotal - totalAffecteAuxCagnottes;
+
+    if (vracDisponible > 0 && resteAFinds > 0) {
+      const aPreleverVrac = Math.min(vracDisponible, resteAFinds);
+      
+      const parentInterface = mapToITirelire(parentRow, soldeParentTotal);
+      await breakTirelire(userId, parentInterface, aPreleverVrac);
+      
+      resteAFinds -= aPreleverVrac;
+    }
+
+
+    if (resteAFinds > 0) {
+      const cagnottesTriees = [...cagnottesDuParent].sort(
+        (a, b) => (b.position || 0) - (a.position || 0)
+      );
+
+      for (const cagnotte of cagnottesTriees) {
+        if (resteAFinds <= 0) break;
+        
+        const soldeCagnotte = Number(cagnotte.montant_initial) || 0;
+        if (soldeCagnotte > 0) {
+          const aPreleverCagnotte = Math.min(soldeCagnotte, resteAFinds);
+
+          await breakSubTirelire(cagnotte.id, aPreleverCagnotte);
+          
+          const parentInterface = mapToITirelire(parentRow, soldeParentTotal);
+          await breakTirelire(userId, parentInterface, aPreleverCagnotte);
+
+          resteAFinds -= aPreleverCagnotte;
+        }
+      }
+    }
+  }
+
+  return montantBesoin - resteAFinds;
+}
+
+function mapToITirelire(row: any, soldeCalcule: number): ITirelire {
+  return {
+    id: row.id,
+    description: row.description,
+    objectif: Number(row.objectif),
+    montantActuel: soldeCalcule,
+    montantInitial: Number(row.montant_initial),
+    position: row.position,
+    parentId: row.parent_id
+  };
 }
