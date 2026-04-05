@@ -15,7 +15,7 @@ import { useToast } from "hooks/useToast";
 import {
   PlusCircle,
   Coins,
-  Hammer,
+  PackageOpen,
   Trash2,
   Archive,
   Target,
@@ -399,7 +399,7 @@ const TirelireScreen: React.FC = () => {
                 ]}
                 onPress={() => setIsTransferModalVisible(true)}
               >
-                <Archive size={20} color="#27ae60" />
+                <Archive size={24} color="#27ae60" />
                 <Text style={[styles.dispatchButtonText, { color: "#27ae60" }]}>
                   Répartir
                 </Text>
@@ -412,9 +412,9 @@ const TirelireScreen: React.FC = () => {
                 ]}
                 onPress={() => openBreakModal()}
               >
-                <Hammer size={24} color="#e67e22" />
+                <PackageOpen size={24} color="#e67e22" />
                 <Text style={[styles.dispatchButtonText, { color: "#e67e22" }]}>
-                  Casser
+                  Libérer
                 </Text>
               </TouchableOpacity>
 
@@ -425,7 +425,7 @@ const TirelireScreen: React.FC = () => {
                 ]}
                 onPress={() => setIsAddModalVisible(true)}
               >
-                <PlusCircle size={20} color="#3498db" />
+                <PlusCircle size={24} color="#3498db" />
                 <Text style={[styles.dispatchButtonText, { color: "#3498db" }]}>
                   Ajouter
                 </Text>
