@@ -21,6 +21,7 @@ import {
   Target,
   GripVertical,
   Zap,
+  Pencil,
 } from "lucide-react-native";
 import {
   addSubTirelire,
@@ -29,6 +30,7 @@ import {
   breakSubTirelire,
   deleteSubTirelire,
   updateSubTireliresOrder,
+  updateTirelire,
 } from "services/supabase/db";
 import { useSubTirelires } from "hooks/useSubTirelires";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
@@ -87,7 +89,9 @@ const TirelireScreen: React.FC = () => {
   const [newGoal, setNewGoal] = useState("");
   const [amountToStore, setAmountToStore] = useState("");
   const [montantSaisi, setMontantSaisi] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
+  const [editingCagnotte, setEditingCagnotte] = useState<ITirelire | null>(
+    null,
+  );
 
   const montantTotalReel = tirelire.montantActuel;
   const objectifGlobal = tirelire.objectif;
@@ -121,7 +125,6 @@ const TirelireScreen: React.FC = () => {
       return;
     }
 
-    setActionLoading(true);
     try {
       await addSubTirelire(user.id, tirelire.id, newTitle, goalValue);
       setIsAddModalVisible(false);
@@ -131,8 +134,6 @@ const TirelireScreen: React.FC = () => {
       showToast("success", "Nouveau rangement créé");
     } catch (error) {
       showToast("error", "Erreur lors de la création");
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -144,12 +145,24 @@ const TirelireScreen: React.FC = () => {
       return;
     }
 
+    const montantActuelCagnotte = targetSub.montantInitial || 0;
+    const objectifCagnotte = targetSub.objectif || 0;
+    const resteARemplirCagnotte = objectifCagnotte - montantActuelCagnotte;
+
+    if (val > resteARemplirCagnotte + 0.01) {
+      showToast(
+        "warning",
+        "Objectif dépassé",
+        `Cette cagnotte ne peut plus recevoir que ${formatCurrency(resteARemplirCagnotte)}.`,
+      );
+      return;
+    }
+
     if (val > montantEnVrac + 0.01) {
       showToast("warning", "Montant en vrac insuffisant");
       return;
     }
 
-    setActionLoading(true);
     try {
       await affecterMontantSub(targetSub.id, val);
       setIsTransferModalVisible(false);
@@ -158,8 +171,6 @@ const TirelireScreen: React.FC = () => {
       showToast("success", `Argent rangé dans ${targetSub.description}`);
     } catch (error) {
       showToast("error", "Erreur de rangement");
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -256,6 +267,52 @@ const TirelireScreen: React.FC = () => {
     }
   };
 
+  const handleUpdateCagnotte = async () => {
+    if (!editingCagnotte) return;
+
+    try {
+      const budget = parseFloat(newGoal.replace(",", "."));
+
+      if (isNaN(budget)) {
+        return showToast(
+          "error",
+          "Format invalide",
+          "Veuillez entrer des nombres valides.",
+        );
+      }
+
+      const totalAutresObjectifs = subTirelires
+        .filter((sub) => sub.id !== editingCagnotte.id)
+        .reduce((acc, sub) => acc + (sub.objectif || 0), 0);
+
+      const capaciteMax = objectifGlobal - totalAutresObjectifs;
+
+      if (budget > capaciteMax) {
+        return showToast(
+          "warning",
+          "Objectif invalide",
+          `L'objectif ne peut pas dépasser ${formatCurrency(capaciteMax)}.`,
+        );
+      }
+
+      await updateTirelire(editingCagnotte.id, {
+        description: newTitle,
+        objectif: budget,
+      });
+
+      showToast("success", "Mis à jour", "Tirelire modifiée avec succès.");
+
+      setIsAddModalVisible(false);
+      setEditingCagnotte(null);
+      setNewTitle("");
+      setNewGoal("");
+
+      refresh();
+    } catch (e) {
+      showToast("error", "Erreur", "Impossible de modifier la tirelire.");
+    }
+  };
+
   const renderSubTirelire = ({
     item: sub,
     drag,
@@ -327,10 +384,19 @@ const TirelireScreen: React.FC = () => {
             <View style={styles.subActions}>
               <TouchableOpacity
                 onPress={() => {
+                  setEditingCagnotte(sub);
+                  setNewTitle(sub.description);
+                  setNewGoal(sub.objectif.toString());
+                  setIsAddModalVisible(true);
+                }}
+              >
+                <Pencil size={18} color="#3498db" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
                   setSubToAction(sub);
                   setIsDeleteModalVisible(true);
                 }}
-                style={styles.actionIcon}
               >
                 <Trash2 size={18} color="#e74c3c" />
               </TouchableOpacity>
@@ -517,8 +583,14 @@ const TirelireScreen: React.FC = () => {
                 marginBottom: 20,
               }}
             >
-              <Target size={22} color="#2c3e50" />
-              <Text style={styles.modalTitle}>Nouvelle cagnotte</Text>
+              {editingCagnotte ? (
+                <Pencil size={22} color="#3498db" />
+              ) : (
+                <Target size={22} color="#2c3e50" />
+              )}
+              <Text style={styles.modalTitle}>
+                {editingCagnotte ? "Modifier la cagnotte" : "Nouvelle cagnotte"}
+              </Text>
             </View>
             <Text style={styles.inputLabel}>Nom de la cagnotte</Text>
             <TextInput
@@ -537,16 +609,25 @@ const TirelireScreen: React.FC = () => {
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                onPress={() => setIsAddModalVisible(false)}
+                onPress={() => {
+                  setIsAddModalVisible(false);
+                  setEditingCagnotte(null);
+                  setNewTitle("");
+                  setNewGoal("");
+                }}
                 style={styles.cancelBtn}
               >
                 <Text style={styles.cancelBtnText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={handleCreateSub}
+                onPress={
+                  editingCagnotte ? handleUpdateCagnotte : handleCreateSub
+                }
                 style={styles.confirmBtn}
               >
-                <Text style={styles.confirmBtnText}>Créer</Text>
+                <Text style={styles.confirmBtnText}>
+                  {editingCagnotte ? "Modifier" : "Créer"}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

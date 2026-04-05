@@ -142,6 +142,7 @@ export const styles = StyleSheet.create({
   },
   subActions: {
     flexDirection: "row",
+    gap: 15,
   },
   actionIcon: {
     padding: 8,
