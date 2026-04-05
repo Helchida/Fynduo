@@ -167,6 +167,7 @@ export interface ITirelire extends FirestoreDocument {
   montantActuel: number;
   description: string;
   montantInitial: number;
+  isLocked: boolean;
   parentId?: string;
   position?: number;
 }

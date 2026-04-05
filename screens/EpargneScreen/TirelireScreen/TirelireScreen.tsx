@@ -22,6 +22,8 @@ import {
   GripVertical,
   Zap,
   Pencil,
+  Lock,
+  Unlock,
 } from "lucide-react-native";
 import {
   addSubTirelire,
@@ -77,7 +79,8 @@ const TirelireScreen: React.FC = () => {
     return <NoAuthenticatedUser />;
   }
   const { showToast } = useToast();
-  const { subTirelires, loading, refresh } = useSubTirelires(tirelire.id);
+  const { subTirelires, loading, refresh, updateLocalSubTirelire } =
+    useSubTirelires(tirelire.id);
 
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isTransferModalVisible, setIsTransferModalVisible] = useState(false);
@@ -251,14 +254,36 @@ const TirelireScreen: React.FC = () => {
     }
 
     try {
-      await breakSingleTirelireCagnottesOnly(user.id, tirelireParent, montant);
-
-      showToast(
-        "success",
-        "Argent récupéré !",
-        `${formatCurrency(montant)} ont été ajoutés à votre argent non réparti.`,
+      const result = await breakSingleTirelireCagnottesOnly(
+        user.id,
+        tirelireParent,
+        montant,
       );
 
+      if(result.recupere < 0.01) {
+        showToast(
+          "warning",
+          "Aucun montant récupéré",
+          "Aucun montant n'a été récupéré car les cagnottes sont verrouillées."
+        );
+
+      }else{
+        if (result.manquant > 0.01) {
+        showToast(
+          "warning",
+          "Retrait partiel",
+          `Seul ${formatCurrency(result.recupere)} a été récupéré. Le reste (${formatCurrency(result.manquant)}) est protégé par des cagnottes verrouillées.`,
+        );
+      } else {
+        showToast(
+          "success",
+          "Argent récupéré !",
+          `${formatCurrency(montant)} ont été ajoutés à votre argent non réparti.`,
+        );
+      }
+      }
+
+      
       setIsBreakModalVisible(false);
       setMontantSaisi("");
       refresh();
@@ -313,6 +338,24 @@ const TirelireScreen: React.FC = () => {
     }
   };
 
+  const handleUpdateIsLocked = async (
+    cagnotteId: string,
+    isLocked: boolean,
+  ) => {
+    updateLocalSubTirelire(cagnotteId, { isLocked: isLocked });
+
+    try {
+      await updateTirelire(cagnotteId, { is_locked: isLocked });
+    } catch (e) {
+      updateLocalSubTirelire(cagnotteId, { isLocked: !isLocked });
+      showToast(
+        "error",
+        "Erreur",
+        "Impossible de mettre à jour le verrouillage.",
+      );
+    }
+  };
+
   const renderSubTirelire = ({
     item: sub,
     drag,
@@ -335,6 +378,11 @@ const TirelireScreen: React.FC = () => {
               elevation: 8,
               shadowOpacity: 0.3,
               transform: [{ scale: 1.02 }],
+            },
+            sub.isLocked && {
+              borderStyle: "dashed",
+              borderColor: "#9b59b6",
+              borderWidth: 2,
             },
           ]}
         >
@@ -399,6 +447,17 @@ const TirelireScreen: React.FC = () => {
                 }}
               >
                 <Trash2 size={18} color="#e74c3c" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  handleUpdateIsLocked(sub.id, !sub.isLocked);
+                }}
+              >
+                {sub.isLocked ? (
+                  <Lock size={18} color="#9b59b6" />
+                ) : (
+                  <Unlock size={18} color="#9b59b6" />
+                )}
               </TouchableOpacity>
             </View>
           </View>

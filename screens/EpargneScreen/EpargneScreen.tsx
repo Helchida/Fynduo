@@ -25,6 +25,8 @@ import {
   Briefcase,
   GripVertical,
   Zap,
+  Unlock,
+  Lock,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -92,8 +94,14 @@ const EpargneScreen: React.FC = () => {
   const { revenus, charges, loadData } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
 
-  const { tirelires, dejaPlaceCeMois, loading, refresh, getCagnottes } =
-    useEpargneData(user.id, moisCle);
+  const {
+    tirelires,
+    dejaPlaceCeMois,
+    loading,
+    refresh,
+    getCagnottes,
+    updateLocalTirelire,
+  } = useEpargneData(user.id, moisCle);
 
   useEffect(() => {
     if (user?.id) {
@@ -261,6 +269,20 @@ const EpargneScreen: React.FC = () => {
     }
   };
 
+  const handleUpdateIsLocked = async (
+    tirelireId: string,
+    isLocked: boolean,
+  ) => {
+    updateLocalTirelire(tirelireId, { isLocked: isLocked });
+
+    try {
+      await updateTirelire(tirelireId, { is_locked: isLocked });
+    } catch (e) {
+      updateLocalTirelire(tirelireId, { isLocked: !isLocked });
+      toast.error("Erreur", "Impossible de mettre à jour le verrouillage.");
+    }
+  };
+
   const handleUpdateTirelire = async () => {
     if (!editingTirelire) return;
 
@@ -371,12 +393,25 @@ const EpargneScreen: React.FC = () => {
     }
 
     try {
-      await breakCascade(user.id, montant);
-
-      toast.success(
-        "Argent récupéré !",
-        `${formatCurrency(montant)} ont été ajoutés à vos revenus de ce mois.`,
-      );
+      const result = await breakCascade(user.id, montant);
+      if (result.recupere < 0.01) {
+        toast.warning(
+          "Aucun montant récupéré",
+          "Aucun montant n'a été récupéré car les cagnottes sont verrouillées.",
+        );
+      } else {
+        if (result.manquant > 0.01) {
+          toast.warning(
+            "Retrait partiel",
+            `Seul ${formatCurrency(result.recupere)} a été récupéré. Le reste (${formatCurrency(result.manquant)}) est protégé par des cagnottes verrouillées.`,
+          );
+        } else {
+          toast.success(
+            "Argent récupéré !",
+            `${formatCurrency(montant)} ont été ajoutés à vos revenus.`,
+          );
+        }
+      }
 
       await loadData();
 
@@ -438,6 +473,11 @@ const EpargneScreen: React.FC = () => {
             styles.tirelireCard,
             { marginHorizontal: 20 },
             isActive && { backgroundColor: "#f1f3f5", elevation: 4 },
+            item.isLocked && {
+              borderStyle: "dashed",
+              borderColor: "#9b59b6",
+              borderWidth: 2,
+            },
           ]}
         >
           <View style={styles.tirelireHeader}>
@@ -495,6 +535,17 @@ const EpargneScreen: React.FC = () => {
                 }}
               >
                 <Trash2 size={18} color="#e74c3c" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  handleUpdateIsLocked(item.id, !item.isLocked);
+                }}
+              >
+                {item.isLocked ? (
+                  <Lock size={18} color="#9b59b6" />
+                ) : (
+                  <Unlock size={18} color="#9b59b6" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -632,32 +683,30 @@ const EpargneScreen: React.FC = () => {
             )}
             <>
               <View style={styles.sectionHeader}>
-                
-                  <TouchableOpacity
-                    style={[
-                      styles.dispatchButton,
-                      epargneDisponible <= 0.0 && { opacity: 0.3 },
-                      { borderColor: "#27ae60", borderWidth: 1 },
-                    ]}
-                    onPress={() =>
-                      epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
-                    }
-                    disabled={epargneDisponible <= 0.0}
+                <TouchableOpacity
+                  style={[
+                    styles.dispatchButton,
+                    epargneDisponible <= 0.0 && { opacity: 0.3 },
+                    { borderColor: "#27ae60", borderWidth: 1 },
+                  ]}
+                  onPress={() =>
+                    epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
+                  }
+                  disabled={epargneDisponible <= 0.0}
+                >
+                  <HandCoins size={24} color="#27ae60" />
+                  <Text
+                    style={[styles.dispatchButtonText, { color: "#27ae60" }]}
                   >
-                    <HandCoins size={24} color="#27ae60" />
-                    <Text
-                      style={[styles.dispatchButtonText, { color: "#27ae60" }]}
-                    >
-                      Placer
-                    </Text>
-                  </TouchableOpacity>
-                
+                    Placer
+                  </Text>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     styles.dispatchButton,
                     { borderColor: "#e67e22", borderWidth: 1 },
-                      totalCumuleTirelires < 0.01 && { opacity: 0.3 },
+                    totalCumuleTirelires < 0.01 && { opacity: 0.3 },
                   ]}
                   onPress={() => openBreakModal()}
                   disabled={totalCumuleTirelires < 0.01}

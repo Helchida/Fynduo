@@ -18,9 +18,17 @@ export const useSubTirelires = (parentId: string) => {
     }
   }, [parentId]);
 
+  const updateLocalSubTirelire = (id: string, partialData: Partial<ITirelire>) => {
+    setSubTirelires((current) =>
+      current.map((t) => (t.id === id ? { ...t, ...partialData } : t)),
+    );
+  };
+
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  return { subTirelires, loading, refresh };
+
+
+  return { subTirelires, loading, refresh, updateLocalSubTirelire };
 };
