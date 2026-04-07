@@ -1,5 +1,6 @@
 import { View, Text, TextInput } from "react-native";
-import { styles } from "./LoyerSection.style";
+import { styles } from "../../../styles/screens/RegulationScreen/LoyerSection/LoyerSection.style";
+import { common } from "styles/common.style";
 import { LoyerSectionProps } from "./LoyerSection.type";
 
 const LoyerSection: React.FC<LoyerSectionProps> = ({
@@ -12,8 +13,8 @@ const LoyerSection: React.FC<LoyerSectionProps> = ({
   getDisplayName,
 }) => {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
+    <View style={common.cardFlat}>
+      <Text style={common.cardFlatTitle}>
         💰 Loyer (Mois: {moisDeLoyerAffiche})
       </Text>
 

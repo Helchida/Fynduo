@@ -10,7 +10,8 @@ import {
   FlatList,
 } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
-import { styles } from "./LoyerScreen.style";
+import { styles } from "../../styles/screens/LoyerScreen/LoyerScreen.style";
+import { common } from "../../styles/common.style";
 import { IUser, ILoyerConfig } from "../../types";
 import * as DB from "../../services/supabase/db";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
@@ -182,7 +183,7 @@ const LoyerScreen: React.FC = () => {
   };
 
   if (isLoadingConfig || isLoadingUsers) {
-    return <Text style={styles.loading}>Chargement des données loyer...</Text>;
+    return <Text style={common.loadingText}>Chargement des données loyer...</Text>;
   }
 
   const totalApl = householdUsers.reduce((sum, u) => {
@@ -198,9 +199,9 @@ const LoyerScreen: React.FC = () => {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={common.scrollContent}
     >
-      <Text style={styles.header}>Gestion du loyer</Text>
+      <Text style={common.sectionTitle}>Gestion du loyer</Text>
 
       <View style={{ backgroundColor: '#e3f2fd', padding: 15, marginBottom: 15, borderRadius: 8, borderWidth: 1, borderColor: '#2196f3' }}>
         <Text style={{ color: '#1565c0', fontSize: 14, fontWeight: '600' }}>
@@ -213,10 +214,10 @@ const LoyerScreen: React.FC = () => {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>💰 Loyer & Paiement</Text>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Loyer total à payer (€)</Text>
+        <View style={common.inputGroup}>
+          <Text style={common.label}>Loyer total à payer (€)</Text>
           <TextInput
-            style={styles.input}
+            style={common.input}
             value={loyerTotal}
             onChangeText={setLoyerTotal}
             keyboardType="decimal-pad"
@@ -226,11 +227,11 @@ const LoyerScreen: React.FC = () => {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Qui payera le loyer ?</Text>
+        <View style={common.inputGroup}>
+          <Text style={common.label}>Qui payera le loyer ?</Text>
           <TouchableOpacity
             style={[
-              styles.input,
+              common.input,
               styles.dropdownInput,
               isDisabled && styles.disabledInput,
             ]}
@@ -251,10 +252,10 @@ const LoyerScreen: React.FC = () => {
       <View style={[styles.card, styles.aplCard]}>
         <Text style={styles.sectionTitle}>📩 Apports APL</Text>
         {householdUsers.map((u) => (
-          <View key={u.id} style={styles.inputGroup}>
-            <Text style={styles.label}>APL de {u.displayName}</Text>
+          <View key={u.id} style={common.inputGroup}>
+            <Text style={common.label}>APL de {u.displayName}</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               value={apportsAPL[u.id] || ""}
               onChangeText={(text) =>
                 handleAplChange(u.id, text.replace(",", "."))
@@ -281,7 +282,7 @@ const LoyerScreen: React.FC = () => {
 
       <View style={styles.validationContainer}>
         <TouchableOpacity
-          style={[styles.validationButton, isDisabled && styles.disabledButton]}
+          style={[styles.validationButton, isDisabled && common.disabledButton]}
           onPress={handleSave}
           disabled={isDisabled}
         >
@@ -299,30 +300,30 @@ const LoyerScreen: React.FC = () => {
         transparent={true}
         onRequestClose={() => setIsPayeurModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Sélectionner le payeur</Text>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>Sélectionner le payeur</Text>
             <FlatList
               data={householdUsers}
               keyExtractor={(item) => item.id}
               renderItem={({ item }: { item: IUser }) => (
                 <TouchableOpacity
                   style={[
-                    styles.modalItem,
-                    item.id === loyerPayeurUid && styles.modalItemSelected,
+                    common.modalItem,
+                    item.id === loyerPayeurUid && common.modalItemSelected,
                   ]}
                   onPress={() => selectPayeur(item.id)}
                 >
-                  <Text style={styles.modalItemText}>{item.displayName}</Text>
+                  <Text style={common.modalItemText}>{item.displayName}</Text>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              ItemSeparatorComponent={() => <View style={common.separator} />}
             />
             <TouchableOpacity
-              style={styles.modalCloseButton}
+              style={common.modalCloseButton}
               onPress={() => setIsPayeurModalVisible(false)}
             >
-              <Text style={styles.modalCloseButtonText}>Fermer</Text>
+              <Text style={common.modalCloseButtonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
         </View>

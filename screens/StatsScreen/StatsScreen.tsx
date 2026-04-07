@@ -9,7 +9,7 @@ import {
   Pressable,
   Modal,
 } from "react-native";
-import { styles } from "./StatsScreen.style";
+import { styles } from "../../styles/screens/StatsScreen/StatsScreen.style";
 import { useComptes } from "../../hooks/useComptes";
 import { useCategories } from "../../hooks/useCategories";
 import { useStats } from "../../hooks/useStats";

@@ -10,7 +10,8 @@ import {
   Pressable,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
-import { styles } from "./EpargneScreen.style";
+import { styles } from "../../styles/screens/EpargneScreen/EpargneScreen.style";
+import { common } from "../../styles/common.style";
 import {
   PiggyBank,
   ChevronLeft,
@@ -498,13 +499,13 @@ const EpargneScreen: React.FC = () => {
                 }}
               >
                 <View
-                  style={[styles.priorityBadge, styles.priorityBadgeNormal]}
+                  style={[common.priorityBadge, common.priorityBadgeNormal]}
                 >
-                  <Text style={styles.priorityText}>
+                  <Text style={common.priorityText}>
                     {(getIndex() ?? 0) + 1}
                   </Text>
                 </View>
-                <Text style={styles.subTitle}>{item.description}</Text>
+                <Text style={common.subTitle}>{item.description}</Text>
               </View>
               <Text style={styles.tirelireAmount}>
                 {formatCurrency(item.montantActuel)}{" "}
@@ -514,7 +515,7 @@ const EpargneScreen: React.FC = () => {
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", gap: 15 }}>
+            <View style={common.subActions}>
               <TouchableOpacity
                 onPress={() => {
                   setEditingTirelire(item);
@@ -682,10 +683,10 @@ const EpargneScreen: React.FC = () => {
               </View>
             )}
             <>
-              <View style={styles.sectionHeader}>
+              <View style={common.sectionHeader}>
                 <TouchableOpacity
                   style={[
-                    styles.dispatchButton,
+                    common.dispatchButton,
                     epargneDisponible <= 0.0 && { opacity: 0.3 },
                     { borderColor: "#27ae60", borderWidth: 1 },
                   ]}
@@ -696,7 +697,7 @@ const EpargneScreen: React.FC = () => {
                 >
                   <HandCoins size={24} color="#27ae60" />
                   <Text
-                    style={[styles.dispatchButtonText, { color: "#27ae60" }]}
+                    style={[common.dispatchButtonText, { color: "#27ae60" }]}
                   >
                     Placer
                   </Text>
@@ -704,7 +705,7 @@ const EpargneScreen: React.FC = () => {
 
                 <TouchableOpacity
                   style={[
-                    styles.dispatchButton,
+                    common.dispatchButton,
                     { borderColor: "#e67e22", borderWidth: 1 },
                     totalCumuleTirelires < 0.01 && { opacity: 0.3 },
                   ]}
@@ -713,7 +714,7 @@ const EpargneScreen: React.FC = () => {
                 >
                   <Hammer size={24} color="#e67e22" />
                   <Text
-                    style={[styles.dispatchButtonText, { color: "#e67e22" }]}
+                    style={[common.dispatchButtonText, { color: "#e67e22" }]}
                   >
                     Casser
                   </Text>
@@ -721,24 +722,24 @@ const EpargneScreen: React.FC = () => {
 
                 <TouchableOpacity
                   style={[
-                    styles.dispatchButton,
+                    common.dispatchButton,
                     { borderColor: "#3498db", borderWidth: 1 },
                   ]}
                   onPress={() => setIsAddModalVisible(true)}
                 >
                   <PlusCircle size={24} color="#3498db" />
                   <Text
-                    style={[styles.dispatchButtonText, { color: "#3498db" }]}
+                    style={[common.dispatchButtonText, { color: "#3498db" }]}
                   >
                     Ajouter
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.sectionHeader}>
-                <View style={styles.titleWithIcon}>
+              <View style={common.sectionHeader}>
+                <View style={common.titleWithIcon}>
                   <PiggyBank size={22} color="#2c3e50" />
-                  <Text style={styles.sectionTitle}>Mes tirelires</Text>
+                  <Text style={common.sectionTitle}>Mes tirelires</Text>
                 </View>
               </View>
 
@@ -765,8 +766,8 @@ const EpargneScreen: React.FC = () => {
         animationType="slide"
         transparent={true}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
             <View
               style={{
                 flexDirection: "row",
@@ -781,20 +782,20 @@ const EpargneScreen: React.FC = () => {
               ) : (
                 <PiggyBank size={22} color="#2c3e50" />
               )}
-              <Text style={[styles.modalTitle, { marginBottom: 0 }]}>
+              <Text style={[common.modalTitle, { marginBottom: 0 }]}>
                 {editingTirelire ? "Modifier l'objectif" : "Nouvel Objectif"}
               </Text>
             </View>
-            <Text style={styles.inputLabel}>Nom du projet</Text>
+            <Text style={common.inputLabel}>Nom du projet</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="ex: Voyage Japon"
               value={newTirelire.nom}
               onChangeText={(t) => setNewTirelire({ ...newTirelire, nom: t })}
             />
-            <Text style={styles.inputLabel}>Montant initial (€)</Text>
+            <Text style={common.inputLabel}>Montant initial (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="ex: 2000"
               keyboardType="decimal-pad"
               value={newTirelire.montantInitial}
@@ -802,9 +803,9 @@ const EpargneScreen: React.FC = () => {
                 setNewTirelire({ ...newTirelire, montantInitial: t })
               }
             />
-            <Text style={styles.inputLabel}>Budget total (€)</Text>
+            <Text style={common.inputLabel}>Budget total (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="ex: 1200"
               keyboardType="decimal-pad"
               value={newTirelire.objectif}
@@ -812,24 +813,24 @@ const EpargneScreen: React.FC = () => {
                 setNewTirelire({ ...newTirelire, objectif: t })
               }
             />
-            <View style={styles.modalButtons}>
+            <View style={common.modalButtons}>
               <TouchableOpacity
-                style={styles.btnCancel}
+                style={common.btnCancel}
                 onPress={() => {
                   setIsAddModalVisible(false);
                   setEditingTirelire(null);
                   setNewTirelire({ nom: "", objectif: "", montantInitial: "" });
                 }}
               >
-                <Text style={styles.btnCancelText}>Annuler</Text>
+                <Text style={common.btnCancelText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.btnConfirm}
+                style={common.btnConfirm}
                 onPress={
                   editingTirelire ? handleUpdateTirelire : handleAddTirelire
                 }
               >
-                <Text style={styles.btnConfirmText}>
+                <Text style={common.btnConfirmText}>
                   {editingTirelire ? "Modifier" : "Créer"}
                 </Text>
               </TouchableOpacity>
@@ -843,9 +844,9 @@ const EpargneScreen: React.FC = () => {
         animationType="fade"
         transparent={true}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Placer de l'argent</Text>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>Placer de l'argent</Text>
             <Text
               style={{
                 textAlign: "center",
@@ -856,9 +857,9 @@ const EpargneScreen: React.FC = () => {
               Disponible ce mois : {formatCurrency(epargneDisponible)}
             </Text>
 
-            <Text style={styles.inputLabel}>Montant à placer (€)</Text>
+            <Text style={common.inputLabel}>Montant à placer (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               keyboardType="decimal-pad"
               autoFocus
               placeholder="ex: 100"
@@ -866,16 +867,16 @@ const EpargneScreen: React.FC = () => {
               onChangeText={setMontantSaisi}
             />
 
-            <Text style={styles.inputLabel}>Vers quelle tirelire ?</Text>
+            <Text style={common.inputLabel}>Vers quelle tirelire ?</Text>
             <ScrollView style={{ maxHeight: 200 }}>
               {tirelires.map((t) => (
                 <TouchableOpacity
                   key={t.id}
-                  style={styles.dispatchItem}
+                  style={common.dispatchItem}
                   onPress={() => handlePlaceEpargne(t.id)}
                 >
-                  <Text style={styles.dispatchItemName}>{t.description}</Text>
-                  <Text style={styles.dispatchItemReste}>
+                  <Text style={common.dispatchItemName}>{t.description}</Text>
+                  <Text style={common.dispatchItemReste}>
                     Reste {formatCurrency(t.objectif - t.montantActuel)}
                   </Text>
                 </TouchableOpacity>
@@ -883,10 +884,10 @@ const EpargneScreen: React.FC = () => {
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.btnCancel, { marginTop: 15 }]}
+              style={[common.btnCancel, { marginTop: 15 }]}
               onPress={() => setIsDispatchModalVisible(false)}
             >
-              <Text style={styles.btnCancelText}>Annuler</Text>
+              <Text style={common.btnCancelText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -897,12 +898,12 @@ const EpargneScreen: React.FC = () => {
         animationType="fade"
         transparent={true}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Retirer de l'argent</Text>
-            <Text style={styles.inputLabel}>Montant à retirer (€)</Text>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>Retirer de l'argent</Text>
+            <Text style={common.inputLabel}>Montant à retirer (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               keyboardType="decimal-pad"
               autoFocus
               placeholder="ex: 100"
@@ -910,8 +911,8 @@ const EpargneScreen: React.FC = () => {
               onChangeText={setMontantSaisi}
             />
 
-            <View style={styles.breakInfoBox}>
-              <Text style={styles.breakInfoText}>
+            <View style={common.breakInfoBox}>
+              <Text style={common.breakInfoText}>
                 Ce montant sera retiré de la tirelire et ajouté à vos revenus de
                 ce mois afin de couvrir votre dépense réelle.
               </Text>
@@ -919,39 +920,39 @@ const EpargneScreen: React.FC = () => {
 
             {!isChooseTirelireToBreak ? (
               <>
-                <Text style={styles.inputLabel}>De quelle tirelire ?</Text>
+                <Text style={common.inputLabel}>De quelle tirelire ?</Text>
                 <ScrollView style={{ maxHeight: 200 }}>
                   <TouchableOpacity
-                    style={[styles.dispatchItem, styles.dispatchItemAuto]}
+                    style={[common.dispatchItem, common.dispatchItemAuto]}
                     onPress={async () => {
                       handleConfirmBreakLessImportant();
                     }}
                   >
-                    <View style={styles.dispatchItemAutoContent}>
-                      <View style={styles.dispatchItemAutoText}>
+                    <View style={common.dispatchItemAutoContent}>
+                      <View style={common.dispatchItemAutoText}>
                         <Text
                           style={[
-                            styles.dispatchItemName,
-                            styles.dispatchItemAutoName,
+                            common.dispatchItemName,
+                            common.dispatchItemAutoName,
                           ]}
                         >
                           Retrait Automatique
                         </Text>
-                        <Text style={styles.dispatchItemReste}>
+                        <Text style={common.dispatchItemReste}>
                           Piochera dans vos tirelires selon leur priorité.
                         </Text>
                       </View>
                       <Zap
                         size={24}
                         color="#e67e22"
-                        style={styles.dispatchItemAutoIcon}
+                        style={common.dispatchItemAutoIcon}
                       />
                     </View>
                   </TouchableOpacity>
                   {tirelires.map((t) => (
                     <TouchableOpacity
                       key={t.id}
-                      style={styles.dispatchItem}
+                      style={common.dispatchItem}
                       onPress={async () => {
                         const cagnottes = await getCagnottes(t.id);
                         if (cagnottes.length > 0) {
@@ -964,10 +965,10 @@ const EpargneScreen: React.FC = () => {
                         }
                       }}
                     >
-                      <Text style={styles.dispatchItemName}>
+                      <Text style={common.dispatchItemName}>
                         {t.description}
                       </Text>
-                      <Text style={styles.dispatchItemReste}>
+                      <Text style={common.dispatchItemReste}>
                         Contient {formatCurrency(t.montantActuel)}
                       </Text>
                     </TouchableOpacity>
@@ -976,18 +977,18 @@ const EpargneScreen: React.FC = () => {
               </>
             ) : (
               <>
-                <Text style={styles.inputLabel}>De quelle cagnotte ?</Text>
+                <Text style={common.inputLabel}>De quelle cagnotte ?</Text>
                 <ScrollView style={{ maxHeight: 200 }}>
                   {cagnottesOfTirelireToBreak.map((c) => (
                     <TouchableOpacity
                       key={c.id}
-                      style={styles.dispatchItem}
+                      style={common.dispatchItem}
                       onPress={() => handleConfirmBreak(c)}
                     >
-                      <Text style={styles.dispatchItemName}>
+                      <Text style={common.dispatchItemName}>
                         {c.description}
                       </Text>
-                      <Text style={styles.dispatchItemReste}>
+                      <Text style={common.dispatchItemReste}>
                         Contient {formatCurrency(c.montantActuel)}
                       </Text>
                     </TouchableOpacity>
@@ -997,14 +998,14 @@ const EpargneScreen: React.FC = () => {
             )}
 
             <TouchableOpacity
-              style={[styles.btnCancel, { marginTop: 15 }]}
+              style={[common.btnCancel, { marginTop: 15 }]}
               onPress={() => {
                 setIsBreakModalVisible(false);
                 setIsChooseTirelireToBreak(false);
                 setCagnottesOfTirelireToBreak([]);
               }}
             >
-              <Text style={styles.btnCancelText}>Annuler</Text>
+              <Text style={common.btnCancelText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>

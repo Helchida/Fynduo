@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./PayeurPickerModal.style";
+import { styles } from "../../../../styles/screens/ChargeDetailScreen/EditChargeForm/PayeurPickerModal/PayeurPickerModal.style";
+import { common } from "../../../../styles/common.style";
 import { PayeurPickerModalProps } from "./PayeurPickerModal.type";
 
 export const PayeurPickerModal = ({
@@ -12,9 +13,9 @@ export const PayeurPickerModal = ({
   getDisplayName,
 }: PayeurPickerModalProps) => (
   <Modal visible={isVisible} transparent animationType="slide">
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalHeader}>Qui a payé ?</Text>
+    <View style={common.modalOverlay}>
+      <View style={common.modalContent}>
+        <Text style={common.modalTitle}>Qui a payé ?</Text>
         {users.map((u) => (
           <TouchableOpacity
             key={u.id}

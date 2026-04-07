@@ -8,14 +8,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
-import { styles } from "./UserSettingsScreen.style";
+import { styles } from "../../styles/screens/UserSettingsScreen/UserSettingsScreen.style";
+import { common } from "../../styles/common.style";
 import {
   Mail,
   Lock,
   Trash2,
   ChevronRight,
   X,
-  Check,
 } from "lucide-react-native";
 import {
   updateProfile,
@@ -28,11 +28,8 @@ import {
 import { auth } from "services/firebase/config";
 import { updateUserInfo } from "services/supabase/db";
 import { useToast } from "hooks/useToast";
-import { useNavigation } from "@react-navigation/native";
-import { RootStackNavigationProp } from "@/types";
 
 const UserSettingsScreen: React.FC = () => {
-  const navigation = useNavigation<RootStackNavigationProp>();
   const toast = useToast();
   const { user, logout, updateLocalUser } = useAuth();
 
@@ -124,9 +121,9 @@ const UserSettingsScreen: React.FC = () => {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={common.scrollContent}
     >
-      <Text style={styles.header}>Paramètres</Text>
+      <Text style={common.sectionTitle}>Paramètres</Text>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Nom d'affichage</Text>
         <TextInput

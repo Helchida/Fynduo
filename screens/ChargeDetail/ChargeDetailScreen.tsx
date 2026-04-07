@@ -6,7 +6,7 @@ import {
   RootStackRouteProp,
 } from "../../types";
 import dayjs from "dayjs";
-import { styles } from "./ChargeDetailScreen.style";
+import { styles } from "../../styles/screens/ChargeDetailScreen/ChargeDetailScreen.style";
 import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import {

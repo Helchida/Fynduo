@@ -7,7 +7,8 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
-import { styles } from "./CategoryPickerModal.style";
+import { styles } from "../../../../styles/screens/ChargeDetailScreen/EditChargeForm/CategoryPickerModal/CategoryPickerModal.style";
+import { common } from "../../../../styles/common.style";
 import { CategoryPickerModalProps } from "./CategoryPickerModal.type";
 import { CategoryType } from "@/types";
 import { useCategories } from "hooks/useCategories";
@@ -65,8 +66,8 @@ export const CategoryPickerModal = ({
   };
   return (
     <Modal visible={isVisible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      <View style={common.modalOverlay}>
+        <View style={common.modalContent}>
           <TextInput
             ref={emojiInputRef}
             style={{ position: "absolute", opacity: 0, height: 0, width: 0 }}

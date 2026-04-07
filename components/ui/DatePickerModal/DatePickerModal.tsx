@@ -2,7 +2,8 @@ import React from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
 import dayjs from "dayjs";
 import { DatePickerModalProps } from "./DatePickerModal.type";
-import { styles } from "./DatePickerModal.style";
+import { styles } from "../../../styles/components/ui/DatePickerModal/DatePickerModal.style";
+import { common } from "styles/common.style";
 
 export const DatePickerModal = ({
   isVisible,
@@ -18,12 +19,12 @@ export const DatePickerModal = ({
       onRequestClose={onClose}
     >
       <TouchableOpacity
-        style={styles.overlay}
+        style={[common.modalOverlay, common.modalCenteredOverlay]}
         activeOpacity={1}
         onPress={onClose}
       >
         <View
-          style={styles.modalContainer}
+          style={common.modalCenteredContainer}
           onStartShouldSetResponder={() => true}
           onTouchEnd={(e) => e.stopPropagation()}
         >

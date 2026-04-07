@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { XCircle, ChevronsUpDown } from "lucide-react-native";
-import { styles } from "./EditRevenuForm.style";
+import { styles } from "../../../styles/screens/RevenuDetail/EditRevenuForm/EditRevenuForm.style";
+import { common } from "styles/common.style";
 import { EditRevenuFormProps } from "./EditRevenuForm.type";
 import { CategoryPickerModal } from "./CategoryPickerModal/CategoryPickerModal";
 import { CategoryType } from "@/types";
@@ -41,12 +42,12 @@ export const EditRevenuForm = ({
 
   return (
     <View style={styles.editFormContainer}>
-      <View style={[styles.userCard, styles.payorCard, { marginBottom: 12 }]}>
+      <View style={[common.userCard, common.payorCard, { marginBottom: 12 }]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.editLabel}>Titre</Text>
-          <View style={styles.inputFieldContainer}>
+          <Text style={common.editLabel}>Titre</Text>
+          <View style={common.inputFieldContainer}>
             <TextInput
-              style={styles.editInputActive}
+              style={common.editInputActive}
               value={editDescription}
               onChangeText={setEditDescription}
               placeholder="Nom du revenu"
@@ -62,12 +63,12 @@ export const EditRevenuForm = ({
         </View>
       </View>
 
-      <View style={[styles.userCard, styles.payorCard, { marginBottom: 16 }]}>
+      <View style={[common.userCard, common.payorCard, { marginBottom: 16 }]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.editLabel}>Montant Total</Text>
-          <View style={styles.inputFieldContainer}>
+          <Text style={common.editLabel}>Montant Total</Text>
+          <View style={common.inputFieldContainer}>
             <TextInput
-              style={[styles.editInputActive]}
+              style={[common.editInputActive]}
               value={editMontant}
               onChangeText={(text) => setEditMontant(text.replace(",", "."))}
               keyboardType="decimal-pad"
@@ -76,16 +77,16 @@ export const EditRevenuForm = ({
               placeholderTextColor="#95a5a6"
               maxLength={8}
             />
-            <Text style={[styles.cardAmount, { marginLeft: 4 }]}>€</Text>
+            <Text style={[common.cardAmount, { marginLeft: 4 }]}>€</Text>
           </View>
         </View>
       </View>
 
       <TouchableOpacity
-        style={[styles.editSectionCard, styles.payorCard]}
+        style={[common.formContainer, common.payorCard]}
         onPress={() => setIsCategoryModalVisible(true)}
       >
-        <Text style={styles.editLabel}>Catégorie</Text>
+        <Text style={common.editLabel}>Catégorie</Text>
         <View style={styles.selectorContainer}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ fontSize: 18, marginRight: 8 }}>
@@ -124,7 +125,7 @@ export const EditRevenuForm = ({
 
       <TouchableOpacity
         style={[
-          styles.saveButton,
+          common.saveButton,
           isInvalid && {
             opacity: 0.5,
           },
@@ -132,7 +133,7 @@ export const EditRevenuForm = ({
         onPress={handleUpdateRevenu}
         disabled={isInvalid}
       >
-        <Text style={styles.saveButtonText}>
+        <Text style={common.saveButtonText}>
           {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
         </Text>
       </TouchableOpacity>

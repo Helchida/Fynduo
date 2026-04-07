@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { BadgeChargeProps } from "./BadgeCharge.type";
-import { styles } from "./BadgeCharge.style";
+import { styles } from "../../../styles/components/fynduo/BadgeCharge/BadgeCharge.style";
 
 const BadgeCharge: React.FC<BadgeChargeProps> = ({
   chargeScope,

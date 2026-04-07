@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { styles } from "./AvatarName.style";
+import { styles } from "../../../styles/components/ui/AvatarName/AvatarName.style";
 import { AvatarNameProps } from "./AvatarName.type";
 import { User } from "lucide-react-native";
 

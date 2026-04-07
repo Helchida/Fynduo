@@ -3,7 +3,8 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { XCircle, ChevronsUpDown } from "lucide-react-native";
 import { PayeurPickerModal } from "./PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "./BeneficiariesSelector/BeneficiariesSelector";
-import { styles } from "./EditChargeForm.style";
+import { styles } from "../../../styles/screens/ChargeDetailScreen/EditChargeForm/EditChargeForm.style";
+import { common } from "../../../styles/common.style";
 import { EditChargeFormProps } from "./EditChargeForm.type";
 import { CategoryPickerModal } from "./CategoryPickerModal/CategoryPickerModal";
 import { CategoryType } from "@/types";
@@ -54,12 +55,12 @@ export const EditChargeForm = ({
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
   return (
     <View style={styles.editFormContainer}>
-      <View style={[styles.userCard, styles.payorCard, { marginBottom: 12 }]}>
+      <View style={[common.userCard, common.payorCard, { marginBottom: 12 }]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.editLabel}>Titre</Text>
-          <View style={styles.inputFieldContainer}>
+          <Text style={common.editLabel}>Titre</Text>
+          <View style={common.inputFieldContainer}>
             <TextInput
-              style={styles.editInputActive}
+              style={common.editInputActive}
               value={editDescription}
               onChangeText={setEditDescription}
               placeholder="Nom de la dépense"
@@ -75,12 +76,12 @@ export const EditChargeForm = ({
         </View>
       </View>
 
-      <View style={[styles.userCard, styles.payorCard, { marginBottom: 16 }]}>
+      <View style={[common.userCard, common.payorCard, { marginBottom: 16 }]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.editLabel}>Montant Total</Text>
-          <View style={styles.inputFieldContainer}>
+          <Text style={common.editLabel}>Montant Total</Text>
+          <View style={common.inputFieldContainer}>
             <TextInput
-              style={[styles.editInputActive]}
+              style={[common.editInputActive]}
               value={editMontant}
               onChangeText={(text) => setEditMontant(text.replace(",", "."))}
               keyboardType="decimal-pad"
@@ -89,16 +90,16 @@ export const EditChargeForm = ({
               placeholderTextColor="#95a5a6"
               maxLength={8}
             />
-            <Text style={[styles.cardAmount, { marginLeft: 4 }]}>€</Text>
+            <Text style={[common.cardAmount, { marginLeft: 4 }]}>€</Text>
           </View>
         </View>
       </View>
 
       <TouchableOpacity
-        style={[styles.editSectionCard, styles.payorCard]}
+        style={[common.formContainer, common.payorCard]}
         onPress={() => setIsCategoryModalVisible(true)}
       >
-        <Text style={styles.editLabel}>Catégorie</Text>
+        <Text style={common.editLabel}>Catégorie</Text>
         <View style={styles.selectorContainer}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ fontSize: 18, marginRight: 8 }}>
@@ -116,13 +117,13 @@ export const EditChargeForm = ({
         {!isActiveHouseholdSolo && (
           <TouchableOpacity
             style={[
-              styles.editSectionCard,
-              styles.payorCard,
+              common.formContainer,
+              common.payorCard,
               { flex: 1, marginRight: 8 },
             ]}
             onPress={() => setIsPayeurModalVisible(true)}
           >
-            <Text style={styles.editLabel}>Payé par</Text>
+            <Text style={common.editLabel}>Payé par</Text>
             <View style={styles.selectorContainer}>
               <Text style={styles.miniUserText} numberOfLines={1}>
                 {getDisplayName(editPayeurUid || "")}
@@ -176,7 +177,7 @@ export const EditChargeForm = ({
       )}
       <TouchableOpacity
         style={[
-          styles.saveButton,
+          common.saveButton,
           isInvalid && {
             opacity: 0.5,
           },
@@ -184,7 +185,7 @@ export const EditChargeForm = ({
         onPress={handleUpdateCharge}
         disabled={isInvalid}
       >
-        <Text style={styles.saveButtonText}>
+        <Text style={common.saveButtonText}>
           {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
         </Text>
       </TouchableOpacity>

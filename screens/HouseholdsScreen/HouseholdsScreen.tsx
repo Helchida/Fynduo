@@ -8,7 +8,8 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import { styles } from "./HouseholdsScreen.style";
+import { styles } from "../../styles/screens/HouseholdsScreen/HouseholdsScreen.style";
+import { common } from "../../styles/common.style";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import {
@@ -265,7 +266,7 @@ const HouseholdsScreen: React.FC = () => {
 
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={common.scrollContent}
       >
         {user.households?.map((hId) => {
           if (hId === user.id) return null;

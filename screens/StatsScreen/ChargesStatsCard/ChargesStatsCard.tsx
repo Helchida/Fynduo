@@ -10,7 +10,8 @@ import { PieChart } from "react-native-gifted-charts";
 import dayjs from "dayjs";
 import { ChargesStatsCardProps } from "./ChargesStatsCard.type";
 import { ICharge } from "@/types";
-import { styles } from "./ChargesStatsCard.style";
+import { styles } from "../../../styles/screens/StatsScreen/ChargesStatsCard/ChargesStatsCard.style";
+import { common } from "styles/common.style";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
@@ -128,7 +129,7 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
 
       {!isCollapsed && (
         <>
-          <View style={styles.chartWrapper}>
+          <View style={common.chartWrapper}>
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
               <PieChart
                 donut
@@ -154,9 +155,9 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
                         <Text style={{ fontSize: 24, marginBottom: 4 }}>
                           {item.icon}
                         </Text>
-                        <Text style={styles.focusedCategory}>{item.label}</Text>
+                        <Text style={common.focusedCategory}>{item.label}</Text>
                         <Text style={styles.focusedPercentage}>{percent}%</Text>
-                        <Text style={styles.focusedAmount}>
+                        <Text style={common.focusedAmount}>
                           {item.montant.toFixed(2)}€
                         </Text>
                       </View>
@@ -166,10 +167,10 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
                     <View
                       style={{ alignItems: "center", justifyContent: "center" }}
                     >
-                      <Text style={styles.totalAmount}>
+                      <Text style={common.totalAmount}>
                         {total.toFixed(2)}€
                       </Text>
-                      <Text style={styles.totalLabel}>
+                      <Text style={common.totalLabel}>
                         {isSoloMode ? "Ma Part" : "Total Foyer"}
                       </Text>
                     </View>
@@ -179,7 +180,7 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
             </Animated.View>
           </View>
 
-          <View style={styles.legendWrapper}>
+          <View style={common.legendWrapper}>
             {statsParCategorie.map((item, index) => {
               const color = colorScale[index % colorScale.length];
               const percentValue = total > 0 ? (item.montant / total) * 100 : 0;
@@ -192,14 +193,14 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
               return (
                 <View key={item.categoryId}>
                   <TouchableOpacity
-                    style={styles.legendItem}
+                    style={common.legendItem}
                     onPress={() =>
                       setExpandedCategory(isExpanded ? null : item.categoryId)
                     }
                   >
                     <View
                       style={[
-                        styles.iconBox,
+                        common.iconBox,
                         { backgroundColor: `${color}15` },
                       ]}
                     >
@@ -207,18 +208,18 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
                     </View>
 
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.catName}>{item.label}</Text>
-                      <Text style={styles.catPercent}>
+                      <Text style={common.catName}>{item.label}</Text>
+                      <Text style={common.catPercent}>
                         {percent}% des dépenses
                       </Text>
                     </View>
 
                     <View style={{ alignItems: "flex-end" }}>
-                      <Text style={styles.catValue}>
+                      <Text style={common.catValue}>
                         {item.montant.toFixed(2)}€
                       </Text>
                       <View
-                        style={[styles.indicator, { backgroundColor: color }]}
+                        style={[common.indicator, { backgroundColor: color }]}
                       />
                     </View>
                   </TouchableOpacity>
@@ -271,7 +272,7 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
             })}
 
             {statsParCategorie.length === 0 && (
-              <Text style={styles.emptyText}>
+              <Text style={common.emptyText}>
                 Aucune dépense sur cette période.
               </Text>
             )}

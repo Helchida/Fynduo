@@ -11,7 +11,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { ICharge, RootStackNavigationProp } from "@/types";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
-import { styles } from "./ChargesScreen.style";
+import { styles } from "../../styles/screens/ChargesScreen/ChargesScreen.style";
+import { common } from "../../styles/common.style";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import ChargeItem from "./ChargeItem/ChargeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
@@ -282,18 +283,18 @@ const ChargesScreen: React.FC = () => {
       >
         <Text style={styles.header}>Charges variables</Text>
         <TouchableOpacity
-          style={styles.addButton}
+          style={common.addButton}
           onPress={() => setShowForm(!showForm)}
           disabled={isSubmitting}
         >
-          <Text style={styles.addButtonText}>
+          <Text style={common.addButtonText}>
             {showForm ? "Annuler l'ajout" : "+ Ajouter une dépense"}
           </Text>
         </TouchableOpacity>
 
         {showForm && (
-          <View style={styles.formContainer}>
-            <View style={styles.editSectionCard}>
+          <View style={common.formContainer}>
+            <View style={common.formContainer}>
               <Text style={styles.editLabel}>Titre</Text>
               <View style={styles.inputFieldContainer}>
                 <TextInput
@@ -308,7 +309,7 @@ const ChargesScreen: React.FC = () => {
               </View>
             </View>
 
-            <View style={styles.editSectionCard}>
+            <View style={common.formContainer}>
               <Text style={styles.editLabel}>Montant Total</Text>
               <View style={styles.inputFieldContainer}>
                 <TextInput
@@ -331,10 +332,10 @@ const ChargesScreen: React.FC = () => {
             </View>
 
             <TouchableOpacity
-              style={styles.selectorButton}
+              style={common.selectorButton}
               onPress={() => setIsCategoryModalVisible(true)}
             >
-              <Text style={styles.selectorLabel}>Catégorie</Text>
+              <Text style={common.selectorLabel}>Catégorie</Text>
               <View
                 style={{
                   flexDirection: "row",
@@ -368,8 +369,8 @@ const ChargesScreen: React.FC = () => {
                 containerStyle={{ flex: 1, marginLeft: 0 }}
                 styles={{
                   ...styles,
-                  editSectionCard: styles.selectorButton,
-                  editLabel: styles.selectorLabel,
+                  formContainer: common.selectorButton,
+                  editLabel: common.selectorLabel,
                   selectorContainer: {
                     flexDirection: "row",
                     alignItems: "center",
@@ -383,10 +384,10 @@ const ChargesScreen: React.FC = () => {
             {!isSoloHousehold && (
               <>
                 <TouchableOpacity
-                  style={styles.selectorButton}
+                  style={common.selectorButton}
                   onPress={() => setIsPayeurModalVisible(true)}
                 >
-                  <Text style={styles.selectorLabel}>Payé par</Text>
+                  <Text style={common.selectorLabel}>Payé par</Text>
                   <View
                     style={{
                       flexDirection: "row",
@@ -416,13 +417,13 @@ const ChargesScreen: React.FC = () => {
             )}
             <TouchableOpacity
               style={[
-                styles.saveButton,
+                common.saveButton,
                 (isSubmitting ||
                   benefCount === 0 ||
                   !payeurUid ||
                   !description ||
                   !montant) &&
-                  styles.disabledButton,
+                  common.disabledButton,
               ]}
               onPress={handleAddDepense}
               disabled={
@@ -433,7 +434,7 @@ const ChargesScreen: React.FC = () => {
                 !montant
               }
             >
-              <Text style={styles.saveButtonText}>
+              <Text style={common.saveButtonText}>
                 {isSubmitting ? "Enregistrement..." : "Enregistrer la dépense"}
               </Text>
             </TouchableOpacity>
@@ -443,12 +444,12 @@ const ChargesScreen: React.FC = () => {
           <View style={styles.balanceContainer}>
             <Text style={styles.balanceTitle}>Equilibrer ?</Text>
             {suggestionsVirements.length === 0 ? (
-              <Text style={styles.emptyText}>Tout est déjà équilibré ! ✨</Text>
+              <Text style={common.emptyText}>Tout est déjà équilibré ! ✨</Text>
             ) : (
               suggestionsVirements.map((virement, index) => (
                 <View key={index} style={styles.virementRow}>
                   <Text style={styles.virementText}>
-                    <Text style={styles.bold}>
+                    <Text style={common.bold}>
                       {getDisplayName(virement.de)}
                     </Text>{" "}
                     doit envoyer{" "}
@@ -456,7 +457,7 @@ const ChargesScreen: React.FC = () => {
                       {virement.montant.toFixed(2)}€
                     </Text>{" "}
                     à{" "}
-                    <Text style={styles.bold}>
+                    <Text style={common.bold}>
                       {getDisplayName(virement.a)}
                     </Text>
                   </Text>

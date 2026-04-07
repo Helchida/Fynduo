@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./ChargeItem.style";
+import { common } from "../../../styles/common.style";
 import { ChargeItemProps } from "./ChargeItem.type";
 import { useCategories } from "hooks/useCategories";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
-import { DEFAULT_CATEGORIES } from "constants/categories";
+
 
 const ChargeItem: React.FC<ChargeItemProps> = ({
   charge,
@@ -41,24 +41,24 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
 
   return (
     <TouchableOpacity
-      style={styles.depenseItem}
+      style={common.cashFlowItem}
       onPress={() => onPress(charge)}
     >
-      <View style={styles.avatarBadge}>
-        <Text style={styles.avatarText}>{categoryIcon}</Text>
+      <View style={common.avatarBadge}>
+        <Text style={common.avatarText}>{categoryIcon}</Text>
       </View>
 
-      <View style={styles.depenseInfo}>
-        <Text style={styles.depenseDesc}>{charge.description}</Text>
+      <View style={common.cashFlowInfo}>
+        <Text style={common.cashFlowDesc}>{charge.description}</Text>
 
         {!isActiveHouseholdSolo && (
-          <Text style={styles.depensePayer}>Payé par {payeurName}</Text>
+          <Text style={common.cashFlowPayer}>Payé par {payeurName}</Text>
         )}
       </View>
 
-      <View style={styles.depenseMontantContainer}>
+      <View style={common.cashFlowMontantContainer}>
         <BadgeCharge chargeScope={charge.scope} chargeType={charge.type} />
-        <Text style={styles.depenseMontant}>{montantAffiche} €</Text>
+        <Text style={common.cashFlowMontant}>{montantAffiche} €</Text>
       </View>
     </TouchableOpacity>
   );

@@ -7,7 +7,8 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { ConfirmModalProps } from "./ConfirmModal.type";
-import { styles } from "./ConfirmModal.style";
+import { styles } from "../../../styles/components/ui/ConfirmModal/ConfirmModal.style";
+import { common } from "styles/common.style";
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   visible,
@@ -21,9 +22,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   return (
     <Modal visible={visible} transparent animationType="fade">
       <TouchableWithoutFeedback onPress={onCancel}>
-        <View style={styles.overlay}>
+        <View style={[common.modalOverlay, common.modalCenteredOverlay]}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContainer}>
+            <View style={common.modalCenteredContainer}>
               <Text style={styles.title}>{title}</Text>
               <Text style={styles.message}>{message}</Text>
 

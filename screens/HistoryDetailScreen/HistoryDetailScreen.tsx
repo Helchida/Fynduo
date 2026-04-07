@@ -10,7 +10,8 @@ import {
 import { useCalculs } from "../../hooks/useCalculs";
 import * as DB from "../../services/supabase/db";
 import dayjs from "dayjs";
-import { styles } from "./HistoryDetailScreen.style";
+import { styles } from "../../styles/screens/HistoryDetailScreen/HistoryDetailScreen.style";
+import { common } from "../../styles/common.style";
 import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
@@ -87,7 +88,7 @@ const HistoryDetailScreen: React.FC = () => {
 
   if (loading || householdUsers.length === 0 || !historicalData) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={common.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
       </View>
     );

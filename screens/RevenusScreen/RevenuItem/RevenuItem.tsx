@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./RevenuItem.style";
+import { common } from "styles/common.style";
 import { useCategories } from "hooks/useCategories";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
@@ -26,19 +26,19 @@ const RevenuItem: React.FC<RevenuItemProps> = ({
 
   return (
     <TouchableOpacity
-      style={styles.revenuItem}
+      style={common.cashFlowItem}
       onPress={() => onPress(revenu)}
     >
-      <View style={styles.avatarBadge}>
-        <Text style={styles.avatarText}>{categoryIcon}</Text>
+      <View style={common.avatarBadge}>
+        <Text style={common.avatarText}>{categoryIcon}</Text>
       </View>
 
-      <View style={styles.revenuInfo}>
-        <Text style={styles.revenuDesc}>{revenu.description}</Text>
+      <View style={common.cashFlowInfo}>
+        <Text style={common.cashFlowDesc}>{revenu.description}</Text>
       </View>
 
-      <View style={styles.revenuMontantContainer}>
-        <Text style={styles.revenuMontant}>{montantAffiche} €</Text>
+      <View style={common.cashFlowMontantContainer}>
+        <Text style={common.cashFlowMontant}>{montantAffiche} €</Text>
       </View>
     </TouchableOpacity>
   );

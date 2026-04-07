@@ -11,7 +11,8 @@ import { useComptes } from "../../hooks/useComptes";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "@/types";
 import { useAuth } from "../../hooks/useAuth";
-import { styles } from "./HomeScreen.style";
+import { styles } from "./../../styles/screens/HomeScreen/HomeScreen.style";
+import { common } from "./../../styles/common.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { switchActiveHousehold } from "services/supabase/db";
 import {
@@ -273,7 +274,7 @@ const HomeScreen: React.FC = () => {
                   <Text style={styles.menuItemText}>Paramètres</Text>
                 </TouchableOpacity>
 
-                <View style={styles.menuDivider} />
+                <View style={common.separator} />
 
                 <TouchableOpacity
                   style={styles.menuItem}

@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { HistogramCashflowProps } from "./HistogramCashflow.type";
-import { styles } from "./HistogramCashflow.style";
+import { styles } from "../../../styles/components/fynduo/HistogramCashflow/HistogramCashflow.style";
 
 const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
   month,

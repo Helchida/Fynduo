@@ -7,7 +7,7 @@ import {
   FlatList,
   TouchableWithoutFeedback,
 } from "react-native";
-import { styles } from "./DayPickerModal.style";
+import { common } from "../../../styles/common.style";
 
 interface DayPickerModalProps {
   isVisible: boolean;
@@ -27,10 +27,10 @@ export const DayPickerModal: React.FC<DayPickerModalProps> = ({
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalOverlay}>
+        <View style={common.modalOverlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalHeader}>Jour de prélèvement</Text>
+            <View style={common.modalContent}>
+              <Text style={common.modalTitle}>Jour de prélèvement</Text>
 
               <FlatList
                 data={days}
@@ -74,10 +74,10 @@ export const DayPickerModal: React.FC<DayPickerModalProps> = ({
               />
 
               <TouchableOpacity
-                style={styles.modalCloseButton}
+                style={common.modalCloseButton}
                 onPress={onClose}
               >
-                <Text style={styles.modalCloseButtonText}>Annuler</Text>
+                <Text style={common.modalCloseButtonText}>Annuler</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

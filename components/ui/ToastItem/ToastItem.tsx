@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { X, CheckCircle, AlertCircle, Info } from "lucide-react-native";
-import { styles } from "./ToastItem.style";
+import { styles } from "../../../styles/components/ui/ToastItem/ToastItem.style";
 import { ToastItemProps } from "./ToastItem.type";
 
 export const ToastItem: React.FC<ToastItemProps> = ({ toast, onDismiss }) => {

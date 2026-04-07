@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import ChargeFixeRow from "./ChargeFixeRow/ChargeFixeRow";
-import { styles } from "./ChargesFixesSection.style";
+import { styles } from "../../../styles/screens/RegulationScreen/ChargesFixesSection/ChargesFixesSection.style";
+import { common } from "styles/common.style";
 import { ChargesFixesSectionProps } from "./ChargesFixesSection.type";
 
 const ChargesFixesSection: React.FC<ChargesFixesSectionProps> = ({
@@ -13,8 +14,8 @@ const ChargesFixesSection: React.FC<ChargesFixesSectionProps> = ({
   handleDeleteCharge,
 }) => {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>⚙️ Charges Fixes</Text>
+    <View style={common.cardFlat}>
+      <Text style={common.cardFlatTitle}>⚙️ Charges Fixes</Text>
 
       {householdUsers.map((u) => (
         <View key={u.id} style={styles.subSection}>

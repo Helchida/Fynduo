@@ -1,5 +1,5 @@
 import { TextInput, TouchableOpacity, View, Text } from "react-native";
-import { styles } from "./ChargeFixeRow.style";
+import { styles } from "../../../../styles/screens/RegulationScreen/ChargesFixesSection/ChargeFixeRow/ChargeFixeRow.style";
 import { ChargeFixeRowProps } from "./ChargeFixeRow.type";
 import { useState } from "react";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";

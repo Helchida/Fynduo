@@ -4,7 +4,8 @@ import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
 import { useCalculs } from "../../hooks/useCalculs";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
-import { styles } from "./SummaryRegulationScreen.style";
+import { styles } from "../../styles/screens/SummaryRegulationScreen/SummaryRegulationScreen.style";
+import { common } from "../../styles/common.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
 const SummaryRegulationScreen: React.FC = () => {
@@ -50,7 +51,7 @@ const SummaryRegulationScreen: React.FC = () => {
 
   if (isLoadingComptes) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={common.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
         <Text>Chargement des données...</Text>
       </View>

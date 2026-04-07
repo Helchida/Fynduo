@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { styles } from "./RegisterScreen.style";
+import { styles } from "../../styles/screens/RegisterScreen/RegisterScreen.style";
+import { common } from "../../styles/common.style";
 import { createUserProfile } from "services/supabase/db";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "services/firebase/config";
@@ -77,18 +78,18 @@ const RegisterScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.innerContainer}>
-          <View style={styles.headerContainer}>
+        <View style={common.authInnerContainer}>
+          <View style={common.authHeaderContainer}>
             <Image
               source={require("../../public/logo-with-text.png")}
-              style={styles.logo}
+              style={common.authLogo}
               resizeMode="contain"
             />
           </View>
 
-          <View style={styles.formContainer}>
+          <View style={common.formContainer}>
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="Email"
               value={email}
               onChangeText={setEmail}
@@ -96,14 +97,14 @@ const RegisterScreen: React.FC = () => {
               autoCapitalize="none"
             />
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="Mot de passe"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
             />
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="Confirmer le mot de passe"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -111,14 +112,14 @@ const RegisterScreen: React.FC = () => {
             />
 
             <TouchableOpacity
-              style={styles.button}
+              style={common.authButton}
               onPress={handleRegister}
               disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>S'inscrire</Text>
+                <Text style={common.authButtonText}>S'inscrire</Text>
               )}
             </TouchableOpacity>
 

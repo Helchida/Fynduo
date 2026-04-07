@@ -9,7 +9,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useComptes } from "../../hooks/useComptes";
 import { RootStackNavigationProp } from "@/types";
-import { styles } from "./HistoryScreen.style";
+import { styles } from "../../styles/screens/HistoryScreen/HistoryScreen.style";
+import { common } from "../../styles/common.style";
 
 type GroupedHistory = {
   [year: number]: any[];
@@ -69,7 +70,7 @@ const HistoryScreen: React.FC = () => {
 
   if (isLoadingComptes) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={common.loadingContainer}>
         <ActivityIndicator size="large" color="#2c3e50" />
       </View>
     );
@@ -78,7 +79,7 @@ const HistoryScreen: React.FC = () => {
   if (historyMonths.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>
+        <Text style={common.emptyText}>
           Aucun compte clôturé n'est disponible pour l'instant.
         </Text>
       </View>

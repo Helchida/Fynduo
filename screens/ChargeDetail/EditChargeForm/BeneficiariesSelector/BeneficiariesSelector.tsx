@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./BeneficiariesSelector.style";
+import { styles } from "../../../../styles/screens/ChargeDetailScreen/EditChargeForm/BeneficiariesSelector/BeneficiariesSelector.style";
+import { common } from "../../../../styles/common.style";
 import { BeneficiariesSelectorProps } from "./BeneficiariesSelector.type";
 
 export const BeneficiariesSelector = ({
@@ -14,7 +15,7 @@ export const BeneficiariesSelector = ({
   const amountNum = parseFloat(totalAmount.replace(",", ".")) || 0;
 
   return (
-    <View style={[styles.editSectionCard, styles.payorCard]}>
+    <View style={[common.formContainer, common.payorCard]}>
       <View
         style={{
           flexDirection: "row",
@@ -22,8 +23,8 @@ export const BeneficiariesSelector = ({
           marginBottom: 15,
         }}
       >
-        <Text style={styles.editLabel}>Diviser</Text>
-        <Text style={[styles.editLabel, { color: "#27ae60" }]}>Également</Text>
+        <Text style={common.editLabel}>Diviser</Text>
+        <Text style={[common.editLabel, { color: "#27ae60" }]}>Également</Text>
       </View>
 
       {users.map((u) => {

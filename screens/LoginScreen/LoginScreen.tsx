@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
-import { styles } from "./LoginScreen.style";
+import { styles } from "../../styles/screens/LoginScreen/LoginScreen.style";
+import { common } from "../../styles/common.style";
 import { RootStackNavigationProp } from "@/types";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -105,16 +106,16 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, styles.innerContainer]}>
-      <View style={styles.headerContainer}>
+    <View style={[styles.container, common.authInnerContainer]}>
+      <View style={common.authHeaderContainer}>
         <Image
           source={require("../../public/logo-with-text.png")}
-          style={styles.logo}
+          style={common.authLogo}
           resizeMode="contain"
         />
       </View>
 
-      <View style={styles.formContainer}>
+      <View style={common.formContainer}>
         {errorMessage && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>❌ {errorMessage}</Text>
@@ -122,7 +123,7 @@ const LoginScreen: React.FC = () => {
         )}
 
         <TextInput
-          style={styles.input}
+          style={common.input}
           placeholder="Email"
           value={email}
           onChangeText={(text) => {
@@ -136,7 +137,7 @@ const LoginScreen: React.FC = () => {
         />
 
         <TextInput
-          style={styles.input}
+          style={common.input}
           placeholder="Mot de passe"
           value={password}
           onChangeText={(text) => {
@@ -147,8 +148,8 @@ const LoginScreen: React.FC = () => {
         />
 
         {successMessage && (
-          <View style={styles.successContainer}>
-            <Text style={styles.successText}>{successMessage}</Text>
+          <View style={styles.successFeedbackContainer}>
+            <Text style={styles.successFeedbackText}>{successMessage}</Text>
           </View>
         )}
 
@@ -156,22 +157,22 @@ const LoginScreen: React.FC = () => {
           remainingAttempts > 0 &&
           remainingAttempts < MAX_ATTEMPTS &&
           !errorMessage?.includes("bloqué") && (
-            <View style={styles.warningContainer}>
-              <Text style={styles.warningText}>
+            <View style={styles.warningFeedbackContainer}>
+              <Text style={styles.warningFeedbackText}>
                 ⚠️ Tentatives restantes : {remainingAttempts}/{MAX_ATTEMPTS}
               </Text>
             </View>
           )}
 
         <TouchableOpacity
-          style={styles.button}
+          style={common.authButton}
           onPress={handleLogin}
           disabled={localLoading}
         >
           {localLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Se connecter</Text>
+            <Text style={common.authButtonText}>Se connecter</Text>
           )}
         </TouchableOpacity>
 

@@ -6,7 +6,8 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import { revenusStatsCardStyles as styles } from "./RevenusStatsCard.style";
+import { styles } from "../../../styles/screens/StatsScreen/RevenusStatsCard/RevenusStatsCard.style";
+import { common } from "../../../styles/common.style";
 import { RevenusStatsCardProps } from "./RevenusStatsCard.type";
 import { PieChart } from "react-native-gifted-charts";
 import dayjs from "dayjs";
@@ -93,7 +94,7 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
         <View style={styles.chartTitleUnderline} />
       </View>
 
-      <View style={styles.chartWrapper}>
+      <View style={common.chartWrapper}>
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
           <PieChart
             donut
@@ -118,9 +119,9 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
                     <Text style={{ fontSize: 24, marginBottom: 4 }}>
                       {item.icon}
                     </Text>
-                    <Text style={styles.focusedCategory}>{item.label}</Text>
+                    <Text style={common.focusedCategory}>{item.label}</Text>
                     <Text style={styles.focusedPercentage}>{percent}%</Text>
-                    <Text style={styles.focusedAmount}>
+                    <Text style={common.focusedAmount}>
                       {item.montant.toFixed(2)}€
                     </Text>
                   </View>
@@ -130,10 +131,10 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
                 <View
                   style={{ alignItems: "center", justifyContent: "center" }}
                 >
-                  <Text style={styles.totalAmount}>
+                  <Text style={common.totalAmount}>
                     {totalRevenus.toFixed(2)}€
                   </Text>
-                  <Text style={styles.totalLabel}>
+                  <Text style={common.totalLabel}>
                     {isSoloMode ? "Mes Revenus" : "Total Foyer"}
                   </Text>
                 </View>
@@ -143,7 +144,7 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
         </Animated.View>
       </View>
 
-      <View style={styles.legendWrapper}>
+      <View style={common.legendWrapper}>
         {statsRevenusParCategorie.map((item, index) => {
           const color = colorScale[index % colorScale.length];
           const percentValue =
@@ -157,28 +158,28 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
           return (
             <View key={item.categoryId}>
               <TouchableOpacity
-                style={styles.legendItem}
+                style={common.legendItem}
                 onPress={() =>
                   setExpandedCategory(isExpanded ? null : item.categoryId)
                 }
               >
                 <View
-                  style={[styles.iconBox, { backgroundColor: `${color}15` }]}
+                  style={[common.iconBox, { backgroundColor: `${color}15` }]}
                 >
                   <Text style={{ fontSize: 18 }}>{item.icon}</Text>
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.catName}>{item.label}</Text>
-                  <Text style={styles.catPercent}>{percent}% des revenus</Text>
+                  <Text style={common.catName}>{item.label}</Text>
+                  <Text style={common.catPercent}>{percent}% des revenus</Text>
                 </View>
 
                 <View style={{ alignItems: "flex-end" }}>
-                  <Text style={styles.catValue}>
+                  <Text style={common.catValue}>
                     {item.montant.toFixed(2)}€
                   </Text>
                   <View
-                    style={[styles.indicator, { backgroundColor: color }]}
+                    style={[common.indicator, { backgroundColor: color }]}
                   />
                 </View>
               </TouchableOpacity>
@@ -217,7 +218,7 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
         })}
 
         {statsRevenusParCategorie.length === 0 && (
-          <Text style={styles.emptyText}>
+          <Text style={common.emptyText}>
             Aucun revenu sur cette période.
           </Text>
         )}

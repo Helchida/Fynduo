@@ -6,7 +6,7 @@ import {
   RootStackRouteProp,
 } from "../../types";
 import dayjs from "dayjs";
-import { styles } from "./RevenuDetailScreen.style";
+import { common } from "../../styles/common.style";
 import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -175,7 +175,7 @@ const RevenuDetailScreen: React.FC = () => {
   }, [initialRevenu]);
 
   return (
-    <ScrollView style={styles.detailContainer}>
+    <ScrollView style={common.detailContainer}>
       {isEditing ? (
         <EditRevenuForm
           editDescription={editDescription}
@@ -198,32 +198,32 @@ const RevenuDetailScreen: React.FC = () => {
         />
       ) : (
         <>
-          <View style={styles.detailHeaderContainer}>
-            <Text style={styles.iconText}>{categoryIcon}</Text>
-            <Text style={styles.detailTitle}>{revenu.description}</Text>
-            <Text style={styles.detailDateText}>
+          <View style={common.detailHeaderContainer}>
+            <Text style={common.iconText}>{categoryIcon}</Text>
+            <Text style={common.detailTitle}>{revenu.description}</Text>
+            <Text style={common.detailDateText}>
               Revenu du {dateReceptionFormatted}
             </Text>
           </View>
 
-          <View style={styles.actionButtons}>
+          <View style={common.actionButtons}>
             <TouchableOpacity
               style={[
-                styles.addButton,
+                common.addButton,
                 { backgroundColor: "#3498DB", flex: 1, marginRight: 5 },
               ]}
               onPress={() => setIsEditing(true)}
             >
-              <Text style={styles.addButtonText}>Modifier</Text>
+              <Text style={common.addButtonText}>Modifier</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
-                styles.addButton,
+                common.addButton,
                 { backgroundColor: "#E74C3C", flex: 1, marginLeft: 5 },
               ]}
               onPress={() => setIsDeleteModalVisible(true)}
             >
-              <Text style={styles.addButtonText}>Supprimer</Text>
+              <Text style={common.addButtonText}>Supprimer</Text>
             </TouchableOpacity>
           </View>
 

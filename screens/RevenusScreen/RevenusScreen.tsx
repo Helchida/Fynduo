@@ -11,7 +11,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { IRevenu, RootStackNavigationProp } from "@/types";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
-import { styles } from "./RevenusScreen.style";
+import { styles } from "../../styles/screens/RevenusScreen/RevenusScreen.style";
+import { common } from "styles/common.style";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useNavigation } from "@react-navigation/native";
@@ -202,7 +203,7 @@ const RevenusScreen: React.FC = () => {
 
 
   if (isLoadingComptes) {
-    return <Text style={styles.loading}>Chargement des revenus...</Text>;
+    return <Text style={common.loadingText}>Chargement des revenus...</Text>;
   }
 
   const currentCategoryData = categoriesRevenus.find(
@@ -218,22 +219,22 @@ const RevenusScreen: React.FC = () => {
       >
         <Text style={styles.header}>Revenus</Text>
         <TouchableOpacity
-          style={styles.addButton}
+          style={common.addButton}
           onPress={() => setShowForm(!showForm)}
           disabled={isSubmitting}
         >
-          <Text style={styles.addButtonText}>
+          <Text style={common.addButtonText}>
             {showForm ? "Annuler l'ajout" : "+ Ajouter un revenu"}
           </Text>
         </TouchableOpacity>
 
         {showForm && (
-          <View style={styles.formContainer}>
-            <View style={styles.editSectionCard}>
-              <Text style={styles.editLabel}>Titre</Text>
-              <View style={styles.inputFieldContainer}>
+          <View style={common.formContainer}>
+            <View style={common.formContainer}>
+              <Text style={common.editLabel}>Titre</Text>
+              <View style={common.inputFieldContainer}>
                 <TextInput
-                  style={styles.editInputActive}
+                  style={common.editInputActive}
                   placeholder="Description (ex: Salaire)"
                   placeholderTextColor="#95a5a6"
                   value={description}
@@ -244,11 +245,11 @@ const RevenusScreen: React.FC = () => {
               </View>
             </View>
 
-            <View style={styles.editSectionCard}>
-              <Text style={styles.editLabel}>Montant Total</Text>
-              <View style={styles.inputFieldContainer}>
+            <View style={common.formContainer}>
+              <Text style={common.editLabel}>Montant Total</Text>
+              <View style={common.inputFieldContainer}>
                 <TextInput
-                  style={styles.editInputActive}
+                  style={common.editInputActive}
                   placeholder="0.00"
                   placeholderTextColor="#95a5a6"
                   value={montant}
@@ -267,10 +268,10 @@ const RevenusScreen: React.FC = () => {
             </View>
 
             <TouchableOpacity
-              style={styles.selectorButton}
+              style={common.selectorButton}
               onPress={() => setIsCategoryModalVisible(true)}
             >
-              <Text style={styles.selectorLabel}>Catégorie</Text>
+              <Text style={common.selectorLabel}>Catégorie</Text>
               <View
                 style={{
                   flexDirection: "row",
@@ -304,8 +305,8 @@ const RevenusScreen: React.FC = () => {
                 containerStyle={{ flex: 1, marginLeft: 0 }}
                 styles={{
                   ...styles,
-                  editSectionCard: styles.selectorButton,
-                  editLabel: styles.selectorLabel,
+                  editSectionCard: common.selectorButton,
+                  editLabel: common.selectorLabel,
                   selectorContainer: {
                     flexDirection: "row",
                     alignItems: "center",
@@ -318,11 +319,11 @@ const RevenusScreen: React.FC = () => {
 
             <TouchableOpacity
               style={[
-                styles.saveButton,
+                common.saveButton,
                 (isSubmitting ||
                   !description ||
                   !montant) &&
-                  styles.disabledButton,
+                  common.disabledButton,
               ]}
               onPress={handleAddRevenu}
               disabled={
@@ -331,7 +332,7 @@ const RevenusScreen: React.FC = () => {
                 !montant
               }
             >
-              <Text style={styles.saveButtonText}>
+              <Text style={common.saveButtonText}>
                 {isSubmitting ? "Enregistrement..." : "Enregistrer le revenu"}
               </Text>
             </TouchableOpacity>
@@ -397,7 +398,7 @@ const RevenusScreen: React.FC = () => {
         </View>
 
         {groupedRevenus.length === 0 ? (
-          <Text style={styles.loading}>
+          <Text style={common.loadingText}>
             Aucun revenu enregistré pour le moment.
           </Text>
         ) : (

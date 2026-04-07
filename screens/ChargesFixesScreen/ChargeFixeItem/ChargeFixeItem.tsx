@@ -8,7 +8,8 @@ import {
   FlatList,
 } from "react-native";
 import { IUser } from "@/types";
-import { styles } from "./ChargeFixeItem.style";
+import { styles } from "../../../styles/screens/ChargesFixesScreen/ChargeFixeItem/ChargeFixeItem.style";
+import { common } from "../../../styles/common.style";
 import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
@@ -150,11 +151,11 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         }}
       >
         <TouchableOpacity 
-          style={styles.avatarBadge} 
+          style={common.avatarBadge} 
           onPress={() => setIsCategoryModalVisible(true)}
           disabled={isSaving}
         >
-          <Text style={styles.avatarText}>{categoryIcon}</Text>
+          <Text style={common.avatarText}>{categoryIcon}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -212,9 +213,9 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         transparent={true}
         onRequestClose={() => setIsPayeurModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>
               Sélectionner le nouveau payeur
             </Text>
             <FlatList
@@ -223,21 +224,21 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
-                    styles.modalItem,
-                    item.id === charge.payeur && styles.modalItemSelected,
+                    common.modalItem,
+                    item.id === charge.payeur && common.modalItemSelected,
                   ]}
                   onPress={() => selectPayeur(item)}
                 >
-                  <Text style={styles.modalItemText}>{item.displayName}</Text>
+                  <Text style={common.modalItemText}>{item.displayName}</Text>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              ItemSeparatorComponent={() => <View style={common.separator} />}
             />
             <TouchableOpacity
-              style={styles.modalCloseButton}
+              style={common.modalCloseButton}
               onPress={() => setIsPayeurModalVisible(false)}
             >
-              <Text style={styles.modalCloseButtonText}>Fermer</Text>
+              <Text style={common.modalCloseButtonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
         </View>

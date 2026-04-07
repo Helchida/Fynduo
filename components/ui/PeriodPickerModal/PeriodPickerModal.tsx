@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
-import { styles } from "./PeriodPickerModal.style";
+import { styles } from "../../../styles/components/ui/PeriodPickerModal/PeriodPickerModal.style";
+import { common } from "../../../styles/common.style";
 import { PeriodPickerModalProps } from "./PeriodPickerModal.type";
 
 dayjs.locale("fr");
@@ -63,7 +64,7 @@ export const PeriodPickerModal: React.FC<PeriodPickerModalProps> = ({
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalOverlay}>
+        <View style={common.modalOverlay}>
           <TouchableWithoutFeedback>
             <View style={styles.container}>
               <View style={styles.header}>

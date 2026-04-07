@@ -36,7 +36,8 @@ import {
 } from "services/supabase/db";
 import { useSubTirelires } from "hooks/useSubTirelires";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
-import { styles } from "./TirelireScreen.style";
+import { styles } from "../../../styles/screens/EpargneScreen/TirelireScreen/TirelireScreen.style";
+import { common } from "../../../styles/common.style";
 import DraggableFlatList, {
   ScaleDecorator,
   RenderItemParams,
@@ -409,11 +410,11 @@ const TirelireScreen: React.FC = () => {
                 }}
               >
                 <View
-                  style={[styles.priorityBadge, styles.priorityBadgeNormal]}
+                  style={[common.priorityBadge, common.priorityBadgeNormal]}
                 >
-                  <Text style={styles.priorityText}>{index + 1}</Text>
+                  <Text style={common.priorityText}>{index + 1}</Text>
                 </View>
-                <Text style={styles.subTitle}>{sub.description}</Text>
+                <Text style={common.subTitle}>{sub.description}</Text>
               </View>
 
               <View style={styles.subAmountRow}>
@@ -429,7 +430,7 @@ const TirelireScreen: React.FC = () => {
               </View>
             </View>
 
-            <View style={styles.subActions}>
+            <View style={common.subActions}>
               <TouchableOpacity
                 onPress={() => {
                   setEditingCagnotte(sub);
@@ -516,25 +517,25 @@ const TirelireScreen: React.FC = () => {
               </View>
             </View>
 
-            <View style={styles.sectionHeader}>
+            <View style={common.sectionHeader}>
               <TouchableOpacity
                 style={[
-                  styles.dispatchButton,
+                  common.dispatchButton,
                   { borderColor: "#27ae60", borderWidth: 1 },
-                  montantEnVrac < 0.01 && { opacity: 0.3 },
+                  (montantEnVrac < 0.01 || subTirelires.length === 0) && { opacity: 0.3 },
                 ]}
                 onPress={() => setIsTransferModalVisible(true)}
-                disabled={montantEnVrac < 0.01}
+                disabled={montantEnVrac < 0.01 || subTirelires.length === 0}
               >
                 <Archive size={24} color="#27ae60" />
-                <Text style={[styles.dispatchButtonText, { color: "#27ae60" }]}>
+                <Text style={[common.dispatchButtonText, { color: "#27ae60" }]}>
                   Répartir
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
-                  styles.dispatchButton,
+                  common.dispatchButton,
                   { borderColor: "#e67e22", borderWidth: 1 },
                   montantRangé < 0.01 && { opacity: 0.3 },
                 ]}
@@ -542,29 +543,29 @@ const TirelireScreen: React.FC = () => {
                 disabled={montantRangé < 0.01}
               >
                 <PackageOpen size={24} color="#e67e22" />
-                <Text style={[styles.dispatchButtonText, { color: "#e67e22" }]}>
+                <Text style={[common.dispatchButtonText, { color: "#e67e22" }]}>
                   Libérer
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
-                  styles.dispatchButton,
+                  common.dispatchButton,
                   { borderColor: "#3498db", borderWidth: 1 },
                 ]}
                 onPress={() => setIsAddModalVisible(true)}
               >
                 <PlusCircle size={24} color="#3498db" />
-                <Text style={[styles.dispatchButtonText, { color: "#3498db" }]}>
+                <Text style={[common.dispatchButtonText, { color: "#3498db" }]}>
                   Ajouter
                 </Text>
               </TouchableOpacity>
             </View>
 
             <View style={[styles.sectionContainer]}>
-              <View style={styles.titleWithIcon}>
+              <View style={common.titleWithIcon}>
                 <Target size={22} color="#2c3e50" />
-                <Text style={styles.sectionTitle}>Mes cagnottes</Text>
+                <Text style={common.sectionTitle}>Mes cagnottes</Text>
               </View>
               {loading && (
                 <ActivityIndicator color="#3498db" style={{ marginTop: 20 }} />
@@ -579,9 +580,9 @@ const TirelireScreen: React.FC = () => {
         animationType="fade"
         transparent={true}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Répartir l'argent</Text>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>Répartir l'argent</Text>
             <Text
               style={{
                 textAlign: "center",
@@ -592,9 +593,9 @@ const TirelireScreen: React.FC = () => {
               Non réparti : {formatCurrency(montantEnVrac)}
             </Text>
 
-            <Text style={styles.inputLabel}>Montant à répartir (€)</Text>
+            <Text style={common.inputLabel}>Montant à répartir (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               keyboardType="decimal-pad"
               autoFocus
               placeholder="ex: 100"
@@ -602,16 +603,16 @@ const TirelireScreen: React.FC = () => {
               onChangeText={setAmountToStore}
             />
 
-            <Text style={styles.inputLabel}>Vers quelle cagnotte ?</Text>
+            <Text style={common.inputLabel}>Vers quelle cagnotte ?</Text>
             <ScrollView style={{ maxHeight: 200 }}>
               {subTirelires.map((sub) => (
                 <TouchableOpacity
                   key={sub.id}
-                  style={styles.dispatchItem}
+                  style={common.dispatchItem}
                   onPress={() => handleConfirmStorageWithTarget(sub)}
                 >
-                  <Text style={styles.dispatchItemName}>{sub.description}</Text>
-                  <Text style={styles.dispatchItemReste}>
+                  <Text style={common.dispatchItemName}>{sub.description}</Text>
+                  <Text style={common.dispatchItemReste}>
                     Reste{" "}
                     {formatCurrency(
                       (sub.objectif || 0) - (sub.montantInitial || 0),
@@ -622,21 +623,21 @@ const TirelireScreen: React.FC = () => {
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.btnCancel, { marginTop: 15 }]}
+              style={[common.btnCancel, { marginTop: 15 }]}
               onPress={() => {
                 setIsTransferModalVisible(false);
                 setAmountToStore("");
               }}
             >
-              <Text style={styles.btnCancelText}>Annuler</Text>
+              <Text style={common.btnCancelText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       <Modal visible={isAddModalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
             <View
               style={{
                 flexDirection: "row",
@@ -651,26 +652,26 @@ const TirelireScreen: React.FC = () => {
               ) : (
                 <Target size={22} color="#2c3e50" />
               )}
-              <Text style={styles.modalTitle}>
+              <Text style={common.modalTitle}>
                 {editingCagnotte ? "Modifier la cagnotte" : "Nouvelle cagnotte"}
               </Text>
             </View>
-            <Text style={styles.inputLabel}>Nom de la cagnotte</Text>
+            <Text style={common.inputLabel}>Nom de la cagnotte</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="ex: Essence, Jean..."
               value={newTitle}
               onChangeText={setNewTitle}
             />
-            <Text style={styles.inputLabel}>Objectif (€)</Text>
+            <Text style={common.inputLabel}>Objectif (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               placeholder="ex: 200"
               keyboardType="decimal-pad"
               value={newGoal}
               onChangeText={setNewGoal}
             />
-            <View style={styles.modalButtons}>
+            <View style={common.modalButtons}>
               <TouchableOpacity
                 onPress={() => {
                   setIsAddModalVisible(false);
@@ -678,17 +679,17 @@ const TirelireScreen: React.FC = () => {
                   setNewTitle("");
                   setNewGoal("");
                 }}
-                style={styles.cancelBtn}
+                style={common.btnCancel}
               >
-                <Text style={styles.cancelBtnText}>Annuler</Text>
+                <Text style={common.btnCancelText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={
                   editingCagnotte ? handleUpdateCagnotte : handleCreateSub
                 }
-                style={styles.confirmBtn}
+                style={common.btnConfirm}
               >
-                <Text style={styles.confirmBtnText}>
+                <Text style={common.btnConfirmText}>
                   {editingCagnotte ? "Modifier" : "Créer"}
                 </Text>
               </TouchableOpacity>
@@ -702,12 +703,12 @@ const TirelireScreen: React.FC = () => {
         animationType="fade"
         transparent={true}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Vider une cagnotte</Text>
-            <Text style={styles.inputLabel}>Montant à retirer (€)</Text>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>Vider une cagnotte</Text>
+            <Text style={common.inputLabel}>Montant à retirer (€)</Text>
             <TextInput
-              style={styles.input}
+              style={common.input}
               keyboardType="decimal-pad"
               autoFocus
               placeholder="ex: 100"
@@ -715,53 +716,53 @@ const TirelireScreen: React.FC = () => {
               onChangeText={setMontantSaisi}
             />
 
-            <View style={styles.breakInfoBox}>
-              <Text style={styles.breakInfoText}>
+            <View style={common.breakInfoBox}>
+              <Text style={common.breakInfoText}>
                 Ce montant sera retiré de la cagnotte et ajouté à l'argent non
                 réparti.
               </Text>
             </View>
 
             <>
-              <Text style={styles.inputLabel}>De quelle cagnotte ?</Text>
+              <Text style={common.inputLabel}>De quelle cagnotte ?</Text>
               <ScrollView style={{ maxHeight: 200 }}>
                 <TouchableOpacity
-                  style={[styles.dispatchItem, styles.dispatchItemAuto]}
+                  style={[common.dispatchItem, common.dispatchItemAuto]}
                   onPress={async () => {
                     handleConfirmBreakLessImportant(tirelire);
                   }}
                 >
-                  <View style={styles.dispatchItemAutoContent}>
-                    <View style={styles.dispatchItemAutoText}>
+                  <View style={common.dispatchItemAutoContent}>
+                    <View style={common.dispatchItemAutoText}>
                       <Text
                         style={[
-                          styles.dispatchItemName,
-                          styles.dispatchItemAutoName,
+                          common.dispatchItemName,
+                          common.dispatchItemAutoName,
                         ]}
                       >
                         Retrait Automatique
                       </Text>
-                      <Text style={styles.dispatchItemReste}>
+                      <Text style={common.dispatchItemReste}>
                         Piochera dans vos cagnottes selon leur priorité.
                       </Text>
                     </View>
                     <Zap
                       size={24}
                       color="#e67e22"
-                      style={styles.dispatchItemAutoIcon}
+                      style={common.dispatchItemAutoIcon}
                     />
                   </View>
                 </TouchableOpacity>
                 {subTirelires.map((t) => (
                   <TouchableOpacity
                     key={t.id}
-                    style={styles.dispatchItem}
+                    style={common.dispatchItem}
                     onPress={async () => {
                       handleConfirmBreak(t);
                     }}
                   >
-                    <Text style={styles.dispatchItemName}>{t.description}</Text>
-                    <Text style={styles.dispatchItemReste}>
+                    <Text style={common.dispatchItemName}>{t.description}</Text>
+                    <Text style={common.dispatchItemReste}>
                       Contient {formatCurrency(t.montantInitial)}
                     </Text>
                   </TouchableOpacity>
@@ -770,12 +771,12 @@ const TirelireScreen: React.FC = () => {
             </>
 
             <TouchableOpacity
-              style={[styles.btnCancel, { marginTop: 15 }]}
+              style={[common.btnCancel, { marginTop: 15 }]}
               onPress={() => {
                 setIsBreakModalVisible(false);
               }}
             >
-              <Text style={styles.btnCancelText}>Annuler</Text>
+              <Text style={common.btnCancelText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>

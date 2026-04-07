@@ -18,7 +18,8 @@ import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
 import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import { nanoid } from "nanoid/non-secure";
-import { styles } from "./RegulationScreen.style";
+import { styles } from "../../styles/screens/RegulationScreen/RegulationScreen.style";
+import { common } from "../../styles/common.style";
 import dayjs from "dayjs";
 import LoyerSection from "./LoyerSection/LoyerSection";
 import ChargesFixesSection from "./ChargesFixesSection/ChargesFixesSection";
@@ -273,7 +274,7 @@ const RegulationScreen: React.FC = () => {
     householdUsers.length < 2
   ) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={common.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
       </View>
     );

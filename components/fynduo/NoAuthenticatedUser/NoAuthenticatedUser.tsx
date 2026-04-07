@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./NoAuthenticatedUser.style";
+import { styles } from "../../../styles/components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser.style";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNavigationProp } from "@/types";
 

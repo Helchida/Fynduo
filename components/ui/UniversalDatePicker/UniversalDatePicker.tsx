@@ -4,6 +4,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { DatePickerModal } from "../DatePickerModal/DatePickerModal";
 import dayjs from "dayjs";
 import { ChevronsUpDown } from "lucide-react-native";
+import { common } from "../../../styles/common.style";
 
 export const UniversalDatePicker = ({
   date,
@@ -20,13 +21,13 @@ export const UniversalDatePicker = ({
       <>
         <TouchableOpacity
           style={[
-            styles.editSectionCard,
-            styles.payorCard,
+            common.formContainer,
+            common.payorCard,
             containerStyle,
           ]}
           onPress={onOpen}
         >
-          <Text style={styles.editLabel}>{label}</Text>
+          <Text style={common.editLabel}>{label}</Text>
           <View style={styles.selectorContainer}>
             <Text style={styles.miniUserText}>
               {dayjs(date).format("DD/MM/YYYY")}
@@ -52,13 +53,13 @@ export const UniversalDatePicker = ({
     <>
       <TouchableOpacity
         style={[
-          styles.editSectionCard,
-          styles.payorCard,
+          common.formContainer,
+          common.payorCard,
           containerStyle,
         ]}
         onPress={onOpen}
       >
-        <Text style={styles.editLabel}>{label}</Text>
+        <Text style={common.editLabel}>{label}</Text>
         <View style={styles.selectorContainer}>
           <Text style={styles.miniUserText}>
             {dayjs(date).format("DD/MM/YYYY")}

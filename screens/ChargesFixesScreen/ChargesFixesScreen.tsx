@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
-import { styles } from "./ChargesFixesScreen.style";
+import { styles } from "./../../styles/screens/ChargesFixesScreen/ChargesFixesScreen.style";
+import { common } from "../../styles/common.style";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { ChevronsUpDown, Info } from "lucide-react-native";
@@ -239,19 +240,19 @@ const ChargesFixesScreen: React.FC = () => {
         </View>
       )}
       <TouchableOpacity
-        style={styles.addButton}
+        style={common.addButton}
         onPress={() => setShowForm(!showForm)}
         disabled={isSubmitting}
       >
-        <Text style={styles.addButtonText}>
+        <Text style={common.addButtonText}>
           {showForm ? "Annuler l'ajout" : "+ Ajouter une charge fixe"}
         </Text>
       </TouchableOpacity>
       {showForm && (
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Description</Text>
+        <View style={common.formContainer}>
+          <Text style={common.label}>Description</Text>
           <TextInput
-            style={styles.input}
+            style={common.input}
             placeholder="Ex: Facture Internet"
             placeholderTextColor="#95a5a6"
             value={nom}
@@ -259,9 +260,9 @@ const ChargesFixesScreen: React.FC = () => {
             maxLength={30}
             editable={!isSubmitting}
           />
-          <Text style={styles.label}>Montant mensuel</Text>
+          <Text style={common.label}>Montant mensuel</Text>
           <TextInput
-            style={styles.input}
+            style={common.input}
             placeholder="Ex: 80.50"
             placeholderTextColor="#95a5a6"
             value={montant}
@@ -272,10 +273,10 @@ const ChargesFixesScreen: React.FC = () => {
             editable={!isSubmitting}
           />
           {!isSoloMode && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Payée par</Text>
+            <View style={common.inputGroup}>
+              <Text style={common.label}>Payée par</Text>
               <TouchableOpacity
-                style={[styles.input, styles.dropdownInput]}
+                style={[common.input, styles.dropdownInput]}
                 onPress={() => setIsPayeurModalVisible(true)}
                 disabled={isSubmitting}
               >
@@ -287,10 +288,10 @@ const ChargesFixesScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           )}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Jour de prélèvement</Text>
+          <View style={common.inputGroup}>
+            <Text style={common.label}>Jour de prélèvement</Text>
             <TouchableOpacity
-              style={[styles.input, styles.dropdownInput]}
+              style={[common.input, styles.dropdownInput]}
               onPress={() => setIsDayModalVisible(true)}
               disabled={isSubmitting}
             >
@@ -304,10 +305,10 @@ const ChargesFixesScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity
-            style={styles.selectorButton}
+            style={common.selectorButton}
             onPress={() => setIsCategoryModalVisible(true)}
           >
-            <Text style={styles.selectorLabel}>Catégorie</Text>
+            <Text style={common.selectorLabel}>Catégorie</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -329,9 +330,9 @@ const ChargesFixesScreen: React.FC = () => {
           <TouchableOpacity
             onPress={handleAddDepense}
             disabled={isSubmitting}
-            style={styles.addButton}
+            style={common.addButton}
           >
-            <Text style={styles.addButtonText}>
+            <Text style={common.addButtonText}>
               {isSubmitting
                 ? "Enregistrement..."
                 : "Enregistrer la charge fixe"}
@@ -378,30 +379,30 @@ const ChargesFixesScreen: React.FC = () => {
         transparent={true}
         onRequestClose={() => setIsPayeurModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Sélectionner le payeur</Text>
+        <View style={common.modalOverlay}>
+          <View style={common.modalContent}>
+            <Text style={common.modalTitle}>Sélectionner le payeur</Text>
             <FlatList
               data={householdUsers}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
-                    styles.modalItem,
-                    item.id === payeur && styles.modalItemSelected,
+                    common.modalItem,
+                    item.id === payeur && common.modalItemSelected,
                   ]}
                   onPress={() => selectPayeur(item.id)}
                 >
-                  <Text style={styles.modalItemText}>{item.displayName}</Text>
+                  <Text style={common.modalItemText}>{item.displayName}</Text>
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              ItemSeparatorComponent={() => <View style={common.separator} />}
             />
             <TouchableOpacity
-              style={styles.modalCloseButton}
+              style={common.modalCloseButton}
               onPress={() => setIsPayeurModalVisible(false)}
             >
-              <Text style={styles.modalCloseButtonText}>Fermer</Text>
+              <Text style={common.modalCloseButtonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -412,13 +413,13 @@ const ChargesFixesScreen: React.FC = () => {
         transparent={true}
         onRequestClose={() => setShowInfoModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={common.modalOverlay}>
           <View style={styles.infoModalContent}>
             <Text style={styles.infoModalTitle}>
               💡 À propos des charges fixes
             </Text>
             <Text style={styles.infoModalText}>
-              Les <Text style={styles.bold}>charges fixes</Text> sont des
+              Les <Text style={common.bold}>charges fixes</Text> sont des
               dépenses récurrentes chaque mois : électricité, gaz, internet,
               eau, assurance, etc.
             </Text>
@@ -430,7 +431,7 @@ const ChargesFixesScreen: React.FC = () => {
               <Text style={styles.warningTitle}>⚠️ Important</Text>
               <Text style={styles.warningText}>
                 Si vous modifiez le montant d'une charge fixe, cela
-                <Text style={styles.bold}> n'affecte que les mois futurs</Text>.
+                <Text style={common.bold}> n'affecte que les mois futurs</Text>.
               </Text>
               <Text style={styles.warningText}>
                 Les mois déjà validés restent inchangés car un historique des

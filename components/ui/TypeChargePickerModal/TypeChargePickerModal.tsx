@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./TypeChargePickerModal.style";
+import { styles } from "../../../styles/components/ui/TypeChargePickerModal/TypeChargePickerModal.style";
+import { common } from "../../../styles/common.style";
 import { TypeChargePickerModalProps } from "./TypeChargePickerModal.type";
 import { Repeat, Zap } from "lucide-react-native";
 
@@ -27,10 +28,10 @@ export const TypeChargePickerModal = ({
 
   return (
     <Modal visible={isVisible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      <View style={common.modalOverlay}>
+        <View style={common.modalContent}>
           <View style={styles.modalHeaderContainer}>
-            <Text style={styles.modalHeader}>Filtrer par type</Text>
+            <Text style={common.modalTitle}>Filtrer par type</Text>
           </View>
 
           <View style={{ paddingVertical: 10 }}>
@@ -38,8 +39,8 @@ export const TypeChargePickerModal = ({
               <TouchableOpacity
                 key={type.id}
                 style={[
-                  styles.modalItem,
-                  selectedId === type.id && styles.modalItemSelected,
+                  common.modalItem,
+                  selectedId === type.id && common.modalItemSelected,
                 ]}
                 onPress={() => {
                   onSelect(type.id as "fixe" | "variable");
@@ -57,7 +58,7 @@ export const TypeChargePickerModal = ({
                   <View>
                     <Text
                       style={[
-                        styles.modalItemText,
+                        common.modalItemText,
                         selectedId === type.id && {
                           fontWeight: "bold",
                           color: "#3498DB",
@@ -81,8 +82,8 @@ export const TypeChargePickerModal = ({
             ))}
           </View>
 
-          <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
-            <Text style={styles.modalCloseButtonText}>Annuler</Text>
+          <TouchableOpacity style={common.modalCloseButton} onPress={onClose}>
+            <Text style={common.modalCloseButtonText}>Annuler</Text>
           </TouchableOpacity>
         </View>
       </View>

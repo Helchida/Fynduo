@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from "react-native";
-import { styles } from "./EmailVerificationScreen.style";
+import { styles } from "../../styles/screens/EmailVerificationScreen/EmailVerificationScreen.style";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "services/firebase/config";
 import { useNavigation } from "@react-navigation/native";

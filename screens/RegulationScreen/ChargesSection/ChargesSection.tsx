@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { styles } from "./ChargesSection.style";
+import { styles } from "../../../styles/screens/RegulationScreen/ChargesSection/ChargesSection.style";
+import { common } from "styles/common.style";
 import { ChargesSectionProps } from "./ChargesSection.type";
 
 const ChargesSection: React.FC<ChargesSectionProps> = ({
@@ -8,8 +9,8 @@ const ChargesSection: React.FC<ChargesSectionProps> = ({
   getDisplayName,
 }) => {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>⚖️ Charges (Dépenses)</Text>
+    <View style={common.cardFlat}>
+      <Text style={common.cardFlatTitle}>⚖️ Charges (Dépenses)</Text>
 
       <View style={styles.container}>
         {virements.length > 0 ? (
