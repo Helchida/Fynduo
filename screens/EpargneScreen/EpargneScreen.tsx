@@ -28,6 +28,7 @@ import {
   Zap,
   Unlock,
   Lock,
+  History,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -52,6 +53,7 @@ import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { colors } from "styles/theme.style";
 
 const formatCurrency = (amount: number) => {
   return (
@@ -91,6 +93,9 @@ const EpargneScreen: React.FC = () => {
   const [cagnottesOfTirelireToBreak, setCagnottesOfTirelireToBreak] = useState<
     ITirelire[]
   >([]);
+  const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
+  const [selectedTirelireForHistory, setSelectedTirelireForHistory] =
+    useState<ITirelire | null>(null);
 
   const { revenus, charges, loadData } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
@@ -193,13 +198,6 @@ const EpargneScreen: React.FC = () => {
       return toast.error(
         "Montant invalide",
         "Veuillez entrer un chiffre positif.",
-      );
-    }
-
-    if (montant > epargneDisponible + 0.01) {
-      return toast.warning(
-        "Solde insuffisant",
-        `Il ne vous reste que ${formatCurrency(epargneDisponible)} à placer.`,
       );
     }
 
@@ -518,6 +516,14 @@ const EpargneScreen: React.FC = () => {
             <View style={common.subActions}>
               <TouchableOpacity
                 onPress={() => {
+                  setSelectedTirelireForHistory(item);
+                  setIsHistoryModalVisible(true);
+                }}
+              >
+                <History size={18} color="#e67e22" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
                   setEditingTirelire(item);
                   setNewTirelire({
                     nom: item.description,
@@ -671,9 +677,7 @@ const EpargneScreen: React.FC = () => {
                   </Text>
                 </View>
                 <View style={{ marginLeft: 20 }}>
-                  <Text style={styles.miniStatLabel}>
-                    Épargné ce mois
-                  </Text>
+                  <Text style={styles.miniStatLabel}>Épargné ce mois</Text>
                   <Text style={styles.miniStatValue}>
                     {formatCurrency(dejaPlaceCeMois)}
                   </Text>
@@ -695,17 +699,26 @@ const EpargneScreen: React.FC = () => {
                 <TouchableOpacity
                   style={[
                     common.dispatchButton,
-                    epargneDisponible <= 0.0 && { opacity: 0.3 },
                     { borderColor: "#27ae60", borderWidth: 1 },
+                    epargneDisponible <= 0.0 && {
+                      borderColor: statusColor,
+                      borderWidth: 1,
+                    },
                   ]}
-                  onPress={() =>
-                    epargneDisponible > 0.0 && setIsDispatchModalVisible(true)
-                  }
-                  disabled={epargneDisponible <= 0.0}
+                  onPress={() => setIsDispatchModalVisible(true)}
                 >
-                  <HandCoins size={24} color="#27ae60" />
+                  <HandCoins
+                    size={24}
+                    color={epargneDisponible > 0.0 ? "#27ae60" : statusColor}
+                  />
                   <Text
-                    style={[common.dispatchButtonText, { color: "#27ae60" }]}
+                    style={[
+                      common.dispatchButtonText,
+                      {
+                        color:
+                          epargneDisponible > 0.0 ? "#27ae60" : statusColor,
+                      },
+                    ]}
                   >
                     Placer
                   </Text>
@@ -1014,6 +1027,86 @@ const EpargneScreen: React.FC = () => {
               }}
             >
               <Text style={common.btnCancelText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={isHistoryModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsHistoryModalVisible(false)}
+      >
+        <View style={common.modalOverlay}>
+          <View style={[common.modalContent]}>
+            <View style={{ marginBottom: 20 }}>
+              <Text style={common.modalTitle}>Historique de {selectedTirelireForHistory?.description}</Text>
+            </View>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{ marginBottom: 20 }}
+            >
+              {selectedTirelireForHistory?.mouvements &&
+              selectedTirelireForHistory.mouvements.length > 0 ? (
+                selectedTirelireForHistory.mouvements.map((mouv) => (
+                  <View
+                    key={mouv.id}
+                    style={[
+                      common.dispatchItem,
+                      {
+                        paddingVertical: 12,
+                        borderBottomWidth: 0.5,
+                        borderBottomColor: "#E5E7EB",
+                      },
+                    ]}
+                  >
+                    <View>
+                      <Text style={[common.dispatchItemName, { fontSize: 14 }]}>
+                        {(() => {
+                          const dateStr = dayjs(mouv.date_mouvement).format(
+                            "MMMM YYYY",
+                          );
+                          return (
+                            dateStr.charAt(0).toUpperCase() + dateStr.slice(1)
+                          );
+                        })()}
+                      </Text>
+                      <Text
+                        style={[styles.bodySm, { color: colors.textSecondary }]}
+                      >
+                        {mouv.montant > 0 ? "Versement" : "Retrait"}
+                      </Text>
+                    </View>
+
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "700",
+                        color:
+                          mouv.montant > 0 ? colors.success : colors.danger,
+                      }}
+                    >
+                      {mouv.montant > 0 ? "+" : ""}
+                      {mouv.montant}€
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <View style={{ padding: 40, alignItems: "center" }}>
+                  <Text style={[styles.body, { color: colors.textSecondary }]}>
+                    Aucun mouvement pour le moment.
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Bouton Fermer */}
+            <TouchableOpacity
+              style={[common.btnCancel, { width: "100%", marginTop: 10 }]}
+              onPress={() => setIsHistoryModalVisible(false)}
+            >
+              <Text style={common.btnCancelText}>Fermer</Text>
             </TouchableOpacity>
           </View>
         </View>

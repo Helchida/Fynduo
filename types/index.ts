@@ -170,6 +170,14 @@ export interface ITirelire extends FirestoreDocument {
   isLocked: boolean;
   parentId?: string;
   position?: number;
+  mouvements?: IMouvement[];
+}
+
+export interface IMouvement {
+  id: string;
+  tirelire_id: string;
+  montant: number;
+  date_mouvement: string;
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";

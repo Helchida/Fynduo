@@ -232,4 +232,14 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontStyle: "italic",
   },
+  body: {
+    fontSize: 16,
+    color: "#1F2937", // Gris foncé (text-gray-800)
+    lineHeight: 24,
+  },
+  bodySm: {
+    fontSize: 13,
+    color: "#6B7280", // Gris moyen (text-gray-500)
+    fontWeight: "400",
+  },
 });

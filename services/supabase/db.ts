@@ -1447,7 +1447,7 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
       .select(
         `
         *,
-        epargne_mouvements (montant)
+        epargne_mouvements (*)
       `,
       )
       .eq("user_id", userId)
@@ -1457,6 +1457,7 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
     if (error) throw error;
 
     const mapped = (data || []).map((row) => {
+      const mouvements = row.epargne_mouvements || [];
       const sommeMouvements =
         row.epargne_mouvements?.reduce(
           (acc: number, m: any) => acc + Number(m.montant),
@@ -1474,6 +1475,9 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
         montantInitial: initial,
         position: row.position,
         isLocked: row.is_locked,
+        mouvements: mouvements.sort((a: any, b: any) => {
+          return b.date_mouvement.localeCompare(a.date_mouvement);
+        }),
       };
     });
 
@@ -1511,7 +1515,7 @@ export async function updateTirelire(
     description?: string;
     objectif?: number;
     montant_initial?: number;
-      is_locked?: boolean;
+    is_locked?: boolean;
   },
 ) {
   const { error } = await supabase
@@ -1576,40 +1580,42 @@ export async function breakTirelire(
   montant: number,
 ): Promise<void> {
   try {
-
     const { data: subTirelires } = await supabase
-    .from("tirelires")
-    .select("*")
-    .eq("parent_id", tirelire.id)
-    .order("position", { ascending: false });
+      .from("tirelires")
+      .select("*")
+      .eq("parent_id", tirelire.id)
+      .order("position", { ascending: false });
 
-  const totalRangé = (subTirelires || []).reduce((acc, sub) => acc + (sub.montant_initial || 0), 0);
-  const vracActuel = tirelire.montantActuel - totalRangé;
+    const totalRangé = (subTirelires || []).reduce(
+      (acc, sub) => acc + (sub.montant_initial || 0),
+      0,
+    );
+    const vracActuel = tirelire.montantActuel - totalRangé;
 
-  let resteAPrelever = montant;
+    let resteAPrelever = montant;
 
-  if (vracActuel > 0) {
-    const prelevementVrac = Math.min(vracActuel, resteAPrelever);
-    resteAPrelever -= prelevementVrac;
-  }
+    if (vracActuel > 0) {
+      const prelevementVrac = Math.min(vracActuel, resteAPrelever);
+      resteAPrelever -= prelevementVrac;
+    }
 
-  if (resteAPrelever > 0 && subTirelires) {
-    for (const sub of subTirelires) {
-      if (resteAPrelever <= 0) break;
+    if (resteAPrelever > 0 && subTirelires) {
+      for (const sub of subTirelires) {
+        if (resteAPrelever <= 0) break;
 
-      const montantDisponible = sub.montant_initial || 0;
-      const aPrelever = Math.min(montantDisponible, resteAPrelever);
+        const montantDisponible = sub.montant_initial || 0;
+        const aPrelever = Math.min(montantDisponible, resteAPrelever);
 
-      if (aPrelever > 0) {
-        await supabase
-          .from("tirelires")
-          .update({ montant_initial: montantDisponible - aPrelever })
-          .eq("id", sub.id);
-        
-        resteAPrelever -= aPrelever;
+        if (aPrelever > 0) {
+          await supabase
+            .from("tirelires")
+            .update({ montant_initial: montantDisponible - aPrelever })
+            .eq("id", sub.id);
+
+          resteAPrelever -= aPrelever;
+        }
       }
     }
-  }
 
     const moisActuel = dayjs().format("YYYY-MM");
     const dateDuJour = dayjs().format("YYYY-MM-DD");
@@ -1656,12 +1662,12 @@ export async function getSubTirelires(parentId: string): Promise<ITirelire[]> {
 
   if (error) throw error;
 
-  return (data || []).map(row => ({
+  return (data || []).map((row) => ({
     id: row.id,
     description: row.description,
     objectif: row.objectif || 0,
     montantInitial: row.montant_initial || 0,
-    montantActuel: row.montant_initial || 0, 
+    montantActuel: row.montant_initial || 0,
     parentId: row.parent_id,
     user_id: row.user_id,
     position: row.position,
@@ -1673,7 +1679,7 @@ export async function addSubTirelire(
   userId: string,
   parentId: string,
   description: string,
-  objectif: number
+  objectif: number,
 ): Promise<void> {
   const uniqueId = generateId();
 
@@ -1692,7 +1698,7 @@ export async function addSubTirelire(
 
 export async function affecterMontantSub(
   subId: string,
-  montant: number
+  montant: number,
 ): Promise<void> {
   const { data, error: fetchError } = await supabase
     .from("tirelires")
@@ -1712,17 +1718,20 @@ export async function affecterMontantSub(
   if (error) throw error;
 }
 
-export async function breakSubTirelire(subId: string, montant: number): Promise<void> {
+export async function breakSubTirelire(
+  subId: string,
+  montant: number,
+): Promise<void> {
   const { data: subTirelire } = await supabase
     .from("tirelires")
     .select("*")
     .eq("id", subId);
 
-    if(!subTirelire || subTirelire.length === 0) {
-      throw new Error("Tirelire introuvable");
-    }
+  if (!subTirelire || subTirelire.length === 0) {
+    throw new Error("Tirelire introuvable");
+  }
 
-    const montantSubTirelire = subTirelire[0].montant_initial || 0;
+  const montantSubTirelire = subTirelire[0].montant_initial || 0;
   const { error } = await supabase
     .from("tirelires")
     .update({ montant_initial: montantSubTirelire - montant })
@@ -1732,39 +1741,38 @@ export async function breakSubTirelire(subId: string, montant: number): Promise<
 }
 
 export async function deleteSubTirelire(subId: string): Promise<void> {
-  const { error } = await supabase
-    .from("tirelires")
-    .delete()
-    .eq("id", subId);
+  const { error } = await supabase.from("tirelires").delete().eq("id", subId);
 
   if (error) throw error;
 }
 
 export async function updateSubTireliresOrder(
-  positions: { id: string; position: number }[]
+  positions: { id: string; position: number }[],
 ): Promise<void> {
   const promises = positions.map((item) =>
     supabase
       .from("tirelires")
       .update({ position: item.position })
-      .eq("id", item.id)
+      .eq("id", item.id),
   );
 
   const results = await Promise.all(promises);
-  const firstError = results.find(r => r.error);
+  const firstError = results.find((r) => r.error);
   if (firstError) throw firstError.error;
 }
 
 export async function breakCascade(
   userId: string,
-  montantBesoin: number
+  montantBesoin: number,
 ): Promise<{ recupere: number; manquant: number }> {
   const { data: allTirelires, error } = await supabase
     .from("tirelires")
-    .select(`
+    .select(
+      `
       *,
       epargne_mouvements (montant)
-    `)
+    `,
+    )
     .eq("user_id", userId)
     .order("position", { ascending: false });
 
@@ -1773,7 +1781,7 @@ export async function breakCascade(
   const tirelires = allTirelires || [];
 
   const parentsAutorises = tirelires.filter(
-    (t) => t.parent_id === null && t.is_locked === false
+    (t) => t.parent_id === null && t.is_locked === false,
   );
 
   let resteAFinds = montantBesoin;
@@ -1781,18 +1789,22 @@ export async function breakCascade(
   for (const parentRow of parentsAutorises) {
     if (resteAFinds <= 0) break;
 
-    const sommeMouvements = parentRow.epargne_mouvements?.reduce(
-      (acc: number, m: any) => acc + Number(m.montant),
-      0
-    ) || 0;
-    const soldeParentTotal = (Number(parentRow.montant_initial) || 0) + sommeMouvements;
+    const sommeMouvements =
+      parentRow.epargne_mouvements?.reduce(
+        (acc: number, m: any) => acc + Number(m.montant),
+        0,
+      ) || 0;
+    const soldeParentTotal =
+      (Number(parentRow.montant_initial) || 0) + sommeMouvements;
 
     if (soldeParentTotal <= 0) continue;
-    const toutesCagnottesDuParent = tirelires.filter((e) => e.parent_id === parentRow.id);
-    
+    const toutesCagnottesDuParent = tirelires.filter(
+      (e) => e.parent_id === parentRow.id,
+    );
+
     const totalReserveDansCagnottes = toutesCagnottesDuParent.reduce(
-      (acc, c) => acc + (Number(c.montant_initial) || 0), 
-      0
+      (acc, c) => acc + (Number(c.montant_initial) || 0),
+      0,
     );
 
     const vracDisponible = soldeParentTotal - totalReserveDansCagnottes;
@@ -1800,7 +1812,7 @@ export async function breakCascade(
     if (vracDisponible > 0 && resteAFinds > 0) {
       const aPreleverVrac = Math.min(vracDisponible, resteAFinds);
       const parentInterface = mapToITirelire(parentRow, soldeParentTotal);
-      
+
       await breakTirelire(userId, parentInterface, aPreleverVrac);
       resteAFinds -= aPreleverVrac;
     }
@@ -1812,7 +1824,7 @@ export async function breakCascade(
 
       for (const cagnotte of cagnottesAccessibles) {
         if (resteAFinds <= 0) break;
-        
+
         const soldeCagnotte = Number(cagnotte.montant_initial) || 0;
         if (soldeCagnotte > 0) {
           const aPreleverCagnotte = Math.min(soldeCagnotte, resteAFinds);
@@ -1843,11 +1855,10 @@ function mapToITirelire(row: any, soldeCalcule: number): ITirelire {
   };
 }
 
-
 export async function breakSingleTirelireCagnottesOnly(
   userId: string,
   parentTirelire: ITirelire,
-  montantBesoin: number
+  montantBesoin: number,
 ): Promise<{ recupere: number; manquant: number }> {
   const { data: cagnottesRaw, error } = await supabase
     .from("tirelires")
@@ -1865,7 +1876,7 @@ export async function breakSingleTirelireCagnottesOnly(
       if (resteAFinds <= 0) break;
 
       const soldeCagnotte = Number(cagnotte.montant_initial) || 0;
-      
+
       if (soldeCagnotte > 0) {
         const aPrelever = Math.min(soldeCagnotte, resteAFinds);
 
