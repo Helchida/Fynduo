@@ -133,7 +133,7 @@ export const common = StyleSheet.create({
     marginTop: spacing.xl,
     backgroundColor: colors.textLight,
     padding: spacing.md + 3,
-    borderRadius: radius.xs,
+    borderRadius: radius.lg,
     alignItems: "center" as const,
   },
   modalCloseButtonText: {

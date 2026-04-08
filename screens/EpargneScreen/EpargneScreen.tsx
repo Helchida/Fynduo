@@ -905,10 +905,10 @@ const EpargneScreen: React.FC = () => {
             </ScrollView>
 
             <TouchableOpacity
-              style={[common.btnCancel, { marginTop: 15 }]}
+              style={[common.modalCloseButton, { marginTop: 15 }]}
               onPress={() => setIsDispatchModalVisible(false)}
             >
-              <Text style={common.btnCancelText}>Annuler</Text>
+              <Text style={common.modalCloseButtonText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1019,14 +1019,14 @@ const EpargneScreen: React.FC = () => {
             )}
 
             <TouchableOpacity
-              style={[common.btnCancel, { marginTop: 15 }]}
+              style={[common.modalCloseButton, { marginTop: 15 }]}
               onPress={() => {
                 setIsBreakModalVisible(false);
                 setIsChooseTirelireToBreak(false);
                 setCagnottesOfTirelireToBreak([]);
               }}
             >
-              <Text style={common.btnCancelText}>Annuler</Text>
+              <Text style={common.modalCloseButtonText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1101,12 +1101,11 @@ const EpargneScreen: React.FC = () => {
               )}
             </ScrollView>
 
-            {/* Bouton Fermer */}
             <TouchableOpacity
-              style={[common.btnCancel, { width: "100%", marginTop: 10 }]}
+              style={[common.modalCloseButton, { width: "100%", marginTop: 10 }]}
               onPress={() => setIsHistoryModalVisible(false)}
             >
-              <Text style={common.btnCancelText}>Fermer</Text>
+              <Text style={common.modalCloseButtonText}>Fermer</Text>
             </TouchableOpacity>
           </View>
         </View>

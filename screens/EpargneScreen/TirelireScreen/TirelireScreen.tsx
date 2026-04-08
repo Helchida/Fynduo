@@ -623,13 +623,13 @@ const TirelireScreen: React.FC = () => {
             </ScrollView>
 
             <TouchableOpacity
-              style={[common.btnCancel, { marginTop: 15 }]}
+              style={[common.modalCloseButton, { marginTop: 15 }]}
               onPress={() => {
                 setIsTransferModalVisible(false);
                 setAmountToStore("");
               }}
             >
-              <Text style={common.btnCancelText}>Annuler</Text>
+              <Text style={common.modalCloseButtonText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -771,12 +771,12 @@ const TirelireScreen: React.FC = () => {
             </>
 
             <TouchableOpacity
-              style={[common.btnCancel, { marginTop: 15 }]}
+              style={[common.modalCloseButton, { marginTop: 15 }]}
               onPress={() => {
                 setIsBreakModalVisible(false);
               }}
             >
-              <Text style={common.btnCancelText}>Annuler</Text>
+              <Text style={common.modalCloseButtonText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
