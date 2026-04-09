@@ -21,6 +21,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: colors.textPrimary,
+    flex: 10,
   },
   chargePayer: {
     fontSize: 14,

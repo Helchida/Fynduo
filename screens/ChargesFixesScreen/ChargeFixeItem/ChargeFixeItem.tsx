@@ -14,7 +14,7 @@ import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { CalendarDays, User } from "lucide-react-native";
+import { CalendarDays, Trash2, User } from "lucide-react-native";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
@@ -135,12 +135,11 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   return (
     <View style={styles.chargeItem}>
       <View style={styles.inputRow}>
-        <Text style={styles.chargeName}>{charge.description}</Text>
+        <Text style={[styles.chargeName]}>{charge.description}</Text>
         <TouchableOpacity
-          style={styles.deleteButton}
           onPress={() => setIsDeleteModalVisible(true)}
         >
-          <Text style={styles.deleteButtonText}>X</Text>
+          <Trash2 size={18} color="#e74c3c" />
         </TouchableOpacity>
       </View>
       <View
