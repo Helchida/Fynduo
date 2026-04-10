@@ -12,6 +12,7 @@ import {
 import { useComptes } from "../../hooks/useComptes";
 import { styles } from "../../styles/screens/EpargneScreen/EpargneScreen.style";
 import { common } from "../../styles/common.style";
+import { spacing } from "../../styles/theme.style";
 import {
   PiggyBank,
   ChevronLeft,
@@ -23,7 +24,6 @@ import {
   Hammer,
   HandCoins,
   Coins,
-  Briefcase,
   GripVertical,
   Zap,
   Unlock,
@@ -107,6 +107,7 @@ const EpargneScreen: React.FC = () => {
     refresh,
     getCagnottes,
     updateLocalTirelire,
+    getTotalObjectifsTirelires,
   } = useEpargneData(user.id, moisCle);
 
   useEffect(() => {
@@ -189,6 +190,11 @@ const EpargneScreen: React.FC = () => {
   );
   const isLatestPossibleMonth = selectedDate.isSame(dayjs(), "month");
   const isCurrentMonth = selectedDate.isSame(dayjs(), "month");
+
+  const progressionTotalObjectifs = Math.min(
+    (totalCumuleTirelires / getTotalObjectifsTirelires()) * 100,
+    100,
+  );
 
   const handlePlaceEpargne = async (tirelireId: string) => {
     const montant = parseFloat(montantSaisi.replace(",", "."));
@@ -759,22 +765,34 @@ const EpargneScreen: React.FC = () => {
 
               <View style={common.sectionHeader}>
                 <View style={common.titleWithIcon}>
-                  <PiggyBank size={22} color="#2c3e50" />
+                  <PiggyBank style={{marginBottom: spacing.md}} size={22} color="#2c3e50" />
                   <Text style={common.sectionTitle}>Mes tirelires</Text>
                 </View>
               </View>
 
               <View style={styles.totalAccumulatedContainer}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.totalAccumulatedLabel}>
                     Épargne Totale Accumulée
                   </Text>
                   <Text style={styles.totalAccumulatedAmount}>
-                    {formatCurrency(totalCumuleTirelires)}
+                    {formatCurrency(totalCumuleTirelires)} /{" "}
+                    {formatCurrency(getTotalObjectifsTirelires())}
                   </Text>
-                </View>
-                <View style={styles.totalAccumulatedIcon}>
-                  <Briefcase size={24} color="#3498db" />
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        { width: `${progressionTotalObjectifs}%`, backgroundColor: "#3498db" },
+                      ]}
+                    />
+                  </View>
+
+                  <Text style={styles.remainingText}>
+                    {totalCumuleTirelires >= getTotalObjectifsTirelires()
+                      ? "Objectif atteint ! 🎉"
+                      : `Il manque ${formatCurrency(getTotalObjectifsTirelires() - totalCumuleTirelires)}`}
+                  </Text>
                 </View>
               </View>
             </>
@@ -1041,7 +1059,9 @@ const EpargneScreen: React.FC = () => {
         <View style={common.modalOverlay}>
           <View style={[common.modalContent]}>
             <View style={{ marginBottom: 20 }}>
-              <Text style={common.modalTitle}>Historique de {selectedTirelireForHistory?.description}</Text>
+              <Text style={common.modalTitle}>
+                Historique de {selectedTirelireForHistory?.description}
+              </Text>
             </View>
             <ScrollView
               showsVerticalScrollIndicator={false}
@@ -1102,7 +1122,10 @@ const EpargneScreen: React.FC = () => {
             </ScrollView>
 
             <TouchableOpacity
-              style={[common.modalCloseButton, { width: "100%", marginTop: 10 }]}
+              style={[
+                common.modalCloseButton,
+                { width: "100%", marginTop: 10 },
+              ]}
               onPress={() => setIsHistoryModalVisible(false)}
             >
               <Text style={common.modalCloseButtonText}>Fermer</Text>

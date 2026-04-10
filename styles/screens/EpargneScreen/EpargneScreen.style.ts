@@ -157,7 +157,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     marginHorizontal: spacing.xl,
     marginBottom: spacing.md + 3,
-    padding: spacing.md + 3,
+    padding: spacing.lg + 2,
     borderRadius: radius.lg,
     flexDirection: "row",
     alignItems: "center",
@@ -177,6 +177,7 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.textPrimary,
     marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
   totalAccumulatedIcon: {
     backgroundColor: colors.successBg,

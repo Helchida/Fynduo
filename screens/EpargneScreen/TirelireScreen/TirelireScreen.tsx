@@ -38,6 +38,7 @@ import { useSubTirelires } from "hooks/useSubTirelires";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { styles } from "../../../styles/screens/EpargneScreen/TirelireScreen/TirelireScreen.style";
 import { common } from "../../../styles/common.style";
+import { spacing } from "../../../styles/theme.style";
 import DraggableFlatList, {
   ScaleDecorator,
   RenderItemParams,
@@ -564,7 +565,7 @@ const TirelireScreen: React.FC = () => {
 
             <View style={[styles.sectionContainer]}>
               <View style={common.titleWithIcon}>
-                <Target size={22} color="#2c3e50" />
+                <Target style={{ marginBottom: spacing.md }} size={22} color="#2c3e50" />
                 <Text style={common.sectionTitle}>Mes cagnottes</Text>
               </View>
               {loading && (

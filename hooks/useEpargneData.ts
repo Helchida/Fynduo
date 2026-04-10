@@ -1,4 +1,5 @@
 import { ITirelire } from "@/types";
+import { get } from "http";
 import { useCallback, useState } from "react";
 import {
   getTirelires,
@@ -42,6 +43,10 @@ export const useEpargneData = (
     );
   };
 
+  const getTotalObjectifsTirelires = useCallback(() => {
+    return tirelires.reduce((sum, t) => sum + t.objectif, 0);
+  }, [tirelires]);
+
   return {
     tirelires,
     dejaPlaceCeMois,
@@ -49,5 +54,6 @@ export const useEpargneData = (
     refresh,
     getCagnottes,
     updateLocalTirelire,
+    getTotalObjectifsTirelires,
   };
 };
