@@ -1,11 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
-  Platform,
   Pressable,
   Modal,
 } from "react-native";
@@ -23,10 +21,14 @@ import "dayjs/locale/fr";
 import { StatPeriod } from "@/types";
 import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { EpargneStatsCard } from "./EpargnesStatsCard/EpargnesStatsCard";
+import { useEpargneStats } from "hooks/useEpargnesStats";
+import { useEpargneData } from "hooks/useEpargneData";
+import { useFocusEffect } from "@react-navigation/native";
 
 dayjs.locale("fr");
 
-type ViewMode = "dépenses" | "revenus";
+type ViewMode = "dépenses" | "revenus" | "épargnes";
 
 const StatsScreen: React.FC = () => {
   const { charges, revenus } = useComptes();
@@ -55,6 +57,17 @@ const StatsScreen: React.FC = () => {
 
   const referenceDate = period === "annee" ? selectedYear : selectedMonth;
 
+  const { tirelires, refresh: refreshEpargne } = useEpargneData(
+    user?.id,
+    referenceDate,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshEpargne();
+    }, [refreshEpargne]),
+  );
+
   const {
     variablesStatsParCategorie,
     totalVariable,
@@ -78,6 +91,9 @@ const StatsScreen: React.FC = () => {
     referenceDate,
     user?.id,
   );
+
+  const { statsParTirelire, totalDepose, totalRetire } =
+    useEpargneStats(tirelires, period, referenceDate);
 
   const formatMonth = (monthStr: string) => {
     const formatted = dayjs(monthStr).format("MMMM YYYY");
@@ -130,9 +146,18 @@ const StatsScreen: React.FC = () => {
               activeOpacity={0.7}
             >
               <Text style={styles.triggerText}>
-                {viewMode === "dépenses" ? "💸 Dépenses" : "💰 Revenus"}
+                {viewMode === "dépenses"
+                  ? "💸 Dépenses"
+                  : viewMode === "revenus"
+                    ? "💰 Revenus"
+                    : "🏦 Épargne"}
               </Text>
-                {isDropdownOpen ? <ChevronUp color="#2c3e50" size={16} /> : <ChevronDown color="#2c3e50" size={16} />}
+
+              {isDropdownOpen ? (
+                <ChevronUp color="#2c3e50" size={16} />
+              ) : (
+                <ChevronDown color="#2c3e50" size={16} />
+              )}
             </TouchableOpacity>
 
             <Modal
@@ -154,31 +179,37 @@ const StatsScreen: React.FC = () => {
                     },
                   ]}
                 >
-                  {(["dépenses", "revenus"] as ViewMode[]).map((mode) => (
-                    <TouchableOpacity
-                      key={mode}
-                      style={[
-                        styles.menuItem,
-                        viewMode === mode && styles.menuItemActive,
-                      ]}
-                      onPress={() => {
-                        setViewMode(mode);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      <Text
+                  {(["dépenses", "revenus", "épargnes"] as ViewMode[]).map(
+                    (mode) => (
+                      <TouchableOpacity
+                        key={mode}
                         style={[
-                          styles.menuItemText,
-                          viewMode === mode && styles.menuItemTextActive,
+                          styles.menuItem,
+                          viewMode === mode && styles.menuItemActive,
                         ]}
+                        onPress={() => {
+                          setViewMode(mode);
+                          setIsDropdownOpen(false);
+                        }}
                       >
-                        {mode === "dépenses" ? "💸 Dépenses" : "💰 Revenus"}
-                      </Text>
-                      {viewMode === mode && (
-                        <Text style={styles.checkmark}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.menuItemText,
+                            viewMode === mode && styles.menuItemTextActive,
+                          ]}
+                        >
+                          {mode === "dépenses"
+                            ? "💸 Dépenses"
+                            : mode === "revenus"
+                              ? "💰 Revenus"
+                              : "🏦 Épargne"}
+                        </Text>
+                        {viewMode === mode && (
+                          <Text style={styles.checkmark}>✓</Text>
+                        )}
+                      </TouchableOpacity>
+                    ),
+                  )}
                 </View>
               </Pressable>
             </Modal>
@@ -215,7 +246,7 @@ const StatsScreen: React.FC = () => {
         </TouchableOpacity>
       )}
 
-      {effectiveViewMode === "dépenses" ? (
+      {effectiveViewMode === "dépenses" && (
         <>
           <ChargesStatsCard
             charges={charges}
@@ -247,7 +278,9 @@ const StatsScreen: React.FC = () => {
             getDisplayName={getDisplayName}
           />
         </>
-      ) : (
+      )} 
+      
+      {effectiveViewMode === "revenus" && (
         <RevenusStatsCard
           revenus={revenus}
           statsRevenusParCategorie={statsRevenusParCategorie}
@@ -255,6 +288,15 @@ const StatsScreen: React.FC = () => {
           period={period}
           referenceDate={referenceDate}
           isSoloMode={isSoloMode}
+        />
+      )}
+
+      {effectiveViewMode === "épargnes" && (
+        <EpargneStatsCard
+          statsParTirelire={statsParTirelire}
+          totalDepose={totalDepose}
+          totalRetire={totalRetire}
+          period={period}
         />
       )}
 
