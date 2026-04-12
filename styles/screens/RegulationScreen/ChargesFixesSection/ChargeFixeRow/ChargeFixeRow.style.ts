@@ -33,15 +33,7 @@ export const styles = StyleSheet.create({
   // ── Suppression ───────────────────────────────
   deleteButton: {
     flex: 1,
-    backgroundColor: colors.danger,
-    aspectRatio: 1,
-    borderRadius: radius.full,
     justifyContent: "center",
     alignItems: "center",
-  },
-  deleteButtonText: {
-    color: colors.surface,
-    fontWeight: "bold",
-    fontSize: 14,
   },
 });

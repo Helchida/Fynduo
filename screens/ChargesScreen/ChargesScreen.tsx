@@ -22,7 +22,13 @@ import { CategoryPickerModal } from "../ChargeDetail/EditChargeForm/CategoryPick
 import { PayeurPickerModal } from "../ChargeDetail/EditChargeForm/PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "../ChargeDetail/EditChargeForm/BeneficiariesSelector/BeneficiariesSelector";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { ChevronsUpDown } from "lucide-react-native";
+import {
+  CalendarSearch,
+  ChevronsUpDown,
+  Puzzle,
+  Tag,
+  UserRound,
+} from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { useToast } from "hooks/useToast";
 import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
@@ -475,19 +481,22 @@ const ChargesScreen: React.FC = () => {
             ]}
             onPress={() => setIsFilterPeriodeModalVisible(true)}
           >
-            <Text
-              style={[
-                styles.filterChipText,
-                (filterMois || filterAnnee) && styles.filterChipTextActive,
-              ]}
-            >
-              📅{" "}
-              {filterMois
-                ? dayjs(filterMois).format("MMM YYYY")
-                : filterAnnee
-                  ? filterAnnee
-                  : "Période"}
-            </Text>
+            <View style={common.row}>
+              <CalendarSearch size={13} color={"#354bbd"} />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  (filterMois || filterAnnee) && styles.filterChipTextActive,
+                ]}
+              >
+                {" "}
+                {filterMois
+                  ? dayjs(filterMois).format("MMM YYYY")
+                  : filterAnnee
+                    ? filterAnnee
+                    : "Période"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           {!isSoloHousehold && (
@@ -498,14 +507,18 @@ const ChargesScreen: React.FC = () => {
               ]}
               onPress={() => setIsFilterPayeurModalVisible(true)}
             >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filterPayeur && styles.filterChipTextActive,
-                ]}
-              >
-                👤 {filterPayeur ? getDisplayName(filterPayeur) : "Payeur"}
-              </Text>
+              <View style={common.row}>
+                <UserRound size={13} color={"#5c10c0"} />
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    filterPayeur && styles.filterChipTextActive,
+                  ]}
+                >
+                  {" "}
+                  {filterPayeur ? getDisplayName(filterPayeur) : "Payeur"}
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
 
@@ -516,15 +529,20 @@ const ChargesScreen: React.FC = () => {
             ]}
             onPress={() => setIsFilterCategoryModalVisible(true)}
           >
-            <Text
-              style={[
-                styles.filterChipText,
-                filterCategory && styles.filterChipTextActive,
-              ]}
-            >
-              🏷️{" "}
-              {filterCategory ? getCategoryLabel(filterCategory) : "Catégorie"}
-            </Text>
+            <View style={common.row}>
+              <Tag size={13} color={"#c0ae10"} />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  filterCategory && styles.filterChipTextActive,
+                ]}
+              >
+                {" "}
+                {filterCategory
+                  ? getCategoryLabel(filterCategory)
+                  : "Catégorie"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -534,19 +552,22 @@ const ChargesScreen: React.FC = () => {
             ]}
             onPress={() => setIsFilterTypeChargeModalVisible(true)}
           >
-            <Text
-              style={[
-                styles.filterChipText,
-                filterTypeCharge && styles.filterChipTextActive,
-              ]}
-            >
-              🧩{" "}
-              {filterTypeCharge
-                ? filterTypeCharge === "fixe"
-                  ? "Fixe"
-                  : "Variable"
-                : "Type"}
-            </Text>
+            <View style={common.row}>
+              <Puzzle size={13} color={"#56c010"} />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  filterTypeCharge && styles.filterChipTextActive,
+                ]}
+              >
+                {" "}
+                {filterTypeCharge
+                  ? filterTypeCharge === "fixe"
+                    ? "Fixe"
+                    : "Variable"
+                  : "Type"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           {(filterMois ||

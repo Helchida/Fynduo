@@ -20,11 +20,18 @@ import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { StatPeriod } from "@/types";
 import { useHouseholdUsers } from "hooks/useHouseholdUsers";
-import { ChevronDown, ChevronUp } from "lucide-react-native";
+import {
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  ChevronDown,
+  ChevronUp,
+  Landmark,
+} from "lucide-react-native";
 import { EpargneStatsCard } from "./EpargnesStatsCard/EpargnesStatsCard";
 import { useEpargneStats } from "hooks/useEpargnesStats";
 import { useEpargneData } from "hooks/useEpargneData";
 import { useFocusEffect } from "@react-navigation/native";
+import { common } from "styles/common.style";
 
 dayjs.locale("fr");
 
@@ -92,8 +99,11 @@ const StatsScreen: React.FC = () => {
     user?.id,
   );
 
-  const { statsParTirelire, totalDepose, totalRetire } =
-    useEpargneStats(tirelires, period, referenceDate);
+  const { statsParTirelire, totalDepose, totalRetire } = useEpargneStats(
+    tirelires,
+    period,
+    referenceDate,
+  );
 
   const formatMonth = (monthStr: string) => {
     const formatted = dayjs(monthStr).format("MMMM YYYY");
@@ -145,13 +155,23 @@ const StatsScreen: React.FC = () => {
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.triggerText}>
-                {viewMode === "dépenses"
-                  ? "💸 Dépenses"
-                  : viewMode === "revenus"
-                    ? "💰 Revenus"
-                    : "🏦 Épargne"}
-              </Text>
+              <View style={common.row}>
+                {viewMode === "dépenses" ? (
+                  <BanknoteArrowDown size={16} color={"#25cc0f"} />
+                ) : viewMode === "revenus" ? (
+                  <BanknoteArrowUp size={16} color={"#0f77cc"} />
+                ) : (
+                  <Landmark size={16} color={"#870fcc"} />
+                )}
+
+                <Text style={styles.triggerText}>
+                  {viewMode === "dépenses"
+                    ? " Dépenses"
+                    : viewMode === "revenus"
+                      ? " Revenus"
+                      : " Épargne"}
+                </Text>
+              </View>
 
               {isDropdownOpen ? (
                 <ChevronUp color="#2c3e50" size={16} />
@@ -192,18 +212,27 @@ const StatsScreen: React.FC = () => {
                           setIsDropdownOpen(false);
                         }}
                       >
-                        <Text
-                          style={[
-                            styles.menuItemText,
-                            viewMode === mode && styles.menuItemTextActive,
-                          ]}
-                        >
-                          {mode === "dépenses"
-                            ? "💸 Dépenses"
-                            : mode === "revenus"
-                              ? "💰 Revenus"
-                              : "🏦 Épargne"}
-                        </Text>
+                        <View style={common.row}>
+                          {mode === "dépenses" ? (
+                            <BanknoteArrowDown size={16} color={"#25cc0f"} />
+                          ) : mode === "revenus" ? (
+                            <BanknoteArrowUp size={16} color={"#0f77cc"} />
+                          ) : (
+                            <Landmark size={16} color={"#870fcc"} />
+                          )}
+                          <Text
+                            style={[
+                              styles.menuItemText,
+                              viewMode === mode && styles.menuItemTextActive,
+                            ]}
+                          >
+                            {mode === "dépenses"
+                              ? " Dépenses"
+                              : mode === "revenus"
+                                ? " Revenus"
+                                : " Épargne"}
+                          </Text>
+                        </View>
                         {viewMode === mode && (
                           <Text style={styles.checkmark}>✓</Text>
                         )}
@@ -278,8 +307,8 @@ const StatsScreen: React.FC = () => {
             getDisplayName={getDisplayName}
           />
         </>
-      )} 
-      
+      )}
+
       {effectiveViewMode === "revenus" && (
         <RevenusStatsCard
           revenus={revenus}

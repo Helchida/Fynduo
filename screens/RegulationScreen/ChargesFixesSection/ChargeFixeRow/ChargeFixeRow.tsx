@@ -3,6 +3,7 @@ import { styles } from "../../../../styles/screens/RegulationScreen/ChargesFixes
 import { ChargeFixeRowProps } from "./ChargeFixeRow.type";
 import { useState } from "react";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
+import { Trash2 } from "lucide-react-native";
 
 const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({
   charge,
@@ -33,7 +34,7 @@ const ChargeFixeRow: React.FC<ChargeFixeRowProps> = ({
         style={styles.deleteButton}
         onPress={() => setIsDeleteModalVisible(true)}
       >
-        <Text style={styles.deleteButtonText}>X</Text>
+        <Trash2 size={20} color="#e74c3c" />
       </TouchableOpacity>
 
       <ConfirmModal

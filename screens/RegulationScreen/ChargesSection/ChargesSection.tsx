@@ -3,6 +3,7 @@ import { View, Text } from "react-native";
 import { styles } from "../../../styles/screens/RegulationScreen/ChargesSection/ChargesSection.style";
 import { common } from "styles/common.style";
 import { ChargesSectionProps } from "./ChargesSection.type";
+import { Target } from "lucide-react-native";
 
 const ChargesSection: React.FC<ChargesSectionProps> = ({
   virements,
@@ -10,7 +11,10 @@ const ChargesSection: React.FC<ChargesSectionProps> = ({
 }) => {
   return (
     <View style={common.cardFlat}>
-      <Text style={common.cardFlatTitle}>⚖️ Charges (Dépenses)</Text>
+      <View style={common.row}>
+        <Target size={20} color={"#22ad16"} style={{ marginBottom: 14 }} />
+        <Text style={common.cardFlatTitle}> Charges (Dépenses)</Text>
+      </View>
 
       <View style={styles.container}>
         {virements.length > 0 ? (

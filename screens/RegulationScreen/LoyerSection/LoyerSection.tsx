@@ -2,6 +2,7 @@ import { View, Text, TextInput } from "react-native";
 import { styles } from "../../../styles/screens/RegulationScreen/LoyerSection/LoyerSection.style";
 import { common } from "styles/common.style";
 import { LoyerSectionProps } from "./LoyerSection.type";
+import { House } from "lucide-react-native";
 
 const LoyerSection: React.FC<LoyerSectionProps> = ({
   moisDeLoyerAffiche,
@@ -14,9 +15,13 @@ const LoyerSection: React.FC<LoyerSectionProps> = ({
 }) => {
   return (
     <View style={common.cardFlat}>
-      <Text style={common.cardFlatTitle}>
-        💰 Loyer (Mois: {moisDeLoyerAffiche})
-      </Text>
+      <View style={common.row}>
+        <House size={20} color={"#7a10c0"} style={{ marginBottom: 14 }} />
+        <Text style={common.cardFlatTitle}>
+          {" "}
+          Loyer (Mois: {moisDeLoyerAffiche})
+        </Text>
+      </View>
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>

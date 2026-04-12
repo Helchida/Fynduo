@@ -35,6 +35,7 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.textPrimary,
     letterSpacing: -0.5,
+    marginRight: spacing.xs
   },
   userIconButton: {
     width: 44,

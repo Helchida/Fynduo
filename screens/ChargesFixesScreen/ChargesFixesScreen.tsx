@@ -13,7 +13,7 @@ import { styles } from "./../../styles/screens/ChargesFixesScreen/ChargesFixesSc
 import { common } from "../../styles/common.style";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
-import { ChevronsUpDown, Info } from "lucide-react-native";
+import { ChevronsUpDown, Info, Lightbulb, TriangleAlert } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
@@ -415,9 +415,16 @@ const ChargesFixesScreen: React.FC = () => {
       >
         <View style={common.modalOverlay}>
           <View style={styles.infoModalContent}>
-            <Text style={styles.infoModalTitle}>
-              💡 À propos des charges fixes
-            </Text>
+            <View style={common.row}>
+              <Lightbulb
+                size={30}
+                color={"#d6d43d"}
+                style={{ marginBottom: 16 }}
+              />
+              <Text style={styles.infoModalTitle}>
+                À propos des charges fixes
+              </Text>
+            </View>
             <Text style={styles.infoModalText}>
               Les <Text style={common.bold}>charges fixes</Text> sont des
               dépenses récurrentes chaque mois : électricité, gaz, internet,
@@ -428,7 +435,14 @@ const ChargesFixesScreen: React.FC = () => {
               lors de la régularisation mensuelle.
             </Text>
             <View style={styles.warningBox}>
-              <Text style={styles.warningTitle}>⚠️ Important</Text>
+              <View style={common.row}>
+                <TriangleAlert
+                size={14}
+                color={"#d82007"}
+                style={{ marginBottom: 8 }}
+              />
+              <Text style={styles.warningTitle}> Important</Text>
+              </View>
               <Text style={styles.warningText}>
                 Si vous modifiez le montant d'une charge fixe, cela
                 <Text style={common.bold}> n'affecte que les mois futurs</Text>.

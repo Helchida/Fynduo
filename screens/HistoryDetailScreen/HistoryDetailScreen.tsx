@@ -16,6 +16,7 @@ import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
+import { BadgeEuro, House, Settings, Target } from "lucide-react-native";
 dayjs.locale("fr");
 
 type HistoryDetailRouteProp = RootStackRouteProp<"HistoryDetail">;
@@ -138,9 +139,13 @@ const HistoryDetailScreen: React.FC = () => {
       <Text style={styles.title}>Détails du règlement de {formattedDate}</Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          🏠 Loyer & APL ({moisAnneeAfter})
-        </Text>
+        <View style={common.row}>
+          <House size={20} color={"#7a10c0"} style={{ marginBottom: 14 }} />
+          <Text style={styles.sectionTitle}>
+            {" "}
+            Loyer & APL ({moisAnneeAfter})
+          </Text>
+        </View>
         <View style={styles.chargeRow}>
           <Text style={styles.chargeDescription}>• Loyer total</Text>
           <Text style={styles.chargeMontant}>
@@ -190,9 +195,13 @@ const HistoryDetailScreen: React.FC = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          ⚙️ Charges fixes (Total: {totalChargesFixes.toFixed(2)} €)
-        </Text>
+        <View style={common.row}>
+          <Settings size={20} color={"#747275"} style={{ marginBottom: 14 }} />
+          <Text style={styles.sectionTitle}>
+            {" "}
+            Charges fixes (Total: {totalChargesFixes.toFixed(2)} €)
+          </Text>
+        </View>
         {compteMensuel.chargesFixesSnapshot &&
           compteMensuel.chargesFixesSnapshot.map((charge, index) => (
             <View key={index} style={styles.chargeRow}>
@@ -229,7 +238,10 @@ const HistoryDetailScreen: React.FC = () => {
       </View>
 
       <View style={[styles.section]}>
-        <Text style={styles.sectionTitle}>🎯 Charges variables</Text>
+        <View style={common.row}>
+          <Target size={20} color={"#22ad16"} style={{ marginBottom: 14 }} />
+          <Text style={styles.sectionTitle}> Charges variables</Text>
+        </View>
         {compteMensuel.dettes.map((dette, index) => (
           <Text key={index} style={styles.finalDetail}>
             Dette{" "}
@@ -263,7 +275,10 @@ const HistoryDetailScreen: React.FC = () => {
       </View>
 
       <View style={[styles.section, styles.finalSection]}>
-        <Text style={styles.sectionTitle}>💰 Solde final net du mois :</Text>
+        <View style={common.row}>
+              <BadgeEuro size={20} color={"#d0d312"} style={{marginBottom: 14}}/>
+        <Text style={styles.sectionTitle}>{" "}Solde final net du mois :</Text>
+        </View>
         {soldeFinal > 0 && (
           <Text style={[styles.soldeFinal, styles.soldeNoteDebiteur]}>
             {"-" + Math.abs(soldeFinal).toFixed(2)} €

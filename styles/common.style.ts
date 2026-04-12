@@ -579,4 +579,10 @@ export const common = StyleSheet.create({
     padding: spacing.xl,
     alignItems: "center",
   },
+
+  // ── Row ────────────────────
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 });

@@ -22,6 +22,7 @@ import {
   PlusCircle,
   Home,
   Users,
+  BadgeEuro,
 } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { supabase } from "services/supabase/config";
@@ -221,10 +222,12 @@ const HomeScreen: React.FC = () => {
       <View style={styles.mainView}>
         <View style={styles.headerContainer}>
           <View style={styles.userInfo}>
-            <Text style={styles.welcomeText}>
-              Bonjour, {user.displayName} 👋
-            </Text>
-
+            <View style={common.row}>
+              <Text style={styles.welcomeText}>
+                Bonjour, {user.displayName}
+              </Text>
+              <BadgeEuro size={22}/>
+            </View>
             <TouchableOpacity
               style={[
                 styles.badge,

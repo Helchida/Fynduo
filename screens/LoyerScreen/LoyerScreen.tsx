@@ -17,6 +17,7 @@ import * as DB from "../../services/supabase/db";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
+import { BanknoteArrowDown, House } from "lucide-react-native";
 
 type ApportsAPLState = { [uid: string]: string };
 
@@ -48,7 +49,7 @@ const LoyerScreen: React.FC = () => {
           console.error("Erreur chargement users:", error);
           toast.error(
             "Erreur",
-            "Impossible de charger les utilisateurs du foyer."
+            "Impossible de charger les utilisateurs du foyer.",
           );
         } finally {
           setIsLoadingUsers(false);
@@ -69,7 +70,7 @@ const LoyerScreen: React.FC = () => {
           if (!config) {
             await DB.initLoyerConfig(
               user.activeHouseholdId,
-              householdUsers.map((u) => u.id)
+              householdUsers.map((u) => u.id),
             );
             config = await DB.getLoyerConfig(user.activeHouseholdId);
           }
@@ -77,7 +78,10 @@ const LoyerScreen: React.FC = () => {
           setLoyerConfig(config);
         } catch (error) {
           console.error("Erreur chargement config loyer:", error);
-          toast.error("Erreur", "Impossible de charger la configuration du loyer.");
+          toast.error(
+            "Erreur",
+            "Impossible de charger la configuration du loyer.",
+          );
         } finally {
           setIsLoadingConfig(false);
         }
@@ -120,14 +124,14 @@ const LoyerScreen: React.FC = () => {
     if (isNaN(total) || total <= 0) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez entrer un loyer total supérieur à 0."
+        "Veuillez entrer un loyer total supérieur à 0.",
       );
       return;
     }
     if (!loyerPayeurUid) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez sélectionner qui a payé le loyer."
+        "Veuillez sélectionner qui a payé le loyer.",
       );
       return;
     }
@@ -144,7 +148,7 @@ const LoyerScreen: React.FC = () => {
       if (isNaN(aplValue) || aplValue < 0) {
         toast.warning(
           "Erreur de saisie",
-          `Le montant APL pour ${userDisplay} est invalide.`
+          `Le montant APL pour ${userDisplay} est invalide.`,
         );
         return;
       }
@@ -152,10 +156,7 @@ const LoyerScreen: React.FC = () => {
     }
 
     if (!user.activeHouseholdId) {
-      toast.error(
-        "Erreur",
-        "Foyer non identifié. Impossible d'enregistrer."
-      );
+      toast.error("Erreur", "Foyer non identifié. Impossible d'enregistrer.");
       return;
     }
 
@@ -165,25 +166,27 @@ const LoyerScreen: React.FC = () => {
         user.activeHouseholdId,
         parseFloat(total.toFixed(2)),
         finalApports,
-        loyerPayeurUid
+        loyerPayeurUid,
       );
-      toast.success("Succès", "Configuration du loyer mise à jour avec succès.");
-      
+      toast.success(
+        "Succès",
+        "Configuration du loyer mise à jour avec succès.",
+      );
+
       const updatedConfig = await DB.getLoyerConfig(user.activeHouseholdId);
       setLoyerConfig(updatedConfig);
     } catch (error) {
       console.error("Erreur Config Loyer:", error);
-      toast.error(
-        "Erreur",
-        "Échec de l'enregistrement de la configuration."
-      );
+      toast.error("Erreur", "Échec de l'enregistrement de la configuration.");
     } finally {
       setIsSaving(false);
     }
   };
 
   if (isLoadingConfig || isLoadingUsers) {
-    return <Text style={common.loadingText}>Chargement des données loyer...</Text>;
+    return (
+      <Text style={common.loadingText}>Chargement des données loyer...</Text>
+    );
   }
 
   const totalApl = householdUsers.reduce((sum, u) => {
@@ -203,17 +206,29 @@ const LoyerScreen: React.FC = () => {
     >
       <Text style={common.sectionTitle}>Gestion du loyer</Text>
 
-      <View style={{ backgroundColor: '#e3f2fd', padding: 15, marginBottom: 15, borderRadius: 8, borderWidth: 1, borderColor: '#2196f3' }}>
-        <Text style={{ color: '#1565c0', fontSize: 14, fontWeight: '600' }}>
-          ℹ️ Configuration active
+      <View
+        style={{
+          backgroundColor: "#e3f2fd",
+          padding: 15,
+          marginBottom: 15,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: "#2196f3",
+        }}
+      >
+        <Text style={{ color: "#1565c0", fontSize: 14, fontWeight: "600" }}>
+          Configuration active
         </Text>
-        <Text style={{ color: '#1565c0', fontSize: 12, marginTop: 5 }}>
+        <Text style={{ color: "#1565c0", fontSize: 12, marginTop: 5 }}>
           Ces données seront utilisées lors de la prochaine clôture mensuelle.
         </Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>💰 Loyer & Paiement</Text>
+        <View style={common.row}>
+          <House size={20} color={"#7a10c0"} style={{ marginBottom: 14 }} />
+          <Text style={styles.sectionTitle}> Loyer & Paiement</Text>
+        </View>
         <View style={common.inputGroup}>
           <Text style={common.label}>Loyer total à payer (€)</Text>
           <TextInput
@@ -250,7 +265,14 @@ const LoyerScreen: React.FC = () => {
       </View>
 
       <View style={[styles.card, styles.aplCard]}>
-        <Text style={styles.sectionTitle}>📩 Apports APL</Text>
+        <View style={common.row}>
+          <BanknoteArrowDown
+            size={20}
+            color={"#125fd3"}
+            style={{ marginBottom: 14 }}
+          />
+          <Text style={styles.sectionTitle}> Apports APL</Text>
+        </View>
         {householdUsers.map((u) => (
           <View key={u.id} style={common.inputGroup}>
             <Text style={common.label}>APL de {u.displayName}</Text>

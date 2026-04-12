@@ -19,7 +19,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useCategories } from "../../hooks/useCategories";
 import { CategoryPickerModal } from "../RevenuDetail/EditRevenuForm/CategoryPickerModal/CategoryPickerModal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { ChevronsUpDown } from "lucide-react-native";
+import { CalendarSearch, ChevronsUpDown, Tag } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { useToast } from "hooks/useToast";
 import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
@@ -45,7 +45,8 @@ const RevenusScreen: React.FC = () => {
   }
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
-  const { categoriesRevenus, getCategoryRevenuLabel, defaultCategoryRevenu } = useCategories();
+  const { categoriesRevenus, getCategoryRevenuLabel, defaultCategoryRevenu } =
+    useCategories();
 
   const [description, setDescription] = useState("");
   const [montant, setMontant] = useState("");
@@ -55,8 +56,9 @@ const RevenusScreen: React.FC = () => {
   const [selectedCategorie, setSelectedCategorie] = useState(
     defaultCategoryRevenu?.id || "cat_autre",
   );
-  const [selectedDateReception, setSelectedDateReception] =
-    useState<Date>(new Date());
+  const [selectedDateReception, setSelectedDateReception] = useState<Date>(
+    new Date(),
+  );
 
   const [isDateReceptionPickerVisible, setDateReceptionPickerVisibility] =
     useState(false);
@@ -108,8 +110,7 @@ const RevenusScreen: React.FC = () => {
 
     const sortedRevenus = filtered.sort(
       (a, b) =>
-        dayjs(b.dateReception).valueOf() -
-        dayjs(a.dateReception).valueOf(),
+        dayjs(b.dateReception).valueOf() - dayjs(a.dateReception).valueOf(),
     );
 
     const groupedData = sortedRevenus.reduce(
@@ -137,21 +138,13 @@ const RevenusScreen: React.FC = () => {
     });
 
     return groupedArray;
-  }, [
-    revenus,
-    filterMois,
-    filterAnnee,
-    filterCategory,
-  ]);
+  }, [revenus, filterMois, filterAnnee, filterCategory]);
 
   const handleAddRevenu = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
 
     if (!currentMonthData) {
-      toast.error(
-        "Erreur",
-        "Les données mensuelles sont manquantes.",
-      );
+      toast.error("Erreur", "Les données mensuelles sont manquantes.");
       return;
     }
 
@@ -171,7 +164,7 @@ const RevenusScreen: React.FC = () => {
       dateReception: selectedDateReception.toISOString(),
       moisAnnee: dayjs(selectedDateReception).format("YYYY-MM"),
       categorie: selectedCategorie,
-      beneficiaire: user.id
+      beneficiaire: user.id,
     };
 
     try {
@@ -200,7 +193,6 @@ const RevenusScreen: React.FC = () => {
   ]);
 
   const isSoloHousehold = user.activeHouseholdId === user.id;
-
 
   if (isLoadingComptes) {
     return <Text style={common.loadingText}>Chargement des revenus...</Text>;
@@ -320,17 +312,11 @@ const RevenusScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 common.saveButton,
-                (isSubmitting ||
-                  !description ||
-                  !montant) &&
+                (isSubmitting || !description || !montant) &&
                   common.disabledButton,
               ]}
               onPress={handleAddRevenu}
-              disabled={
-                isSubmitting ||
-                !description ||
-                !montant
-              }
+              disabled={isSubmitting || !description || !montant}
             >
               <Text style={common.saveButtonText}>
                 {isSubmitting ? "Enregistrement..." : "Enregistrer le revenu"}
@@ -338,7 +324,7 @@ const RevenusScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-        
+
         <Text style={styles.filtersLabel}>Filtrer :</Text>
         <View style={styles.filtersContainer}>
           <TouchableOpacity
@@ -348,19 +334,22 @@ const RevenusScreen: React.FC = () => {
             ]}
             onPress={() => setIsFilterPeriodeModalVisible(true)}
           >
-            <Text
-              style={[
-                styles.filterChipText,
-                (filterMois || filterAnnee) && styles.filterChipTextActive,
-              ]}
-            >
-              📅{" "}
-              {filterMois
-                ? dayjs(filterMois).format("MMM YYYY")
-                : filterAnnee
-                  ? filterAnnee
-                  : "Période"}
-            </Text>
+            <View style={common.row}>
+              <CalendarSearch size={13} color={"#354bbd"} />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  (filterMois || filterAnnee) && styles.filterChipTextActive,
+                ]}
+              >
+                {" "}
+                {filterMois
+                  ? dayjs(filterMois).format("MMM YYYY")
+                  : filterAnnee
+                    ? filterAnnee
+                    : "Période"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -370,20 +359,23 @@ const RevenusScreen: React.FC = () => {
             ]}
             onPress={() => setIsFilterCategoryModalVisible(true)}
           >
-            <Text
-              style={[
-                styles.filterChipText,
-                filterCategory && styles.filterChipTextActive,
-              ]}
-            >
-              🏷️{" "}
-              {filterCategory ? getCategoryRevenuLabel(filterCategory) : "Catégorie"}
-            </Text>
+            <View style={common.row}>
+              <Tag size={13} color={"#c0ae10"} />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  filterCategory && styles.filterChipTextActive,
+                ]}
+              >
+                {" "}
+                {filterCategory
+                  ? getCategoryRevenuLabel(filterCategory)
+                  : "Catégorie"}
+              </Text>
+            </View>
           </TouchableOpacity>
 
-          {(filterMois ||
-            filterAnnee ||
-            filterCategory) && (
+          {(filterMois || filterAnnee || filterCategory) && (
             <TouchableOpacity
               style={styles.filterClearButton}
               onPress={() => {

@@ -4,6 +4,7 @@ import ChargeFixeRow from "./ChargeFixeRow/ChargeFixeRow";
 import { styles } from "../../../styles/screens/RegulationScreen/ChargesFixesSection/ChargesFixesSection.style";
 import { common } from "styles/common.style";
 import { ChargesFixesSectionProps } from "./ChargesFixesSection.type";
+import { Settings } from "lucide-react-native";
 
 const ChargesFixesSection: React.FC<ChargesFixesSectionProps> = ({
   householdUsers,
@@ -15,7 +16,10 @@ const ChargesFixesSection: React.FC<ChargesFixesSectionProps> = ({
 }) => {
   return (
     <View style={common.cardFlat}>
-      <Text style={common.cardFlatTitle}>⚙️ Charges Fixes</Text>
+      <View style={common.row}>
+          <Settings size={20} color={"#747275"} style={{ marginBottom: 14 }} />
+      <Text style={common.cardFlatTitle}>{" "}Charges Fixes</Text>
+      </View>
 
       {householdUsers.map((u) => (
         <View key={u.id} style={styles.subSection}>

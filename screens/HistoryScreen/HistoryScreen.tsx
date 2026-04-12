@@ -11,6 +11,7 @@ import { useComptes } from "../../hooks/useComptes";
 import { RootStackNavigationProp } from "@/types";
 import { styles } from "../../styles/screens/HistoryScreen/HistoryScreen.style";
 import { common } from "../../styles/common.style";
+import { ArrowBigDown, ArrowBigRight } from "lucide-react-native";
 
 type GroupedHistory = {
   [year: number]: any[];
@@ -115,7 +116,8 @@ const HistoryScreen: React.FC = () => {
           onPress={() => toggleYear(year)}
         >
           <Text style={styles.yearText}>Année {year}</Text>
-          <Text style={styles.arrow}>{arrow}</Text>
+          {isExpanded ? <ArrowBigDown size={20} color={"#ffffff"}/> : <ArrowBigRight size={20} color={"#ffffff"}/>}
+          
         </TouchableOpacity>
 
         {isExpanded && (
