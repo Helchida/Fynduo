@@ -13,7 +13,7 @@ import { styles } from "./../../styles/screens/ChargesFixesScreen/ChargesFixesSc
 import { common } from "../../styles/common.style";
 import ChargeFixeItem from "./ChargeFixeItem/ChargeFixeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
-import { ChevronsUpDown, Info, Lightbulb, TriangleAlert } from "lucide-react-native";
+import { ChevronsUpDown, Lightbulb, TriangleAlert } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
@@ -22,6 +22,8 @@ import dayjs from "dayjs";
 import { CategoryPickerModal } from "screens/ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
 import { useCategories } from "hooks/useCategories";
 import { IChargeFixeTemplate } from "@/types";
+import { useScreenInfo } from "hooks/useScreenInfo";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
@@ -44,6 +46,7 @@ const ChargesFixesScreen: React.FC = () => {
   if (!user) {
     return <NoAuthenticatedUser />;
   }
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const [nom, setNom] = useState("");
   const [montant, setMontant] = useState("");
@@ -51,7 +54,6 @@ const ChargesFixesScreen: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
   const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
   const [isDayModalVisible, setIsDayModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -227,12 +229,6 @@ const ChargesFixesScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.header}>Charges fixes</Text>
-        <TouchableOpacity
-          onPress={() => setShowInfoModal(true)}
-          style={styles.infoButton}
-        >
-          <Info size={24} color="#000" />
-        </TouchableOpacity>
       </View>
       {isRefreshing && (
         <View style={styles.refreshingBanner}>
@@ -407,60 +403,37 @@ const ChargesFixesScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-      <Modal
+      <InfoModal
         visible={showInfoModal}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowInfoModal(false)}
+        onClose={() => setShowInfoModal(false)}
       >
-        <View style={common.modalOverlay}>
-          <View style={styles.infoModalContent}>
-            <View style={common.row}>
-              <Lightbulb
-                size={30}
-                color={"#d6d43d"}
-                style={{ marginBottom: 16 }}
-              />
-              <Text style={styles.infoModalTitle}>
-                À propos des charges fixes
-              </Text>
-            </View>
-            <Text style={styles.infoModalText}>
-              Les <Text style={common.bold}>charges fixes</Text> sont des
-              dépenses récurrentes chaque mois : électricité, gaz, internet,
-              eau, assurance, etc.
-            </Text>
-            <Text style={styles.infoModalText}>
-              Ces montants sont répartis équitablement entre les colocataires
-              lors de la régularisation mensuelle.
-            </Text>
-            <View style={styles.warningBox}>
-              <View style={common.row}>
-                <TriangleAlert
-                size={14}
-                color={"#d82007"}
-                style={{ marginBottom: 8 }}
-              />
-              <Text style={styles.warningTitle}> Important</Text>
-              </View>
-              <Text style={styles.warningText}>
-                Si vous modifiez le montant d'une charge fixe, cela
-                <Text style={common.bold}> n'affecte que les mois futurs</Text>.
-              </Text>
-              <Text style={styles.warningText}>
-                Les mois déjà validés restent inchangés car un historique des
-                charges est enregistré à chaque clôture.
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.infoModalButton}
-              onPress={() => setShowInfoModal(false)}
-            >
-              <Text style={styles.infoModalButtonText}>Compris !</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={common.row}>
+          <Lightbulb size={30} color={"#d6d43d"} style={{ marginBottom: 16 }} />
+          <Text style={styles.infoModalTitle}>À propos des charges fixes</Text>
         </View>
-      </Modal>
+        <Text style={styles.infoModalText}>
+          Les <Text style={common.bold}>charges fixes</Text> sont des dépenses
+          récurrentes chaque mois : électricité, gaz, internet, eau, assurance, etc.
+        </Text>
+        <Text style={styles.infoModalText}>
+          Ces montants sont répartis équitablement entre les colocataires lors de
+          la régularisation mensuelle.
+        </Text>
+        <View style={styles.warningBox}>
+          <View style={common.row}>
+            <TriangleAlert size={14} color={"#d82007"} style={{ marginBottom: 8 }} />
+            <Text style={styles.warningTitle}> Important</Text>
+          </View>
+          <Text style={styles.warningText}>
+            Si vous modifiez le montant d'une charge fixe, cela
+            <Text style={common.bold}> n'affecte que les mois futurs</Text>.
+          </Text>
+          <Text style={styles.warningText}>
+            Les mois déjà validés restent inchangés car un historique des charges
+            est enregistré à chaque clôture.
+          </Text>
+        </View>
+      </InfoModal>
     </View>
   );
 };
