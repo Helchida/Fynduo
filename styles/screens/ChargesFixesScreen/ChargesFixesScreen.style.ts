@@ -91,17 +91,6 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  infoModalTitle: {
-    ...typography.h2,
-    marginBottom: spacing.lg,
-    textAlign: "center",
-  },
-  infoModalText: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: spacing.md,
-    color: "#333",
-  },
   infoModalButton: {
     backgroundColor: colors.primary,
     padding: spacing.md,
@@ -113,25 +102,5 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "600",
     fontSize: 16,
-  },
-  warningBox: {
-    backgroundColor: colors.warningBg,
-    borderRadius: radius.sm,
-    padding: spacing.md,
-    marginVertical: spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: "#FFC107",
-  },
-  warningTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: spacing.sm,
-    color: "#856404",
-  },
-  warningText: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: spacing.xs,
-    color: "#856404",
   },
 });

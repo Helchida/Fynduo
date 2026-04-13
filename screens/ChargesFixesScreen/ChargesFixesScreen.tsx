@@ -407,31 +407,34 @@ const ChargesFixesScreen: React.FC = () => {
         visible={showInfoModal}
         onClose={() => setShowInfoModal(false)}
       >
-        <View style={common.row}>
-          <Lightbulb size={30} color={"#d6d43d"} style={{ marginBottom: 16 }} />
-          <Text style={styles.infoModalTitle}>À propos des charges fixes</Text>
+        <View style={common.centerRow}>
+          <Lightbulb size={30} color={"#d6d43d"} style={common.infoModalIconTitle} />
+          <Text style={common.infoModalTitle}>À propos des charges fixes</Text>
         </View>
-        <Text style={styles.infoModalText}>
+        <Text style={common.infoModalText}>
           Les <Text style={common.bold}>charges fixes</Text> sont des dépenses
           récurrentes chaque mois : électricité, gaz, internet, eau, assurance, etc.
         </Text>
-        <Text style={styles.infoModalText}>
-          Ces montants sont répartis équitablement entre les colocataires lors de
-          la régularisation mensuelle.
+        <Text style={common.infoModalText}>
+          Ces charges seront ajoutées <Text style={common.bold}>automatiquement</Text> à la liste de vos dépenses selon la date choisie. 
         </Text>
-        <View style={styles.warningBox}>
+        {!isSoloMode && <Text style={common.infoModalText}>
+          Ces montants sont répartis <Text style={common.bold}>équitablement</Text> entre les colocataires lors de
+          la <Text style={common.bold}>régularisation mensuelle</Text>.
+        </Text>}
+        <View style={common.warningBox}>
           <View style={common.row}>
-            <TriangleAlert size={14} color={"#d82007"} style={{ marginBottom: 8 }} />
-            <Text style={styles.warningTitle}> Important</Text>
+            <TriangleAlert size={14} color={"#d82007"} style={common.warningIconTitle} />
+            <Text style={common.warningTitle}> Important</Text>
           </View>
-          <Text style={styles.warningText}>
+          <Text style={common.warningText}>
             Si vous modifiez le montant d'une charge fixe, cela
             <Text style={common.bold}> n'affecte que les mois futurs</Text>.
           </Text>
-          <Text style={styles.warningText}>
+          {!isSoloMode && <Text style={common.warningText}>
             Les mois déjà validés restent inchangés car un historique des charges
             est enregistré à chaque clôture.
-          </Text>
+          </Text>}
         </View>
       </InfoModal>
     </View>

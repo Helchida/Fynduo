@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors, spacing, radius, shadows, typography } from "./theme.style";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
 
 export const common = StyleSheet.create({
   // ── Inputs ────────────────────────────────────
@@ -584,5 +585,50 @@ export const common = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
+  },
+
+  centerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+
+  // ── Info Modal ────────────────────
+  infoModalTitle: {
+    ...typography.h2,
+    marginBottom: spacing.lg,
+    textAlign: "center",
+  },
+  infoModalIconTitle : {
+    marginBottom: spacing.lg
+  },
+  infoModalText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+    color: "#333",
+  },
+  warningBox: {
+    backgroundColor: colors.warningBg,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    marginVertical: spacing.md,
+    borderLeftWidth: 4,
+    borderLeftColor: "#FFC107",
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: spacing.sm,
+    color: "#856404",
+  },
+  warningIconTitle: {
+    marginBottom: spacing.sm
+  },
+  warningText: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: spacing.xs,
+    color: "#856404",
   },
 });
