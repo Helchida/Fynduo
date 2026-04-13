@@ -422,16 +422,16 @@ const ChargesFixesScreen: React.FC = () => {
           Ces montants sont répartis <Text style={common.bold}>équitablement</Text> entre les colocataires lors de
           la <Text style={common.bold}>régularisation mensuelle</Text>.
         </Text>}
-        <View style={common.warningBox}>
+        <View style={[common.infoModalBox,common.warningBox]}>
           <View style={common.row}>
-            <TriangleAlert size={14} color={"#d82007"} style={common.warningIconTitle} />
-            <Text style={common.warningTitle}> Important</Text>
+            <TriangleAlert size={14} color={"#d82007"} style={common.boxIconTitle} />
+            <Text style={[common.boxTitle, common.warningTitle]}> Important</Text>
           </View>
-          <Text style={common.warningText}>
+          <Text style={[common.boxText,common.warningText]}>
             Si vous modifiez le montant d'une charge fixe, cela
             <Text style={common.bold}> n'affecte que les mois futurs</Text>.
           </Text>
-          {!isSoloMode && <Text style={common.warningText}>
+          {!isSoloMode && <Text style={[common.boxText, common.warningText]}>
             Les mois déjà validés restent inchangés car un historique des charges
             est enregistré à chaque clôture.
           </Text>}

@@ -590,7 +590,7 @@ export const common = StyleSheet.create({
   centerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
 
   // ── Info Modal ────────────────────
@@ -599,8 +599,8 @@ export const common = StyleSheet.create({
     marginBottom: spacing.lg,
     textAlign: "center",
   },
-  infoModalIconTitle : {
-    marginBottom: spacing.lg
+  infoModalIconTitle: {
+    marginBottom: spacing.lg,
   },
   infoModalText: {
     fontSize: 14,
@@ -608,27 +608,63 @@ export const common = StyleSheet.create({
     marginBottom: spacing.md,
     color: "#333",
   },
-  warningBox: {
-    backgroundColor: colors.warningBg,
+  infoModalBox: {
     borderRadius: radius.sm,
     padding: spacing.md,
     marginVertical: spacing.md,
     borderLeftWidth: 4,
-    borderLeftColor: "#FFC107",
   },
-  warningTitle: {
+  boxTitle: {
     fontSize: 14,
     fontWeight: "bold",
     marginBottom: spacing.sm,
-    color: "#856404",
   },
-  warningIconTitle: {
-    marginBottom: spacing.sm
+  boxIconTitle: {
+    marginBottom: spacing.sm,
   },
-  warningText: {
+  boxText: {
     fontSize: 13,
     lineHeight: 18,
     marginBottom: spacing.xs,
+  },
+  warningBox: {
+    borderLeftColor: "#FFC107",
+    backgroundColor: colors.warningBg,
+  },
+  warningTitle: {
     color: "#856404",
+  },
+  warningText: {
+    color: "#856404",
+  },
+  trickBox: {
+    borderLeftColor: "#007BFF",
+    backgroundColor: "#E7F3FF",
+  },
+  trickTitle: {
+    color: "#004085",
+  },
+  trickText: {
+    color: "#004085",
+  },
+  successBox: {
+    borderLeftColor: "#28a745",
+    backgroundColor: "#eafaf1", 
+  },
+  successTitle: {
+    color: "#155724",
+  },
+  successText: {
+    color: "#155724",
+  },
+  errorBox: {
+    borderLeftColor: "#dc3545", 
+    backgroundColor: "#fdf2f2",
+  },
+  errorTitle: {
+    color: "#721c24",
+  },
+  errorText: {
+    color: "#721c24",
   },
 });

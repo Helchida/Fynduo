@@ -19,11 +19,13 @@ import { useNavigation } from "@react-navigation/native";
 import { useCategories } from "../../hooks/useCategories";
 import { CategoryPickerModal } from "../RevenuDetail/EditRevenuForm/CategoryPickerModal/CategoryPickerModal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { CalendarSearch, ChevronsUpDown, Tag } from "lucide-react-native";
+import { CalendarSearch, ChevronsUpDown, CircleQuestionMark, Lightbulb, Tag, TriangleAlert } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { useToast } from "hooks/useToast";
 import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
 import RevenuItem from "./RevenuItem/RevenuItem";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 dayjs.locale("fr");
 
@@ -39,6 +41,7 @@ const RevenusScreen: React.FC = () => {
     useComptes();
   const { user } = useAuth();
   const toast = useToast();
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -465,6 +468,27 @@ const RevenusScreen: React.FC = () => {
         textColor="black"
         {...({ themeVariant: "light" } as any)}
       />
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <Lightbulb size={30} color={"#d6d43d"} style={common.infoModalIconTitle} />
+          <Text style={common.infoModalTitle}>Gestion des revenus</Text>
+        </View>
+        <Text style={common.infoModalText}>
+          Les <Text style={common.bold}>revenus</Text> sont des apports d'argent. Renseignez le <Text style={common.bold}>titre</Text>, le <Text style={common.bold}>montant</Text>, la <Text style={common.bold}>catégorie</Text> et la <Text style={common.bold}>date</Text>.
+        </Text>
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <CircleQuestionMark size={14} color={"#077ad8"} style={common.boxIconTitle} />
+            <Text style={[common.boxTitle, common.trickTitle]}> Astuce de filtrage</Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Utilisez les filtres par <Text style={common.bold}>Période</Text> ou par <Text style={common.bold}>Catégorie</Text> pour analyser vos finances en un clin d'œil.
+          </Text>
+        </View>
+      </InfoModal>
     </View>
   );
 };
