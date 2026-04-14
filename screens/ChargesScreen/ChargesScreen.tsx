@@ -26,7 +26,10 @@ import {
   CalendarSearch,
   ChevronsUpDown,
   Puzzle,
+  Receipt,
+  Scale,
   Tag,
+  TriangleAlert,
   UserRound,
 } from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
@@ -35,6 +38,8 @@ import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerM
 import { useMultiUserBalance } from "hooks/useMultiUserBalance";
 import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 import { TypeChargePickerModal } from "components/ui/TypeChargePickerModal/TypeChargePickerModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
 
 dayjs.locale("fr");
 
@@ -88,6 +93,7 @@ const ChargesScreen: React.FC = () => {
     useState(false);
   const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
+    const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -701,6 +707,84 @@ const ChargesScreen: React.FC = () => {
         textColor="black"
         {...({ themeVariant: "light" } as any)}
       />
+
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <Receipt
+            size={30}
+            color={"#4A90D9"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos des dépenses</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Chaque <Text style={common.bold}>dépense</Text> est caractérisée par
+          un titre, un montant, une catégorie et une date. Vous pouvez filtrer
+          votre liste par <Text style={common.bold}>période</Text>,{" "}
+          <Text style={common.bold}>catégorie</Text> et{" "}
+          <Text style={common.bold}>type</Text>.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Il existe deux types de dépenses :{" "}
+          <Text style={common.bold}>fixe</Text> (récurrente chaque mois) et{" "}
+          <Text style={common.bold}>variable</Text> (ponctuelle). En appuyant
+          sur une dépense, vous pouvez la consulter, la modifier ou la
+          supprimer.
+        </Text>
+
+        {!isSoloHousehold && (
+          <Text style={common.infoModalText}>
+            En foyer partagé, chaque dépense peut être{" "}
+            <Text style={common.bold}>solo</Text> (personnelle) ou{" "}
+            <Text style={common.bold}>partagée</Text> entre certains membres.
+            Lors de l'ajout, vous choisissez qui paie et pour qui la dépense
+            s'applique.
+          </Text>
+        )}
+
+        {!isSoloHousehold && (
+          <View style={[common.infoModalBox, common.trickBox]}>
+            <View style={common.row}>
+              <Scale size={14} color={"#004085"} style={common.boxIconTitle} />
+              <Text style={[common.boxTitle, common.trickTitle]}>
+                {" "}
+                Équilibrage
+              </Text>
+            </View>
+            <Text style={[common.boxText, common.trickText]}>
+              L'onglet <Text style={common.bold}>équilibrage</Text> vous indique
+              en temps réel qui doit rembourser qui au sein du foyer, sur la
+              base des dépenses partagées.
+            </Text>
+          </View>
+        )}
+
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color={"#d82007"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}>
+              {" "}
+              Important
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Modifier ou supprimer une{" "}
+            <Text style={common.bold}>dépense fixe</Text> depuis cet écran ne
+            modifie que cette occurrence. Pour changer le montant de façon
+            permanente, rendez-vous dans les{" "}
+            <Text style={common.bold}>Charges fixes</Text>.
+          </Text>
+        </View>
+      </InfoModal>
     </View>
   );
 };

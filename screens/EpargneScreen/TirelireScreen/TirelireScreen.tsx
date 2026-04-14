@@ -24,6 +24,7 @@ import {
   Pencil,
   Lock,
   Unlock,
+  CheckCircle,
 } from "lucide-react-native";
 import {
   addSubTirelire,
@@ -45,6 +46,8 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 type TirelireRouteProp = RootStackRouteProp<"Tirelire">;
 
@@ -97,6 +100,7 @@ const TirelireScreen: React.FC = () => {
   const [editingCagnotte, setEditingCagnotte] = useState<ITirelire | null>(
     null,
   );
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const montantTotalReel = tirelire.montantActuel;
   const objectifGlobal = tirelire.objectif;
@@ -262,30 +266,28 @@ const TirelireScreen: React.FC = () => {
         montant,
       );
 
-      if(result.recupere < 0.01) {
+      if (result.recupere < 0.01) {
         showToast(
           "warning",
           "Aucun montant récupéré",
-          "Aucun montant n'a été récupéré car les cagnottes sont verrouillées."
-        );
-
-      }else{
-        if (result.manquant > 0.01) {
-        showToast(
-          "warning",
-          "Retrait partiel",
-          `Seul ${formatCurrency(result.recupere)} a été récupéré. Le reste (${formatCurrency(result.manquant)}) est protégé par des cagnottes verrouillées.`,
+          "Aucun montant n'a été récupéré car les cagnottes sont verrouillées.",
         );
       } else {
-        showToast(
-          "success",
-          "Argent récupéré !",
-          `${formatCurrency(montant)} ont été ajoutés à votre argent non réparti.`,
-        );
-      }
+        if (result.manquant > 0.01) {
+          showToast(
+            "warning",
+            "Retrait partiel",
+            `Seul ${formatCurrency(result.recupere)} a été récupéré. Le reste (${formatCurrency(result.manquant)}) est protégé par des cagnottes verrouillées.`,
+          );
+        } else {
+          showToast(
+            "success",
+            "Argent récupéré !",
+            `${formatCurrency(montant)} ont été ajoutés à votre argent non réparti.`,
+          );
+        }
       }
 
-      
       setIsBreakModalVisible(false);
       setMontantSaisi("");
       refresh();
@@ -523,7 +525,9 @@ const TirelireScreen: React.FC = () => {
                 style={[
                   common.dispatchButton,
                   { borderColor: "#27ae60", borderWidth: 1 },
-                  (montantEnVrac < 0.01 || subTirelires.length === 0) && { opacity: 0.3 },
+                  (montantEnVrac < 0.01 || subTirelires.length === 0) && {
+                    opacity: 0.3,
+                  },
                 ]}
                 onPress={() => setIsTransferModalVisible(true)}
                 disabled={montantEnVrac < 0.01 || subTirelires.length === 0}
@@ -565,7 +569,11 @@ const TirelireScreen: React.FC = () => {
 
             <View style={[styles.sectionContainer]}>
               <View style={common.titleWithIcon}>
-                <Target style={{ marginBottom: spacing.md }} size={22} color="#2c3e50" />
+                <Target
+                  style={{ marginBottom: spacing.md }}
+                  size={22}
+                  color="#2c3e50"
+                />
                 <Text style={common.sectionTitle}>Mes cagnottes</Text>
               </View>
               {loading && (
@@ -797,6 +805,71 @@ const TirelireScreen: React.FC = () => {
         }}
         onCancel={() => setIsDeleteModalVisible(false)}
       />
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <Target
+            size={30}
+            color={"#8E44AD"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos des cagnottes</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          À l'intérieur d'une tirelire, vous pouvez répartir l'argent épargné
+          dans des <Text style={common.bold}>cagnottes</Text>. Chaque cagnotte
+          possède un nom et un objectif à atteindre.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Comme les tirelires, les cagnottes suivent un{" "}
+          <Text style={common.bold}>ordre de priorité</Text> modifiable par
+          glisser-déposer. Cet ordre détermine quelle cagnotte est remplie ou
+          vidée en premier lors d'opérations automatiques.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Vous pouvez <Text style={common.bold}>libérer</Text> l'argent d'une
+          cagnotte pour le replacer dans le solde non réparti de la tirelire,
+          sans le perdre.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lock size={14} color={"#004085"} style={common.boxIconTitle} />
+            <Text style={[common.boxTitle, common.trickTitle]}>
+              {" "}
+              Cagnotte bloquée
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Bloquer une cagnotte la protège des opérations automatiques. Son
+            solde est préservé jusqu'à ce que vous la débloquiez manuellement.
+          </Text>
+        </View>
+
+        <View style={[common.infoModalBox, common.successBox]}>
+          <View style={common.row}>
+            <CheckCircle
+              size={14}
+              color={"#155724"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.successTitle]}>
+              {" "}
+              Objectif atteint
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.successText]}>
+            Lorsqu'une cagnotte atteint son{" "}
+            <Text style={common.bold}>objectif</Text>, elle est signalée comme
+            complète.
+          </Text>
+        </View>
+      </InfoModal>
     </GestureHandlerRootView>
   );
 };

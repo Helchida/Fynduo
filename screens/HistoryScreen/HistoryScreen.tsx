@@ -11,7 +11,9 @@ import { useComptes } from "../../hooks/useComptes";
 import { RootStackNavigationProp } from "@/types";
 import { styles } from "../../styles/screens/HistoryScreen/HistoryScreen.style";
 import { common } from "../../styles/common.style";
-import { ArrowBigDown, ArrowBigRight } from "lucide-react-native";
+import { ArrowBigDown, ArrowBigRight, Lightbulb, History } from "lucide-react-native";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 type GroupedHistory = {
   [year: number]: any[];
@@ -48,6 +50,7 @@ const getFrenchMonthName = (moisAnnee: string) => {
 const HistoryScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const { historyMonths, loadHistory, isLoadingComptes } = useComptes();
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
 
@@ -116,8 +119,11 @@ const HistoryScreen: React.FC = () => {
           onPress={() => toggleYear(year)}
         >
           <Text style={styles.yearText}>Année {year}</Text>
-          {isExpanded ? <ArrowBigDown size={20} color={"#ffffff"}/> : <ArrowBigRight size={20} color={"#ffffff"}/>}
-          
+          {isExpanded ? (
+            <ArrowBigDown size={20} color={"#ffffff"} />
+          ) : (
+            <ArrowBigRight size={20} color={"#ffffff"} />
+          )}
         </TouchableOpacity>
 
         {isExpanded && (
@@ -134,6 +140,50 @@ const HistoryScreen: React.FC = () => {
       <Text style={styles.title}>Comptes clôturés</Text>
 
       {sortedYears.map(renderYearPanel)}
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <History
+            size={30}
+            color={"#7F8C8D"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos de l'historique</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          L'historique regroupe tous les mois pour lesquels une{" "}
+          <Text style={common.bold}>clôture de compte</Text> a été effectuée.
+          Ils sont organisés par année.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Appuyez sur un mois pour consulter le{" "}
+          <Text style={common.bold}>détail de la régularisation</Text> : loyer,
+          charges fixes, dépenses variables et solde final entre les membres.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lightbulb
+              size={14}
+              color={"#004085"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}>
+              {" "}
+              Bon à savoir
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Les données historiques sont en{" "}
+            <Text style={common.bold}>lecture seule</Text>. Elles constituent
+            une trace fiable de chaque clôture et ne peuvent pas être modifiées.
+          </Text>
+        </View>
+      </InfoModal>
     </ScrollView>
   );
 };

@@ -29,6 +29,9 @@ import ChargesSection from "./ChargesSection/ChargesSection";
 import { useMultiUserBalance } from "hooks/useMultiUserBalance";
 import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 import * as DB from "../../services/supabase/db";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { ClipboardList, Lightbulb, TriangleAlert } from "lucide-react-native";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 const RegulationScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
@@ -64,43 +67,53 @@ const RegulationScreen: React.FC = () => {
   const [chargesFormMap, setChargesFormMap] = useState<
     Record<string, ChargeFixeForm[]>
   >({});
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const moisEnCoursDeCloture = currentMonthData?.moisAnnee;
   if (!moisEnCoursDeCloture) {
-    return
+    return;
   }
   console.log("Mois en cours de clôture:", moisEnCoursDeCloture);
   console.log("Charges:", charges);
   const chargesPourBalanceAffichee = useMemo(() => {
     return charges.filter((c) => {
-    if (c.type === "variable") {
-      return c.moisAnnee <= moisEnCoursDeCloture;
-    }
-    if (c.type === "fixe") {
-      return c.moisAnnee < moisEnCoursDeCloture;
-    }
+      if (c.type === "variable") {
+        return c.moisAnnee <= moisEnCoursDeCloture;
+      }
+      if (c.type === "fixe") {
+        return c.moisAnnee < moisEnCoursDeCloture;
+      }
 
-    return false;
-  });
+      return false;
+    });
   }, [charges, moisEnCoursDeCloture]);
 
-  console.log("Charges utilisées pour balance affichée:", chargesPourBalanceAffichee);
+  console.log(
+    "Charges utilisées pour balance affichée:",
+    chargesPourBalanceAffichee,
+  );
   const balancesAffichees = useMultiUserBalance(
     chargesPourBalanceAffichee,
     householdUsers,
   );
   const virementsAffiches = useMemo(() => {
-    console.log("Balances affichées pour calcul des virements:", balancesAffichees);
+    console.log(
+      "Balances affichées pour calcul des virements:",
+      balancesAffichees,
+    );
     return calculSimplifiedTransfers(balancesAffichees);
   }, [balancesAffichees]);
 
   const chargesPourBalanceRegularisation = useMemo(() => {
     return charges.filter((c) => {
       return c.moisAnnee <= moisEnCoursDeCloture;
-  });
+    });
   }, [charges, moisEnCoursDeCloture]);
 
-  const balancesRegularisation = useMultiUserBalance(chargesPourBalanceRegularisation, householdUsers);
+  const balancesRegularisation = useMultiUserBalance(
+    chargesPourBalanceRegularisation,
+    householdUsers,
+  );
   const virementsRegularisation = useMemo(() => {
     return calculSimplifiedTransfers(balancesRegularisation);
   }, [balancesRegularisation]);
@@ -442,6 +455,76 @@ const RegulationScreen: React.FC = () => {
           />
         )}
       </View>
+
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <ClipboardList
+            size={30}
+            color={"#16A085"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>
+            À propos de la régularisation
+          </Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Cet écran centralise toutes les informations nécessaires à la{" "}
+          <Text style={common.bold}>clôture mensuelle</Text> du foyer : loyer et
+          APL, charges fixes de chaque membre, et équilibrage des dépenses
+          variables.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Vous pouvez ajuster le{" "}
+          <Text style={common.bold}>loyer et les APL</Text> préconfigurés,
+          modifier, ajouter ou supprimer des{" "}
+          <Text style={common.bold}>charges fixes</Text> pour ce mois-ci, et
+          consulter qui doit combien à qui sur les{" "}
+          <Text style={common.bold}>dépenses partagées</Text>.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lightbulb
+              size={14}
+              color={"#004085"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}>
+              {" "}
+              Clôture du mois
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Le bouton <Text style={common.bold}>Clôturer le mois</Text> effectue
+            le calcul global (loyer, charges fixes, dépenses variables) et
+            produit un récapitulatif indiquant qui doit combien à qui.
+          </Text>
+        </View>
+
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color={"#d82007"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}>
+              {" "}
+              Important
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Une fois le mois <Text style={common.bold}>clôturé</Text>, un
+            historique est enregistré et les données ne peuvent plus être
+            modifiées. Vérifiez bien toutes les informations avant de valider.
+          </Text>
+        </View>
+      </InfoModal>
     </ScrollView>
   );
 };

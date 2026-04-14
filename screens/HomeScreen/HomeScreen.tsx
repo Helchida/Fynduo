@@ -23,12 +23,16 @@ import {
   Home,
   Users,
   BadgeEuro,
+  Lightbulb,
+  LayoutDashboard,
 } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { supabase } from "services/supabase/config";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import HistogramCashflow from "components/fynduo/HistogramCashflow/HistogramCashflow";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 dayjs.locale("fr");
 
@@ -43,6 +47,7 @@ const HomeScreen: React.FC = () => {
   const [householdMenuVisible, setHouseholdMenuVisible] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
   const [isStackedView, setIsStackedView] = useState(false);
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -226,7 +231,7 @@ const HomeScreen: React.FC = () => {
               <Text style={styles.welcomeText}>
                 Bonjour, {user.displayName}
               </Text>
-              <BadgeEuro size={22}/>
+              <BadgeEuro size={22} />
             </View>
             <TouchableOpacity
               style={[
@@ -544,6 +549,67 @@ const HomeScreen: React.FC = () => {
             </View>
           </TouchableWithoutFeedback>
         </Modal>
+
+        <InfoModal
+          visible={showInfoModal}
+          onClose={() => setShowInfoModal(false)}
+        >
+          <View style={common.centerRow}>
+            <LayoutDashboard
+              size={30}
+              color={"#2980B9"}
+              style={common.infoModalIconTitle}
+            />
+            <Text style={common.infoModalTitle}>À propos de l'accueil</Text>
+          </View>
+
+          <Text style={common.infoModalText}>
+            L'écran d'accueil vous donne un aperçu rapide de votre situation
+            financière et vous permet de naviguer vers tous les écrans de
+            l'application.
+          </Text>
+
+          {isSolo ? (
+            <Text style={common.infoModalText}>
+              Le graphique affiche une comparaison de vos{" "}
+              <Text style={common.bold}>dépenses</Text> et de vos{" "}
+              <Text style={common.bold}>revenus</Text> sur les 3 derniers mois.
+            </Text>
+          ) : (
+            <Text style={common.infoModalText}>
+              En foyer partagé, le graphique affiche le{" "}
+              <Text style={common.bold}>solde mensuel</Text> (revenus −
+              dépenses) ainsi que la{" "}
+              <Text style={common.bold}>somme des dépenses</Text> du foyer sur
+              les 3 derniers mois.
+            </Text>
+          )}
+
+          <Text style={common.infoModalText}>
+            Utilisez le <Text style={common.bold}>sélecteur de vue</Text> pour
+            basculer entre votre foyer solo et vos foyers partagés. Vous pouvez
+            également accéder à vos{" "}
+            <Text style={common.bold}>paramètres personnels</Text> ou vous{" "}
+            <Text style={common.bold}>déconnecter</Text> depuis cet écran.
+          </Text>
+
+          <View style={[common.infoModalBox, common.trickBox]}>
+            <View style={common.row}>
+              <Lightbulb
+                size={14}
+                color={"#004085"}
+                style={common.boxIconTitle}
+              />
+              <Text style={[common.boxTitle, common.trickTitle]}> Astuce</Text>
+            </View>
+            <Text style={[common.boxText, common.trickText]}>
+              Le graphique se met à jour{" "}
+              <Text style={common.bold}>automatiquement</Text> dès qu'une
+              dépense ou un revenu est ajouté, pour refléter votre situation en
+              temps réel.
+            </Text>
+          </View>
+        </InfoModal>
       </View>
     </>
   );

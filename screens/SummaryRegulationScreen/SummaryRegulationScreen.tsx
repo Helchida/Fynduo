@@ -7,6 +7,9 @@ import { useHouseholdUsers } from "../../hooks/useHouseholdUsers";
 import { styles } from "../../styles/screens/SummaryRegulationScreen/SummaryRegulationScreen.style";
 import { common } from "../../styles/common.style";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { CheckCircle, FileText, Lightbulb } from "lucide-react-native";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 const SummaryRegulationScreen: React.FC = () => {
   const { currentMonthData, isLoadingComptes, charges } = useComptes();
@@ -16,6 +19,7 @@ const SummaryRegulationScreen: React.FC = () => {
   if (!user) {
     return <NoAuthenticatedUser />;
   }
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const { householdUsers, getDisplayName } = useHouseholdUsers();
 
@@ -195,6 +199,66 @@ const SummaryRegulationScreen: React.FC = () => {
       </View>
 
       <View style={{ height: 30 }} />
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <FileText
+            size={30}
+            color={"#2C3E50"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos du récapitulatif</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Ce récapitulatif présente le détail complet de la{" "}
+          <Text style={common.bold}>régularisation mensuelle</Text> en trois
+          sections : loyer (APL inclus), charges fixes et dépenses variables.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Pour chacune de ces trois sections, vous voyez le montant que vous{" "}
+          <Text style={common.bold}>devez</Text> ou que l'on{" "}
+          <Text style={common.bold}>vous doit</Text>, par membre du foyer.
+        </Text>
+
+        <View style={[common.infoModalBox, common.successBox]}>
+          <View style={common.row}>
+            <CheckCircle
+              size={14}
+              color={"#155724"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.successTitle]}>
+              {" "}
+              Solde final
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.successText]}>
+            La phrase de synthèse en bas de chaque section indique le{" "}
+            <Text style={common.bold}>total net</Text> : qui doit combien à qui,
+            toutes catégories confondues.
+          </Text>
+        </View>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lightbulb
+              size={14}
+              color={"#004085"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}> Astuce</Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Ce récapitulatif est également consultable plus tard depuis l'écran{" "}
+            <Text style={common.bold}>Historique</Text> pour chaque mois
+            clôturé.
+          </Text>
+        </View>
+      </InfoModal>
     </ScrollView>
   );
 };

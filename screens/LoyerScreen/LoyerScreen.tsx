@@ -17,7 +17,9 @@ import * as DB from "../../services/supabase/db";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { BanknoteArrowDown, House } from "lucide-react-native";
+import { BanknoteArrowDown, Calculator, Home, House, TriangleAlert } from "lucide-react-native";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 type ApportsAPLState = { [uid: string]: string };
 
@@ -38,6 +40,7 @@ const LoyerScreen: React.FC = () => {
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isLoadingConfig, setIsLoadingConfig] = useState(true);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -350,6 +353,65 @@ const LoyerScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <Home size={30} color={"#E67E22"} style={common.infoModalIconTitle} />
+          <Text style={common.infoModalTitle}>À propos du loyer</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Cet écran vous permet de configurer le{" "}
+          <Text style={common.bold}>loyer</Text> et les{" "}
+          <Text style={common.bold}>APL</Text> de chaque membre du foyer, ainsi
+          que de désigner le membre qui effectuera le virement à l'agence.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Le montant à verser à l'agence correspond à la somme des parts de
+          loyer de chaque membre,{" "}
+          <Text style={common.bold}>déduites de leurs APL respectifs</Text>. En
+          effet, les APL sont considérés comme directement versés à l'agence.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Calculator
+              size={14}
+              color={"#004085"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}> Calcul</Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Part à verser par membre ={" "}
+            <Text style={common.bold}>Loyer individuel − APL</Text>. Le total dû
+            à l'agence est la somme de ces parts pour tous les membres.
+          </Text>
+        </View>
+
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color={"#d82007"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}>
+              {" "}
+              Important
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Cette configuration est utilisée lors de la{" "}
+            <Text style={common.bold}>régularisation mensuelle</Text>. Elle peut
+            être ajustée directement depuis l'écran de régularisation si
+            nécessaire.
+          </Text>
+        </View>
+      </InfoModal>
     </ScrollView>
   );
 };

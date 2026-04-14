@@ -27,9 +27,14 @@ import {
   LogOut,
   Share2,
   Check,
+  TriangleAlert,
+  Lightbulb,
+  Users,
 } from "lucide-react-native";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { supabase } from "services/supabase/config";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 const HouseholdsScreen: React.FC = () => {
   const { user, updateLocalActiveHousehold } = useAuth();
@@ -41,11 +46,12 @@ const HouseholdsScreen: React.FC = () => {
 
   const [isActionModalVisible, setActionModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "join" | "rename">(
-    "create"
+    "create",
   );
   const [inputValue, setInputValue] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const [confirmConfig, setConfirmConfig] = useState<{
     visible: boolean;
@@ -62,75 +68,75 @@ const HouseholdsScreen: React.FC = () => {
   });
 
   useEffect(() => {
-  if (!user?.households) return;
+    if (!user?.households) return;
 
-  const channels: any[] = [];
-  let isMounted = true;
+    const channels: any[] = [];
+    let isMounted = true;
 
-  const loadHouseholds = async () => {
-    for (const hId of user.households) {
-      if (!isMounted) return;
-      
-      if (hId === user.id) {
-        setHouseholdData((prev) => ({
-          ...prev,
-          [hId]: { name: "Mon Foyer Solo", memberCount: 1 },
-        }));
-      } else {
-        const { data, error } = await supabase
-          .from('households')
-          .select('*')
-          .eq('id', hId)
-          .single();
+    const loadHouseholds = async () => {
+      for (const hId of user.households) {
+        if (!isMounted) return;
 
-        if (data && !error && isMounted) {
+        if (hId === user.id) {
           setHouseholdData((prev) => ({
             ...prev,
-            [hId]: {
-              name: data.name || `Foyer (${hId.substring(0, 4)})`,
-              memberCount: data.members?.length || 0,
-            },
+            [hId]: { name: "Mon Foyer Solo", memberCount: 1 },
           }));
+        } else {
+          const { data, error } = await supabase
+            .from("households")
+            .select("*")
+            .eq("id", hId)
+            .single();
 
-          const channel = supabase
-            .channel(`household-${hId}`) 
-            .on(
-              'postgres_changes',
-              {
-                event: '*',
-                schema: 'public',
-                table: 'households',
-                filter: `id=eq.${hId}`,
+          if (data && !error && isMounted) {
+            setHouseholdData((prev) => ({
+              ...prev,
+              [hId]: {
+                name: data.name || `Foyer (${hId.substring(0, 4)})`,
+                memberCount: data.members?.length || 0,
               },
-              (payload) => {
-                if (!isMounted) return;
-                const newData = payload.new as any;
-                if (newData) {
-                  setHouseholdData((prev) => ({
-                    ...prev,
-                    [hId]: {
-                      name: newData.name || `Foyer (${hId.substring(0, 4)})`,
-                      memberCount: newData.members?.length || 0,
-                    },
-                  }));
-                }
-              }
-            )
-            .subscribe();
+            }));
 
-          channels.push(channel);
+            const channel = supabase
+              .channel(`household-${hId}`)
+              .on(
+                "postgres_changes",
+                {
+                  event: "*",
+                  schema: "public",
+                  table: "households",
+                  filter: `id=eq.${hId}`,
+                },
+                (payload) => {
+                  if (!isMounted) return;
+                  const newData = payload.new as any;
+                  if (newData) {
+                    setHouseholdData((prev) => ({
+                      ...prev,
+                      [hId]: {
+                        name: newData.name || `Foyer (${hId.substring(0, 4)})`,
+                        memberCount: newData.members?.length || 0,
+                      },
+                    }));
+                  }
+                },
+              )
+              .subscribe();
+
+            channels.push(channel);
+          }
         }
       }
-    }
-  };
+    };
 
-  loadHouseholds();
+    loadHouseholds();
 
-  return () => {
-    isMounted = false;
-    channels.forEach((channel) => supabase.removeChannel(channel));
-  };
-}, [user?.households]);
+    return () => {
+      isMounted = false;
+      channels.forEach((channel) => supabase.removeChannel(channel));
+    };
+  }, [user?.households]);
 
   const handleAction = async () => {
     if (!inputValue.trim() || !user) return;
@@ -345,8 +351,8 @@ const HouseholdsScreen: React.FC = () => {
               {modalMode === "create"
                 ? "Nouveau foyer"
                 : modalMode === "join"
-                ? "Rejoindre un foyer"
-                : "Renommer"}
+                  ? "Rejoindre un foyer"
+                  : "Renommer"}
             </Text>
             <TextInput
               style={styles.input}
@@ -391,6 +397,72 @@ const HouseholdsScreen: React.FC = () => {
           setConfirmConfig((prev) => ({ ...prev, visible: false }))
         }
       />
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <Users
+            size={30}
+            color={"#8E44AD"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>
+            À propos des foyers partagés
+          </Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Depuis cet écran, vous pouvez <Text style={common.bold}>créer</Text>{" "}
+          un foyer partagé ou en <Text style={common.bold}>rejoindre</Text> un
+          existant grâce à un code d'invitation.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Vos foyers partagés sont listés ici. Pour chacun, vous pouvez modifier
+          son <Text style={common.bold}>nom</Text>, partager le{" "}
+          <Text style={common.bold}>code d'invitation</Text> à de nouveaux
+          membres, ou <Text style={common.bold}>quitter</Text> le foyer.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lightbulb
+              size={14}
+              color={"#004085"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}>
+              {" "}
+              Basculer de foyer
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Vous pouvez passer d'un foyer à l'autre (ou revenir en mode{" "}
+            <Text style={common.bold}>solo</Text>) depuis l'écran d'accueil via
+            le sélecteur de vue.
+          </Text>
+        </View>
+
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color={"#d82007"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}>
+              {" "}
+              Quitter un foyer
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Quitter un foyer est <Text style={common.bold}>définitif</Text>.
+            Vous perdrez l'accès aux données partagées de ce foyer. Assurez-vous
+            que tous les comptes sont à jour avant de partir.
+          </Text>
+        </View>
+      </InfoModal>
     </View>
   );
 };

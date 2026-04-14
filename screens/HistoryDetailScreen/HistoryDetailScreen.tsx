@@ -16,7 +16,9 @@ import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { BadgeEuro, House, Settings, Target } from "lucide-react-native";
+import { BadgeEuro, House, ScrollText, Settings, Target, TriangleAlert } from "lucide-react-native";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 dayjs.locale("fr");
 
 type HistoryDetailRouteProp = RootStackRouteProp<"HistoryDetail">;
@@ -38,6 +40,8 @@ const HistoryDetailScreen: React.FC = () => {
   if (!user) {
     return <NoAuthenticatedUser />;
   }
+
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const currentUserId = user.id;
   const currentUserDisplay = user.displayName;
@@ -276,8 +280,8 @@ const HistoryDetailScreen: React.FC = () => {
 
       <View style={[styles.section, styles.finalSection]}>
         <View style={common.row}>
-              <BadgeEuro size={20} color={"#d0d312"} style={{marginBottom: 14}}/>
-        <Text style={styles.sectionTitle}>{" "}Solde final net du mois :</Text>
+          <BadgeEuro size={20} color={"#d0d312"} style={{ marginBottom: 14 }} />
+          <Text style={styles.sectionTitle}> Solde final net du mois :</Text>
         </View>
         {soldeFinal > 0 && (
           <Text style={[styles.soldeFinal, styles.soldeNoteDebiteur]}>
@@ -316,6 +320,54 @@ const HistoryDetailScreen: React.FC = () => {
           </View>
         </View>
       </View>
+
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <ScrollText
+            size={30}
+            color={"#7F8C8D"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos de ce détail</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Cette page présente le{" "}
+          <Text style={common.bold}>récapitulatif archivé</Text> de la
+          régularisation pour le mois sélectionné. La structure est identique à
+          celle du récapitulatif de clôture.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Vous y retrouvez les trois sections :{" "}
+          <Text style={common.bold}>loyer</Text> (APL inclus),{" "}
+          <Text style={common.bold}>charges fixes</Text> et{" "}
+          <Text style={common.bold}>dépenses variables</Text>, avec pour chacune
+          le détail des montants échangés entre membres.
+        </Text>
+
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color={"#d82007"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}>
+              {" "}
+              Données archivées
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Ces informations reflètent la situation au moment de la{" "}
+            <Text style={common.bold}>clôture du mois</Text>. Elles ne sont plus
+            modifiables et servent uniquement de référence.
+          </Text>
+        </View>
+      </InfoModal>
     </ScrollView>
   );
 };

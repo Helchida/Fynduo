@@ -29,6 +29,7 @@ import {
   Unlock,
   Lock,
   History,
+  TriangleAlert,
 } from "lucide-react-native";
 import dayjs from "dayjs";
 import { useAuth } from "../../hooks/useAuth";
@@ -54,6 +55,8 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "styles/theme.style";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 const formatCurrency = (amount: number) => {
   return (
@@ -96,6 +99,7 @@ const EpargneScreen: React.FC = () => {
   const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
   const [selectedTirelireForHistory, setSelectedTirelireForHistory] =
     useState<ITirelire | null>(null);
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const { revenus, charges, loadData } = useComptes();
   const moisCle = selectedDate.format("YYYY-MM");
@@ -765,7 +769,11 @@ const EpargneScreen: React.FC = () => {
 
               <View style={common.sectionHeader}>
                 <View style={common.titleWithIcon}>
-                  <PiggyBank style={{marginBottom: spacing.md}} size={22} color="#2c3e50" />
+                  <PiggyBank
+                    style={{ marginBottom: spacing.md }}
+                    size={22}
+                    color="#2c3e50"
+                  />
                   <Text style={common.sectionTitle}>Mes tirelires</Text>
                 </View>
               </View>
@@ -783,7 +791,10 @@ const EpargneScreen: React.FC = () => {
                     <View
                       style={[
                         styles.progressBar,
-                        { width: `${progressionTotalObjectifs}%`, backgroundColor: "#3498db" },
+                        {
+                          width: `${progressionTotalObjectifs}%`,
+                          backgroundColor: "#3498db",
+                        },
                       ]}
                     />
                   </View>
@@ -1146,6 +1157,73 @@ const EpargneScreen: React.FC = () => {
           setTirelireToDelete(null);
         }}
       />
+
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <PiggyBank
+            size={30}
+            color={"#27AE60"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos de l'épargne</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          Votre <Text style={common.bold}>capacité d'épargne</Text> est calculée
+          automatiquement à partir de vos revenus et de vos dépenses du mois en
+          cours. Vous pouvez naviguer entre les mois pour consulter
+          l'historique.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Une <Text style={common.bold}>tirelire</Text> est un espace d'épargne
+          auquel vous attribuez un nom, un montant initial et un objectif total.
+          Vous pouvez y <Text style={common.bold}>déposer</Text> de l'argent ou
+          la <Text style={common.bold}>casser</Text> pour récupérer son solde en
+          tant que revenu.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Les tirelires sont classées par{" "}
+          <Text style={common.bold}>ordre de priorité</Text> (glisser-déposer).
+          Cet ordre détermine dans quelle tirelire l'argent est prélevé en
+          premier lors d'un cassage automatique ou d'une répartition.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lock size={14} color={"#004085"} style={common.boxIconTitle} />
+            <Text style={[common.boxTitle, common.trickTitle]}>
+              {" "}
+              Tirelire bloquée
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Bloquer une tirelire la protège du{" "}
+            <Text style={common.bold}>cassage automatique</Text>. Son solde ne
+            sera pas touché tant qu'elle reste verrouillée.
+          </Text>
+        </View>
+
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color={"#d82007"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}> Cassage</Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Casser une tirelire est{" "}
+            <Text style={common.bold}>irréversible</Text> : son solde est
+            converti en revenu.
+          </Text>
+        </View>
+      </InfoModal>
     </GestureHandlerRootView>
   );
 };

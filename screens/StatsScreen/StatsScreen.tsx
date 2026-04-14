@@ -23,15 +23,19 @@ import { useHouseholdUsers } from "hooks/useHouseholdUsers";
 import {
   BanknoteArrowDown,
   BanknoteArrowUp,
+  BarChart2,
   ChevronDown,
   ChevronUp,
   Landmark,
+  Lightbulb,
 } from "lucide-react-native";
 import { EpargneStatsCard } from "./EpargnesStatsCard/EpargnesStatsCard";
 import { useEpargneStats } from "hooks/useEpargnesStats";
 import { useEpargneData } from "hooks/useEpargneData";
 import { useFocusEffect } from "@react-navigation/native";
 import { common } from "styles/common.style";
+import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { useScreenInfo } from "hooks/useScreenInfo";
 
 dayjs.locale("fr");
 
@@ -58,6 +62,7 @@ const StatsScreen: React.FC = () => {
     top: 0,
     right: 0,
   });
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
   const effectiveViewMode: ViewMode = isSoloMode ? viewMode : "dépenses";
@@ -339,6 +344,57 @@ const StatsScreen: React.FC = () => {
         charges={charges}
         mode={period === "mois" ? "month" : "year"}
       />
+      <InfoModal
+        visible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      >
+        <View style={common.centerRow}>
+          <BarChart2
+            size={30}
+            color={"#2980B9"}
+            style={common.infoModalIconTitle}
+          />
+          <Text style={common.infoModalTitle}>À propos des statistiques</Text>
+        </View>
+
+        <Text style={common.infoModalText}>
+          L'écran de statistiques vous donne une vue globale de vos{" "}
+          <Text style={common.bold}>dépenses</Text>,{" "}
+          <Text style={common.bold}>revenus</Text> et{" "}
+          <Text style={common.bold}>épargne</Text>. Vous pouvez filtrer par
+          mois, par année ou sur la totalité de vos données.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Chaque section présente un détail par{" "}
+          <Text style={common.bold}>catégorie</Text> avec son pourcentage
+          représentatif. Appuyez sur une catégorie pour afficher le{" "}
+          <Text style={common.bold}>détail des éléments</Text> qui la composent.
+        </Text>
+
+        <Text style={common.infoModalText}>
+          Les statistiques d'épargne distinguent les{" "}
+          <Text style={common.bold}>dépôts</Text> et les{" "}
+          <Text style={common.bold}>retraits</Text> par tirelire, afin de suivre
+          précisément l'évolution de votre épargne dans le temps.
+        </Text>
+
+        <View style={[common.infoModalBox, common.trickBox]}>
+          <View style={common.row}>
+            <Lightbulb
+              size={14}
+              color={"#004085"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}> Astuce</Text>
+          </View>
+          <Text style={[common.boxText, common.trickText]}>
+            Sélectionnez <Text style={common.bold}>Totalité</Text> pour
+            identifier vos postes de dépenses dominants sur toute la durée
+            d'utilisation de l'application.
+          </Text>
+        </View>
+      </InfoModal>
     </ScrollView>
   );
 };
