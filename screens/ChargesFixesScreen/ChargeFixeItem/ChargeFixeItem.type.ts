@@ -3,13 +3,6 @@ import { IChargeFixeTemplate, IUser } from "@/types";
 export interface ChargeFixeItemProps {
   charge: IChargeFixeTemplate;
   householdUsers: IUser[];
-  onUpdate: (id: string, newAmount: number) => Promise<void>;
+  onUpdate: (id: string, updates: Partial<IChargeFixeTemplate>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onUpdatePayeur: (
-    id: string,
-    newPayeurUid: string,
-    newPayeurName: string,
-  ) => Promise<void>;
-  onUpdateDay: (id: string, newDay: number) => Promise<void>;
-  onUpdateCategorie: (id: string, categorieId: string) => Promise<void>;
 }

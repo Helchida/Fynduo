@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
+  ScrollView,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -16,7 +17,6 @@ import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthent
 import { ChevronsUpDown, Lightbulb, TriangleAlert } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 import { useChargesFixesConfigs } from "hooks/useChargesFixesConfigs";
 import dayjs from "dayjs";
 import { CategoryPickerModal } from "screens/ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
@@ -24,45 +24,52 @@ import { useCategories } from "hooks/useCategories";
 import { IChargeFixeTemplate } from "@/types";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import {
+  PeriodiciteFormSection,
+  PeriodiciteValue,
+  DEFAULT_PERIODICITE_VALUE,
+  validatePeriodicite,
+} from "./PeriodiciteFormSection/PeriodiciteFormSection";
+import { shouldAddChargeToday } from "utils/recurrence";
 
 const ChargesFixesScreen: React.FC = () => {
   const {
     isLoadingComptes,
     chargesFixesConfigs,
     loadConfigs,
-    updateChargeFixeConfig,
-    updateChargeFixeConfigPayeur,
-    updateChargeFixeConfigDay,
-    updateChargeFixeConfigCategorie,
+    updateChargeFixe,
     addChargeFixeConfig,
     deleteChargeFixeConfig,
   } = useChargesFixesConfigs();
 
   const { loadData } = useComptes();
-
   const { user, householdUsers } = useAuth();
   const { categories, defaultCategory } = useCategories();
   const toast = useToast();
+
   if (!user) {
     return <NoAuthenticatedUser />;
   }
+
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
+  const isSoloMode = user.activeHouseholdId === user.id;
+
+  const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [nom, setNom] = useState("");
   const [montant, setMontant] = useState("");
   const [payeur, setPayeur] = useState<string | null>(user.id);
-  const [showForm, setShowForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
-  const [jourPrelevement, setJourPrelevement] = useState<number | null>(null);
-  const [isDayModalVisible, setIsDayModalVisible] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState(
     defaultCategory?.id || "Autre",
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+  const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
 
-  const isSoloMode = user.activeHouseholdId === user.id;
+  const [periodiciteValue, setPeriodiciteValue] = useState<PeriodiciteValue>(
+    DEFAULT_PERIODICITE_VALUE,
+  );
 
   useEffect(() => {
     loadConfigs();
@@ -71,64 +78,36 @@ const ChargesFixesScreen: React.FC = () => {
   useEffect(() => {
     if (categories.length > 0) {
       const defaultCat = categories.find((c) => c.isDefault);
-      if (defaultCat) {
-        setSelectedCategorie(defaultCat.id);
-      }
+      if (defaultCat) setSelectedCategorie(defaultCat.id);
     }
   }, [categories]);
 
+  const resetForm = useCallback(() => {
+    setNom("");
+    setMontant("");
+    setPayeur(user?.id ?? null);
+    setSelectedCategorie(defaultCategory?.id || "Autre");
+    setPeriodiciteValue(DEFAULT_PERIODICITE_VALUE);
+  }, [user, defaultCategory]);
+
   const handleChargeUpdate = useCallback(
-    async (id: string, newAmount: number) => {
-      try {
-        await updateChargeFixeConfig(id, newAmount);
-        toast.success("Succès", "Charge mise à jour");
-      } catch (error) {
-        toast.error("Erreur", "Échec de la mise à jour des charges");
-        console.error("Erreur Charges:", error);
-      }
-    },
-    [updateChargeFixeConfig],
-  );
+  async (id: string, updates: Partial<IChargeFixeTemplate>) => {
+    try {
+      await updateChargeFixe(id, updates);
+      toast.success("Succès", "Charge mise à jour");
+    } catch (error) {
+      toast.error("Erreur", "Échec de la mise à jour");
+    }
+  },
+  [updateChargeFixe, toast]
+);
 
-  const handleChargeUpdatePayeur = useCallback(
-    async (chargeId: string, newPayeurUid: string) => {
-      try {
-        await updateChargeFixeConfigPayeur(chargeId, newPayeurUid);
-        toast.success("Succès", "Le payeur a été mis à jour");
-      } catch (error) {
-        toast.error("Erreur", "Échec de la mise à jour du payeur");
-        console.error("Erreur update Payeur:", error);
-      }
-    },
-    [updateChargeFixeConfigPayeur],
-  );
-
-  const handleChargeUpdateDay = useCallback(
-    async (chargeId: string, newDay: number) => {
-      try {
-        await updateChargeFixeConfigDay(chargeId, newDay);
-        toast.success("Succès", "Le jour de prélèvement a été mis à jour");
-      } catch (error) {
-        toast.error("Erreur", "Échec de la mise à jour du jour de prélèvement");
-        console.error("Erreur update Day:", error);
-      }
-    },
-    [updateChargeFixeConfigDay],
-  );
-
-  const handleChargeUpdateCategorie = useCallback(
-    async (chargeId: string, newCategorie: string) => {
-      try {
-        await updateChargeFixeConfigCategorie(chargeId, newCategorie);
-      } catch (error) {
-        toast.error("Erreur", "Échec de la mise à jour de la catégorie");
-      }
-    },
-    [updateChargeFixeConfigCategorie],
-  );
 
   const handleAddDepense = useCallback(async () => {
-    const montantTotal = parseFloat(montant.replace(",", "."));
+    const isEcheancier = periodiciteValue.periodiciteType === "echeancier";
+    const montantTotal = isEcheancier
+      ? 0
+      : parseFloat(montant.replace(",", "."));
 
     if (!payeur) {
       toast.warning(
@@ -137,28 +116,21 @@ const ChargesFixesScreen: React.FC = () => {
       );
       return;
     }
-
     if (!nom.trim()) {
+      toast.warning("Erreur de saisie", "Veuillez saisir une description");
+      return;
+    }
+    if (!isEcheancier && (isNaN(montantTotal) || montantTotal <= 0)) {
       toast.warning(
         "Erreur de saisie",
-        "Veuillez saisir une description pour la charge",
+        "Veuillez saisir un montant supérieur à 0",
       );
       return;
     }
 
-    if (isNaN(montantTotal) || montantTotal <= 0) {
-      toast.warning(
-        "Erreur de saisie",
-        "Veuillez saisir un montant supérieur à 0 pour la charge.",
-      );
-      return;
-    }
-
-    if (!jourPrelevement) {
-      toast.warning(
-        "Erreur de saisie",
-        "Veuillez sélectionner un jour de prélèvement pour la charge.",
-      );
+    const periodiciteError = validatePeriodicite(periodiciteValue);
+    if (periodiciteError) {
+      toast.warning("Erreur de saisie", periodiciteError);
       return;
     }
 
@@ -167,25 +139,30 @@ const ChargesFixesScreen: React.FC = () => {
     const chargeFixeToAdd: Omit<IChargeFixeTemplate, "id" | "householdId"> = {
       description: nom.trim(),
       montantTotal,
-      payeur: payeur,
+      payeur,
       beneficiaires: isSoloMode ? [user.id] : householdUsers.map((u) => u.id),
-      jourPrelevementMensuel: jourPrelevement,
       categorie: selectedCategorie,
       scope: isSoloMode ? "solo" : "partage",
+      periodiciteType: periodiciteValue.periodiciteType,
+      periodiciteIntervalle: periodiciteValue.periodiciteIntervalle,
+      datePremierPrelevement: periodiciteValue.datePremierPrelevement,
+      dateFin: periodiciteValue.dateFin,
+      echeancier: periodiciteValue.echeancier,
+      jourNommeConfig: periodiciteValue.jourNommeConfig,
     };
 
     try {
       await addChargeFixeConfig(chargeFixeToAdd);
-      setNom("");
-      setMontant("");
-      setPayeur(user?.id || null);
+      resetForm();
       setShowForm(false);
-      setSelectedCategorie(defaultCategory?.id || "Autre");
       toast.success("Succès", "Charge fixe enregistrée");
-      const today = dayjs();
-      const shouldAutoAdd = jourPrelevement && today.date() >= jourPrelevement;
 
-      if (shouldAutoAdd) {
+      const tempConfig: IChargeFixeTemplate = {
+        id: "temp",
+        householdId: user.activeHouseholdId ?? "",
+        ...chargeFixeToAdd,
+      };
+      if (shouldAddChargeToday(tempConfig, new Set(), dayjs())) {
         setIsRefreshing(true);
         setTimeout(async () => {
           await loadData();
@@ -203,19 +180,15 @@ const ChargesFixesScreen: React.FC = () => {
     montant,
     payeur,
     user,
-    jourPrelevement,
+    periodiciteValue,
     addChargeFixeConfig,
     loadData,
     isSoloMode,
     householdUsers,
     toast,
     selectedCategorie,
+    resetForm,
   ]);
-
-  const selectPayeur = (uid: string) => {
-    setPayeur(uid);
-    setIsPayeurModalVisible(false);
-  };
 
   if (isLoadingComptes) {
     return <Text style={styles.loading}>Chargement des charges...</Text>;
@@ -227,138 +200,149 @@ const ChargesFixesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.header}>Charges fixes</Text>
-      </View>
-      {isRefreshing && (
-        <View style={styles.refreshingBanner}>
-          <Text style={styles.refreshingText}>Ajout dans les dépenses...</Text>
-        </View>
-      )}
-      <TouchableOpacity
-        style={common.addButton}
-        onPress={() => setShowForm(!showForm)}
-        disabled={isSubmitting}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={common.addButtonText}>
-          {showForm ? "Annuler l'ajout" : "+ Ajouter une charge fixe"}
-        </Text>
-      </TouchableOpacity>
-      {showForm && (
-        <View style={common.formContainer}>
-          <Text style={common.label}>Description</Text>
-          <TextInput
-            style={common.input}
-            placeholder="Ex: Facture Internet"
-            placeholderTextColor="#95a5a6"
-            value={nom}
-            onChangeText={setNom}
-            maxLength={30}
-            editable={!isSubmitting}
-          />
-          <Text style={common.label}>Montant mensuel</Text>
-          <TextInput
-            style={common.input}
-            placeholder="Ex: 80.50"
-            placeholderTextColor="#95a5a6"
-            value={montant}
-            onChangeText={setMontant}
-            keyboardType="decimal-pad"
-            {...({ inputMode: "decimal" } as any)}
-            maxLength={8}
-            editable={!isSubmitting}
-          />
-          {!isSoloMode && (
-            <View style={common.inputGroup}>
-              <Text style={common.label}>Payée par</Text>
+        <View style={styles.headerContainer}>
+          <Text style={styles.header}>Configuration des charges fixes</Text>
+        </View>
+
+        {isRefreshing && (
+          <View style={styles.refreshingBanner}>
+            <Text style={styles.refreshingText}>
+              Ajout dans les dépenses...
+            </Text>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={common.addButton}
+          onPress={() => {
+            if (showForm) resetForm();
+            setShowForm(!showForm);
+          }}
+          disabled={isSubmitting}
+        >
+          <Text style={common.addButtonText}>
+            {showForm ? "Annuler l'ajout" : "+ Ajouter une charge fixe"}
+          </Text>
+        </TouchableOpacity>
+
+        {showForm && (
+          <View style={common.formContainer}>
+            <Text style={common.label}>Description</Text>
+            <TextInput
+              style={common.input}
+              placeholder="Ex : Facture Internet"
+              placeholderTextColor="#95a5a6"
+              value={nom}
+              onChangeText={setNom}
+              maxLength={30}
+              editable={!isSubmitting}
+            />
+
+            {periodiciteValue.periodiciteType !== "echeancier" && (
+              <>
+                <Text style={common.label}>Montant (€)</Text>
+                <TextInput
+                  style={common.input}
+                  placeholder="Ex : 80.50"
+                  placeholderTextColor="#95a5a6"
+                  value={montant}
+                  onChangeText={setMontant}
+                  keyboardType="decimal-pad"
+                  {...({ inputMode: "decimal" } as any)}
+                  maxLength={9}
+                  editable={!isSubmitting}
+                />
+              </>
+            )}
+
+            {!isSoloMode && (
+              <View style={common.inputGroup}>
+                <Text style={common.label}>Payée par</Text>
+                <TouchableOpacity
+                  style={[common.input, styles.dropdownInput]}
+                  onPress={() => setIsPayeurModalVisible(true)}
+                  disabled={isSubmitting}
+                >
+                  <Text
+                    style={!payeur ? styles.placeholderText : styles.inputText}
+                  >
+                    {getDisplayNameUserInHousehold(payeur, householdUsers)}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View>
+              <Text style={common.label}>Catégorie</Text>
               <TouchableOpacity
-                style={[common.input, styles.dropdownInput]}
-                onPress={() => setIsPayeurModalVisible(true)}
+                style={common.selectorButton}
+                onPress={() => setIsCategoryModalVisible(true)}
                 disabled={isSubmitting}
               >
-                <Text
-                  style={!payeur ? styles.placeholderText : styles.inputText}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
                 >
-                  {getDisplayNameUserInHousehold(payeur, householdUsers)}
-                </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={{ fontSize: 16, marginRight: 6 }}>
+                      {currentCategoryData?.icon || "📦"}
+                    </Text>
+                    <Text numberOfLines={1} style={{ flexShrink: 1 }}>
+                      {currentCategoryData?.label || selectedCategorie}
+                    </Text>
+                  </View>
+                  <ChevronsUpDown size={14} color="#8E8E93" />
+                </View>
               </TouchableOpacity>
             </View>
-          )}
-          <View style={common.inputGroup}>
-            <Text style={common.label}>Jour de prélèvement</Text>
+
+            <View style={{ marginTop: 8 }}>
+              <PeriodiciteFormSection
+                value={periodiciteValue}
+                onChange={setPeriodiciteValue}
+                disabled={isSubmitting}
+                montantDefault={parseFloat(montant.replace(",", ".")) || 0}
+              />
+            </View>
+
             <TouchableOpacity
-              style={[common.input, styles.dropdownInput]}
-              onPress={() => setIsDayModalVisible(true)}
+              onPress={handleAddDepense}
               disabled={isSubmitting}
+              style={common.addButton}
             >
-              <Text
-                style={
-                  !jourPrelevement ? styles.placeholderText : styles.inputText
-                }
-              >
-                {jourPrelevement ? `Le ${jourPrelevement}` : "Choisir un jour"}
+              <Text style={common.addButtonText}>
+                {isSubmitting
+                  ? "Enregistrement..."
+                  : "Enregistrer la charge fixe"}
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={common.selectorButton}
-            onPress={() => setIsCategoryModalVisible(true)}
-          >
-            <Text style={common.selectorLabel}>Catégorie</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Text style={{ fontSize: 16, marginRight: 6 }}>
-                  {currentCategoryData?.icon || "📦"}
-                </Text>
-                <Text numberOfLines={1} style={{ flexShrink: 1 }}>
-                  {currentCategoryData?.label || selectedCategorie}
-                </Text>
-              </View>
-              <ChevronsUpDown size={14} color="#8E8E93" />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleAddDepense}
-            disabled={isSubmitting}
-            style={common.addButton}
-          >
-            <Text style={common.addButtonText}>
-              {isSubmitting
-                ? "Enregistrement..."
-                : "Enregistrer la charge fixe"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <FlatList
-        data={chargesFixesConfigs}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ChargeFixeItem
-            charge={item}
-            onUpdate={handleChargeUpdate}
-            onDelete={deleteChargeFixeConfig}
-            householdUsers={householdUsers}
-            onUpdatePayeur={handleChargeUpdatePayeur}
-            onUpdateDay={handleChargeUpdateDay}
-            onUpdateCategorie={handleChargeUpdateCategorie}
-          />
         )}
-        style={styles.list}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
-      <DayPickerModal
-        isVisible={isDayModalVisible}
-        onClose={() => setIsDayModalVisible(false)}
-        selectedDay={jourPrelevement}
-        onSelectDay={setJourPrelevement}
-      />
+
+        <FlatList
+          data={chargesFixesConfigs}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ChargeFixeItem
+              charge={item}
+              onUpdate={handleChargeUpdate}
+              onDelete={deleteChargeFixeConfig}
+              householdUsers={householdUsers}
+            />
+          )}
+          style={styles.list}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </ScrollView>
+
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}
         onClose={() => setIsCategoryModalVisible(false)}
@@ -369,6 +353,7 @@ const ChargesFixesScreen: React.FC = () => {
           setIsCategoryModalVisible(false);
         }}
       />
+
       <Modal
         visible={isPayeurModalVisible}
         animationType="slide"
@@ -387,7 +372,10 @@ const ChargesFixesScreen: React.FC = () => {
                     common.modalItem,
                     item.id === payeur && common.modalItemSelected,
                   ]}
-                  onPress={() => selectPayeur(item.id)}
+                  onPress={() => {
+                    setPayeur(item.id);
+                    setIsPayeurModalVisible(false);
+                  }}
                 >
                   <Text style={common.modalItemText}>{item.displayName}</Text>
                 </TouchableOpacity>
@@ -403,38 +391,58 @@ const ChargesFixesScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
       <InfoModal
         visible={showInfoModal}
         onClose={() => setShowInfoModal(false)}
       >
         <View style={common.centerRow}>
-          <Lightbulb size={30} color={"#d6d43d"} style={common.infoModalIconTitle} />
+          <Lightbulb
+            size={30}
+            color="#d6d43d"
+            style={common.infoModalIconTitle}
+          />
           <Text style={common.infoModalTitle}>À propos des charges fixes</Text>
         </View>
         <Text style={common.infoModalText}>
           Les <Text style={common.bold}>charges fixes</Text> sont des dépenses
-          récurrentes chaque mois : électricité, gaz, internet, eau, assurance, etc.
+          récurrentes : électricité, gaz, internet, assurance, etc.
         </Text>
         <Text style={common.infoModalText}>
-          Ces charges seront ajoutées <Text style={common.bold}>automatiquement</Text> à la liste de vos dépenses selon la date choisie. 
+          Ces charges seront ajoutées{" "}
+          <Text style={common.bold}>automatiquement</Text> à la liste de vos
+          dépenses selon la périodicité choisie.
         </Text>
-        {!isSoloMode && <Text style={common.infoModalText}>
-          Ces montants sont répartis <Text style={common.bold}>équitablement</Text> entre les colocataires lors de
-          la <Text style={common.bold}>régularisation mensuelle</Text>.
-        </Text>}
-        <View style={[common.infoModalBox,common.warningBox]}>
-          <View style={common.row}>
-            <TriangleAlert size={14} color={"#d82007"} style={common.boxIconTitle} />
-            <Text style={[common.boxTitle, common.warningTitle]}> Important</Text>
-          </View>
-          <Text style={[common.boxText,common.warningText]}>
-            Si vous modifiez le montant d'une charge fixe, cela
-            <Text style={common.bold}> n'affecte que les mois futurs</Text>.
+        {!isSoloMode && (
+          <Text style={common.infoModalText}>
+            Ces montants sont répartis{" "}
+            <Text style={common.bold}>équitablement</Text> entre les
+            colocataires lors de la{" "}
+            <Text style={common.bold}>régularisation mensuelle</Text>.
           </Text>
-          {!isSoloMode && <Text style={[common.boxText, common.warningText]}>
-            Les mois déjà validés restent inchangés car un historique des charges
-            est enregistré à chaque clôture.
-          </Text>}
+        )}
+        <View style={[common.infoModalBox, common.warningBox]}>
+          <View style={common.row}>
+            <TriangleAlert
+              size={14}
+              color="#d82007"
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.warningTitle]}>
+              {" "}
+              Important
+            </Text>
+          </View>
+          <Text style={[common.boxText, common.warningText]}>
+            Si vous modifiez une charge fixe, cela{" "}
+            <Text style={common.bold}>n'affecte que les mois futurs</Text>.
+          </Text>
+          {!isSoloMode && (
+            <Text style={[common.boxText, common.warningText]}>
+              Les mois déjà validés restent inchangés car un historique est
+              enregistré à chaque clôture.
+            </Text>
+          )}
         </View>
       </InfoModal>
     </View>

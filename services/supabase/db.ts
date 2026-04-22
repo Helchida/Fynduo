@@ -401,6 +401,25 @@ export async function updateRegularisationDettes(
 // CHARGES FIXES (TEMPLATES)
 // ============================================
 
+function mapChargeFixeConfig(row: any): IChargeFixeTemplate {
+  return {
+    id: row.id,
+    householdId: row.household_id,
+    categorie: row.categorie,
+    description: row.description,
+    montantTotal: row.montant_total,
+    payeur: row.payeur,
+    beneficiaires: row.beneficiaires ?? [],
+    scope: row.scope,
+    periodiciteType: row.periodicite_type ?? "mensuel",
+    periodiciteIntervalle: row.periodicite_intervalle ?? 1,
+    datePremierPrelevement: row.date_premier_prelevement ?? null,
+    dateFin: row.date_fin ?? null,
+    echeancier: row.echeancier ?? null,
+    jourNommeConfig: row.jour_nomme_config ?? null,
+  };
+}
+
 /**
  * Récupère les templates des charges fixes
  */
@@ -414,17 +433,7 @@ export async function getChargesFixesConfigs(
 
   if (error) throw error;
 
-  return (data || []).map((row) => ({
-    id: extractDocId(row.id),
-    householdId: row.household_id,
-    categorie: row.categorie,
-    description: row.description,
-    montantTotal: row.montant_total,
-    payeur: row.payeur,
-    beneficiaires: row.beneficiaires || [],
-    jourPrelevementMensuel: row.jour_prelevement_mensuel,
-    scope: row.scope,
-  }));
+  return (data ?? []).map(mapChargeFixeConfig);
 }
 
 /**
@@ -445,8 +454,13 @@ export async function addChargeFixeConfig(
     montant_total: charge.montantTotal,
     payeur: charge.payeur,
     beneficiaires: charge.beneficiaires || [],
-    jour_prelevement_mensuel: charge.jourPrelevementMensuel,
     scope: charge.scope || "solo",
+    periodicite_type: charge.periodiciteType,
+    periodicite_intervalle: charge.periodiciteIntervalle,
+    date_premier_prelevement: charge.datePremierPrelevement,
+    date_fin: charge.dateFin,
+    echeancier: charge.echeancier,
+    jour_nomme_config: charge.jourNommeConfig,
   });
 
   if (error) throw error;
@@ -462,7 +476,7 @@ export async function updateChargeFixeConfig(
   chargeId: string,
   updates: Partial<Omit<IChargeFixeTemplate, "id">>,
 ) {
-  const uniqueId = makeUniqueId(householdId, chargeId);
+
   const supabaseUpdates: any = {};
 
   if (updates.categorie !== undefined)
@@ -474,14 +488,20 @@ export async function updateChargeFixeConfig(
   if (updates.payeur !== undefined) supabaseUpdates.payeur = updates.payeur;
   if (updates.beneficiaires !== undefined)
     supabaseUpdates.beneficiaires = updates.beneficiaires;
-  if (updates.jourPrelevementMensuel !== undefined)
-    supabaseUpdates.jour_prelevement_mensuel = updates.jourPrelevementMensuel;
   if (updates.scope !== undefined) supabaseUpdates.scope = updates.scope;
+  if (updates.periodiciteType !== undefined)        supabaseUpdates.periodicite_type = updates.periodiciteType;
+  if (updates.periodiciteIntervalle !== undefined)  supabaseUpdates.periodicite_intervalle = updates.periodiciteIntervalle;
+  if (updates.datePremierPrelevement !== undefined) supabaseUpdates.date_premier_prelevement = updates.datePremierPrelevement;
+  if (updates.dateFin !== undefined)                supabaseUpdates.date_fin = updates.dateFin;
+  if (updates.echeancier !== undefined)             supabaseUpdates.echeancier = updates.echeancier;
+  if (updates.jourNommeConfig !== undefined)        supabaseUpdates.jour_nomme_config = updates.jourNommeConfig;
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("charges_fixes")
     .update(supabaseUpdates)
-    .eq("id", uniqueId);
+    .eq("id", chargeId)
+    .eq("household_id", householdId)
+    .select();
 
   if (error) throw error;
 }
@@ -493,12 +513,12 @@ export async function deleteChargeFixeConfig(
   householdId: string,
   chargeId: string,
 ) {
-  const uniqueId = makeUniqueId(householdId, chargeId);
 
   const { error } = await supabase
     .from("charges_fixes")
     .delete()
-    .eq("id", uniqueId);
+    .eq("id", chargeId)
+    .eq("household_id", householdId);
 
   if (error) throw error;
 }

@@ -34,8 +34,24 @@ export type CategoryType =
 
 export type ChargeScope = "solo" | "partage";
 export type ChargeType = "fixe" | "variable";
+export type PeriodiciteType =
+  | "journalier"
+  | "hebdomadaire"
+  | "mensuel"
+  | "annuel"
+  | "jour_nomme"
+  | "echeancier";
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 
+export interface IEcheancierEntry {
+  date: string;      
+  montant: number;
+}
+
+export interface IJourNommeConfig {
+  position: 1 | 2 | 3 | 4 | -1;  
+  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+}
 export interface ICharge extends FirestoreDocument {
   description: string;
   montantTotal: number;
@@ -56,8 +72,14 @@ export interface IChargeFixeTemplate extends FirestoreDocument {
   montantTotal: number;
   payeur: string;
   beneficiaires: string[];
-  jourPrelevementMensuel: number;
   scope: ChargeScope;
+  
+  periodiciteType: PeriodiciteType;
+  periodiciteIntervalle: number; 
+  datePremierPrelevement: string | null; 
+  dateFin?: string | null;      
+  echeancier?: IEcheancierEntry[] | null;
+  jourNommeConfig?: IJourNommeConfig | null;
 }
 
 export interface ChargeFixeForm extends IChargeFixeTemplate {

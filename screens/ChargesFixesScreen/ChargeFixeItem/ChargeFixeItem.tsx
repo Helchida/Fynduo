@@ -10,25 +10,30 @@ import {
 } from "react-native";
 import { styles } from "../../../styles/screens/ChargesFixesScreen/ChargeFixeItem/ChargeFixeItem.style";
 import { common } from "../../../styles/common.style";
-import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
+import { IChargeFixeTemplate, IUser } from "@/types";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { CalendarDays, ChevronsUpDown, Pencil, Trash2, User } from "lucide-react-native";
-import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
+import { ChevronsUpDown, Pencil, Trash2, User } from "lucide-react-native";
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useCategories } from "hooks/useCategories";
 import { CategoryPickerModal } from "screens/ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
+import {
+  PeriodiciteFormSection,
+  PeriodiciteValue,
+  extractPeriodiciteValue,
+  validatePeriodicite,
+} from "../PeriodiciteFormSection/PeriodiciteFormSection";
+import { getPeriodiciteDetailLabel } from "utils/recurrence";
+import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
+
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
   onUpdate,
   onDelete,
   householdUsers,
-  onUpdatePayeur,
-  onUpdateDay,
-  onUpdateCategorie,
 }) => {
   const { user } = useAuth();
 
@@ -38,87 +43,103 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
 
   const isSoloMode = user.id === user.activeHouseholdId;
 
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isEditModalVisible,   setIsEditModalVisible]   = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
-  const [isDayModalVisible, setIsDayModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [editAmount, setEditAmount] = useState(charge.montantTotal.toString());
-  const [editDay, setEditDay] = useState<number>(charge.jourPrelevementMensuel);
+  const [editAmount,      setEditAmount]      = useState(charge.montantTotal.toString());
   const [editCategorieId, setEditCategorieId] = useState(charge.categorie);
-  const [editPayeurId, setEditPayeurId] = useState(charge.payeur);
+  const [editPayeurId,    setEditPayeurId]    = useState(charge.payeur);
+  const [editPeriodicite, setEditPeriodicite] = useState<PeriodiciteValue>(
+    extractPeriodiciteValue(charge),
+  );
 
   const toast = useToast();
   const { categories } = useCategories();
 
   const currentCategoryData = categories.find((c) => c.id === charge.categorie);
-  const editCategoryData = categories.find((c) => c.id === editCategorieId);
+  const editCategoryData    = categories.find((c) => c.id === editCategorieId);
 
   const openEditModal = useCallback(() => {
     setEditAmount(charge.montantTotal.toString());
-    setEditDay(charge.jourPrelevementMensuel);
     setEditCategorieId(charge.categorie);
     setEditPayeurId(charge.payeur);
+    setEditPeriodicite(extractPeriodiciteValue(charge));
     setIsEditModalVisible(true);
   }, [charge]);
 
   const handleSaveAll = useCallback(async () => {
-    const newAmount = parseFloat(editAmount.replace(",", "."));
+  const isEcheancier = editPeriodicite.periodiciteType === "echeancier";
 
+  let newAmount = 0;
+  if (!isEcheancier) {
+    newAmount = parseFloat(editAmount.replace(",", "."));
     if (isNaN(newAmount) || newAmount < 0) {
       toast.error("Erreur", "Le montant doit être un nombre positif.");
       return;
     }
+  }
 
-    setIsSaving(true);
-    try {
-      const updates: Promise<void>[] = [];
+  const periodiciteError = validatePeriodicite(editPeriodicite);
+  if (periodiciteError) {
+    toast.error("Erreur", periodiciteError);
+    return;
+  }
 
-      if (newAmount !== charge.montantTotal) {
-        updates.push(onUpdate(charge.id, newAmount));
-      }
-      if (editDay !== charge.jourPrelevementMensuel) {
-        updates.push(onUpdateDay(charge.id, editDay));
-      }
-      if (editCategorieId !== charge.categorie) {
-        updates.push(onUpdateCategorie(charge.id, editCategorieId));
-      }
-      if (!isSoloMode && editPayeurId !== charge.payeur) {
-        const payeurUser = householdUsers.find((u) => u.id === editPayeurId);
-        if (payeurUser) {
-          updates.push(
-            onUpdatePayeur(charge.id, payeurUser.id, payeurUser.displayName),
-          );
-        }
-      }
+  setIsSaving(true);
+  try {
+    const updates: Partial<IChargeFixeTemplate> = {};
 
-      await Promise.all(updates);
-
-      setIsEditModalVisible(false);
-    } catch {
-      toast.error("Erreur", "Impossible de mettre à jour la charge");
-    } finally {
-      setIsSaving(false);
+    if (isEcheancier) {
+      if (charge.montantTotal !== 0) updates.montantTotal = 0;
+    } else if (newAmount !== charge.montantTotal) {
+      updates.montantTotal = newAmount;
     }
-  }, [
-    editAmount,
-    editDay,
-    editCategorieId,
-    editPayeurId,
-    charge,
-    onUpdate,
-    onUpdateDay,
-    onUpdateCategorie,
-    onUpdatePayeur,
-    isSoloMode,
-    householdUsers,
-    toast,
-  ]);
+
+    if (editCategorieId !== charge.categorie) {
+      updates.categorie = editCategorieId;
+    }
+
+    if (!isSoloMode && editPayeurId !== charge.payeur) {
+      updates.payeur = editPayeurId;
+    }
+
+    const originalPeriodicite = extractPeriodiciteValue(charge);
+    if (JSON.stringify(editPeriodicite) !== JSON.stringify(originalPeriodicite)) {
+      updates.periodiciteType = editPeriodicite.periodiciteType;
+      updates.periodiciteIntervalle = editPeriodicite.periodiciteIntervalle;
+      updates.datePremierPrelevement = editPeriodicite.datePremierPrelevement;
+      updates.dateFin = editPeriodicite.dateFin;
+      updates.echeancier = editPeriodicite.echeancier;
+      updates.jourNommeConfig = editPeriodicite.jourNommeConfig;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await onUpdate(charge.id, updates);
+    }
+
+    setIsEditModalVisible(false);
+  } catch {
+    toast.error("Erreur", "Impossible de mettre à jour la charge");
+  } finally {
+    setIsSaving(false);
+  }
+}, [
+  editAmount,
+  editPeriodicite,
+  editCategorieId,
+  editPayeurId,
+  charge,
+  onUpdate,
+  isSoloMode,
+  toast,
+]);
 
   return (
     <View style={styles.chargeItem}>
+
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Text style={{ fontSize: 22, marginRight: 10 }}>
           {currentCategoryData?.icon ?? "📦"}
@@ -139,19 +160,14 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         </View>
       </View>
 
-      <View
-        style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 10 }}
-      >
+      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 10 }}>
         <Text style={{ fontSize: 16, fontWeight: "700", color: "#27ae60" }}>
           {charge.montantTotal.toFixed(2)} €
         </Text>
         <Text style={{ color: "#ccc", fontSize: 16 }}>•</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <CalendarDays size={13} color="#888" />
-          <Text style={{ fontSize: 13, color: "#888" }}>
-            Le {charge.jourPrelevementMensuel || "-"} par {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
-          </Text>
-        </View>
+        <Text style={{ fontSize: 13, color: "#888", flex: 1 }} numberOfLines={1}>
+          {getPeriodiciteDetailLabel(charge)} · {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
+        </Text>
       </View>
 
       <Modal
@@ -161,48 +177,38 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         onRequestClose={() => setIsEditModalVisible(false)}
       >
         <View style={common.modalOverlay}>
-          <View style={[common.modalContent, { maxHeight: "80%" }]}>
+          <View style={[common.modalContent, { maxHeight: "90%" }]}>
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 10,
-                  marginBottom: 6,
-                }}
-              >
+              {/* Titre */}
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 6 }}>
                 <Pencil size={20} color="#3498db" />
                 <Text style={[common.modalTitle, { marginBottom: 0 }]}>
                   Modifier la charge
                 </Text>
               </View>
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "#888",
-                  fontSize: 14,
-                  marginBottom: 24,
-                }}
-              >
+              <Text style={{ textAlign: "center", color: "#888", fontSize: 14, marginBottom: 24 }}>
                 {charge.description}
               </Text>
 
-              <Text style={common.inputLabel}>Montant mensuel (€)</Text>
-              <TextInput
-                style={common.input}
-                value={editAmount}
-                onChangeText={(t) => setEditAmount(t.replace(",", "."))}
-                keyboardType="decimal-pad"
-                {...({ inputMode: "decimal" } as any)}
-                maxLength={8}
-                editable={!isSaving}
-                placeholder="Ex : 45.00"
-                placeholderTextColor="#95a5a6"
-              />
+              {editPeriodicite.periodiciteType !== "echeancier" && (
+                <>
+                  <Text style={common.inputLabel}>Montant (€)</Text>
+                  <TextInput
+                    style={common.input}
+                    value={editAmount}
+                    onChangeText={(t) => setEditAmount(t.replace(",", "."))}
+                    keyboardType="decimal-pad"
+                    {...({ inputMode: "decimal" } as any)}
+                    maxLength={9}
+                    editable={!isSaving}
+                    placeholder="Ex : 45.00"
+                    placeholderTextColor="#95a5a6"
+                  />
+                </>
+              )}
 
               <Text style={common.inputLabel}>Catégorie</Text>
               <TouchableOpacity
@@ -210,42 +216,11 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                 onPress={() => setIsCategoryModalVisible(true)}
                 disabled={isSaving}
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <Text style={{ fontSize: 18 }}>
-                      {editCategoryData?.icon ?? "📦"}
-                    </Text>
+                    <Text style={{ fontSize: 18 }}>{editCategoryData?.icon ?? "📦"}</Text>
                     <Text style={{ fontSize: 15, color: "#333" }}>
                       {editCategoryData?.label ?? editCategorieId}
-                    </Text>
-                  </View>
-                  <ChevronsUpDown size={14} color="#8E8E93" />
-                </View>
-              </TouchableOpacity>
-
-              <Text style={common.inputLabel}>Jour de prélèvement</Text>
-              <TouchableOpacity
-                style={[common.selectorButton, { marginBottom: 20 }]}
-                onPress={() => setIsDayModalVisible(true)}
-                disabled={isSaving}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <CalendarDays size={16} color="#666" />
-                    <Text style={{ fontSize: 15, color: "#333" }}>
-                      Le {editDay || "-"}
                     </Text>
                   </View>
                   <ChevronsUpDown size={14} color="#8E8E93" />
@@ -260,13 +235,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                     onPress={() => setIsPayeurModalVisible(true)}
                     disabled={isSaving}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <User size={16} color="#666" />
                         <Text style={{ fontSize: 15, color: "#333" }}>
@@ -278,6 +247,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                   </TouchableOpacity>
                 </>
               )}
+
+              <PeriodiciteFormSection
+                value={editPeriodicite}
+                onChange={setEditPeriodicite}
+                disabled={isSaving}
+                montantDefault={charge.montantTotal}
+              />
 
               <View style={common.modalButtons}>
                 <TouchableOpacity
@@ -310,16 +286,6 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         onSelect={(id) => {
           setEditCategorieId(id);
           setIsCategoryModalVisible(false);
-        }}
-      />
-
-      <DayPickerModal
-        isVisible={isDayModalVisible}
-        onClose={() => setIsDayModalVisible(false)}
-        selectedDay={editDay}
-        onSelectDay={(day) => {
-          setEditDay(day);
-          setIsDayModalVisible(false);
         }}
       />
 

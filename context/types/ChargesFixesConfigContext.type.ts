@@ -1,4 +1,5 @@
 import { IChargeFixeTemplate } from "@/types";
+import { PeriodiciteValue } from "screens/ChargesFixesScreen/PeriodiciteFormSection/PeriodiciteFormSection";
 
 
 export interface IChargesFixesConfigContext {
@@ -6,10 +7,7 @@ export interface IChargesFixesConfigContext {
   chargesFixesConfigs: IChargeFixeTemplate[];
   loadConfigs: () => Promise<void>;
   handleAutoAddFixedCharges: () => Promise<void>;
-  updateChargeFixeConfig: (id: string, amount: number) => Promise<void>;
-  updateChargeFixeConfigPayeur: (id: string, payeurId: string) => Promise<void>;
-  updateChargeFixeConfigDay: (id: string, day: number) => Promise<void>;
-  updateChargeFixeConfigCategorie: (id: string, categoryId: string) => Promise<void>;
+  updateChargeFixe: (id: string, updates: Partial<IChargeFixeTemplate>) => Promise<void>;
   addChargeFixeConfig: (
     charge: Omit<IChargeFixeTemplate, "id" | "householdId">,
   ) => Promise<void>;
