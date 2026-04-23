@@ -101,11 +101,10 @@ export const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
-    width: "14%",
-    aspectRatio: 1, 
+    width: "20%",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 0, 
+    paddingHorizontal: spacing.sm, 
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
     borderWidth: 1,
@@ -195,7 +194,6 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral200,
     color: colors.textPrimary,
-    textAlign: "right",
     minWidth: 0,
   },
   echeDeleteBtn: {

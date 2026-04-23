@@ -153,9 +153,8 @@ function toISO(date: Date): string {
 const PICKER_STYLES = {
   selectorContainer: {
     flexDirection: "row" as const,
-    alignItems: "center" as const,
     justifyContent: "space-between" as const,
-    marginTop: 2,
+
   },
   miniUserText: {
     fontSize: 15,
@@ -300,9 +299,6 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
       <Text style={common.inputLabel}>{label}</Text>
       <UniversalDatePicker
         date={toDate(value.datePremierPrelevement)}
-        label={value.datePremierPrelevement
-          ? dayjs(value.datePremierPrelevement).format("DD/MM/YYYY")
-          : "Choisir une date"}
         isVisible={visiblePicker === "anchor"}
         onOpen={() => setVisiblePicker("anchor")}
         onConfirm={(date: Date) => {
@@ -427,9 +423,7 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
               <View key={idx} style={styles.echeRow}>
                 <UniversalDatePicker
                   date={toDate(entry.date)}
-                  label={dayjs(entry.date).isValid()
-                    ? dayjs(entry.date).format("DD/MM/YYYY")
-                    : "Choisir une date"}
+                  
                   isVisible={visiblePicker === idx}
                   onOpen={() => setVisiblePicker(idx)}
                   onConfirm={(date: Date) => {
@@ -524,7 +518,6 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
 
       <View style={styles.dateFinRow}>
         <View style={styles.dateFinLabelWrapper}>
-          <CalendarDays size={14} color="#888" />
           <Text style={common.inputLabel}>Date de fin</Text>
         </View>
         <TouchableOpacity
@@ -552,9 +545,6 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
       {showDateFin && (
         <UniversalDatePicker
           date={toDate(value.dateFin)}
-          label={value.dateFin
-            ? dayjs(value.dateFin).format("DD/MM/YYYY")
-            : "Choisir une date de fin"}
           isVisible={visiblePicker === "dateFin"}
           onOpen={() => setVisiblePicker("dateFin")}
           onConfirm={(date: Date) => {
