@@ -11,11 +11,13 @@ import { useAuth } from "../hooks/useAuth";
 import * as DB from "../services/supabase/db";
 import dayjs from "dayjs";
 import { IChargesFixesConfigContext } from "./types/ChargesFixesConfigContext.type";
-import { shouldAddChargeToday, getMontantForToday } from "../utils/recurrence";
+import { getAllScheduledDates, getMontantForToday } from "../utils/recurrence";
 
 export const ChargesFixesConfigContext = createContext<
   IChargesFixesConfigContext | undefined
 >(undefined);
+
+const BACKFILL_DAYS = 365;
 
 export const ChargesFixesConfigProvider: React.FC<{
   children: React.ReactNode;
@@ -65,67 +67,95 @@ export const ChargesFixesConfigProvider: React.FC<{
       "fixe",
     );
 
-    const today = dayjs();
-    const currentMoisAnnee = today.format("YYYY-MM");
+    const today = dayjs().startOf("day");
+    const backfillFrom = today.subtract(BACKFILL_DAYS, "day");
     const beneficiaryUids = isSoloMode
       ? [user.id]
       : householdUsers.map((u) => u.id);
 
-    const existingThisMonth = new Set(
-    currentChargesInDB
-      .filter((c) => c.moisAnnee === currentMoisAnnee)
-      .map((c) => c.description)
-  );
-
-  for (const config of freshConfigs) {
-    const chargeKey = `${config.description}-${today.format("YYYY-MM-DD")}`;
-    if (processingCharges.current.has(chargeKey)) continue;
-    if (!shouldAddChargeToday(config, existingThisMonth, today)) continue;
-
-    processingCharges.current.add(chargeKey);
-    try {
-      const montant = getMontantForToday(config, today);
-      const nouvelleCharge: Omit<ICharge, "id"> = {
-        description: config.description,
-        montantTotal: montant,
-        payeur: config.payeur,
-        beneficiaires: beneficiaryUids,
-        dateStatistiques: today.toISOString(),
-        moisAnnee: currentMoisAnnee,
-        categorie: config.categorie,
-        type: "fixe",
-        scope: beneficiaryUids.length > 1 ? "partage" : "solo",
-        householdId: activeHouseholdId,
-      };
-      await DB.addCharge(activeHouseholdId, nouvelleCharge);
-      existingThisMonth.add(config.description);
-    } catch (error) {
-      console.error("Erreur auto-add charge:", error);
-      processingCharges.current.delete(chargeKey);
-    }
-  }
-}, [activeHouseholdId, isSoloMode, householdUsers, user, isLoading]);
-
-const updateChargeFixe = useCallback(
-  async (chargeId: string, updates: Partial<IChargeFixeTemplate>) => {
-    if (!activeHouseholdId) return;
-    
-    await DB.updateChargeFixeConfig(activeHouseholdId, chargeId, updates);
-    
-    setChargesFixesConfigs((prev) =>
-      prev.map((c) =>
-        c.id === chargeId ? { ...c, ...updates } : c
-      )
+    const existingKeys = new Set<string>(
+      currentChargesInDB.map((c) => {
+        const dateStr = c.dateStatistiques
+          ? dayjs(c.dateStatistiques).format("YYYY-MM-DD")
+          : "";
+        return `${c.description}:${dateStr}`;
+      }),
     );
-  },
-  [activeHouseholdId]
-);
+
+    for (const config of freshConfigs) {
+      let from: dayjs.Dayjs;
+
+      if (config.periodiciteType === "echeancier") {
+        from = backfillFrom;
+      } else if (config.periodiciteType === "jour_nomme") {
+        from = backfillFrom.startOf("month");
+      } else {
+        if (!config.datePremierPrelevement) continue;
+        const anchor = dayjs(config.datePremierPrelevement).startOf("day");
+        if (anchor.isAfter(today, "day")) continue;
+        from = anchor.isAfter(backfillFrom, "day") ? anchor : backfillFrom;
+      }
+
+      const scheduledDates = getAllScheduledDates(config, from, today);
+
+      for (const date of scheduledDates) {
+        const dateStr = date.format("YYYY-MM-DD");
+        const dedupeKey = `${config.description}:${dateStr}`;
+        const processingKey = `${config.id ?? config.description}-${dateStr}`;
+
+        if (existingKeys.has(dedupeKey)) continue;
+        if (processingCharges.current.has(processingKey)) continue;
+
+        existingKeys.add(dedupeKey);
+        processingCharges.current.add(processingKey);
+
+        try {
+          const montant = getMontantForToday(config, date);
+          const moisAnnee = date.format("YYYY-MM");
+
+          const nouvelleCharge: Omit<ICharge, "id"> = {
+            description: config.description,
+            montantTotal: montant,
+            payeur: config.payeur,
+            beneficiaires: beneficiaryUids,
+            dateStatistiques: date.toISOString(),
+            moisAnnee,
+            categorie: config.categorie,
+            type: "fixe",
+            scope: beneficiaryUids.length > 1 ? "partage" : "solo",
+            householdId: activeHouseholdId,
+          };
+
+          await DB.addCharge(activeHouseholdId, nouvelleCharge);
+        } catch (error) {
+          console.error("Erreur auto-add charge:", error);
+          existingKeys.delete(dedupeKey);
+          processingCharges.current.delete(processingKey);
+        }
+      }
+    }
+  }, [activeHouseholdId, isSoloMode, householdUsers, user, isLoading]);
+
+  const updateChargeFixe = useCallback(
+    async (chargeId: string, updates: Partial<IChargeFixeTemplate>) => {
+      if (!activeHouseholdId) return;
+
+      await DB.updateChargeFixeConfig(activeHouseholdId, chargeId, updates);
+
+      setChargesFixesConfigs((prev) =>
+        prev.map((c) =>
+          c.id === chargeId ? { ...c, ...updates } : c
+        )
+      );
+    },
+    [activeHouseholdId]
+  );
 
   const addChargeFixeConfig = useCallback(
     async (charge: Omit<IChargeFixeTemplate, "id" | "householdId">) => {
       if (!activeHouseholdId) return;
       await DB.addChargeFixeConfig(activeHouseholdId, charge);
-      loadConfigs();
+      await loadConfigs();
       await handleAutoAddFixedCharges();
     },
     [activeHouseholdId, loadConfigs, handleAutoAddFixedCharges],

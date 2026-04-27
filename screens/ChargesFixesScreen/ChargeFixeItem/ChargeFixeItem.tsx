@@ -28,6 +28,10 @@ import {
 import { getPeriodiciteDetailLabel } from "utils/recurrence";
 import { ChargeFixeItemProps } from "./ChargeFixeItem.type";
 
+/** Montant total d'un échéancier (somme de toutes les échéances) */
+function getEcheancierTotal(charge: IChargeFixeTemplate): number {
+  return (charge.echeancier ?? []).reduce((sum, e) => sum + e.montant, 0);
+}
 
 const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   charge,
@@ -42,6 +46,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   }
 
   const isSoloMode = user.id === user.activeHouseholdId;
+  const isEcheancier = charge.periodiciteType === "echeancier";
 
   const [isEditModalVisible,   setIsEditModalVisible]   = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -71,71 +76,96 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   }, [charge]);
 
   const handleSaveAll = useCallback(async () => {
-  const isEcheancier = editPeriodicite.periodiciteType === "echeancier";
+    const currentIsEcheancier = editPeriodicite.periodiciteType === "echeancier";
 
-  let newAmount = 0;
-  if (!isEcheancier) {
-    newAmount = parseFloat(editAmount.replace(",", "."));
-    if (isNaN(newAmount) || newAmount < 0) {
-      toast.error("Erreur", "Le montant doit être un nombre positif.");
+    let newAmount = 0;
+    if (!currentIsEcheancier) {
+      newAmount = parseFloat(editAmount.replace(",", "."));
+      if (isNaN(newAmount) || newAmount < 0) {
+        toast.error("Erreur", "Le montant doit être un nombre positif.");
+        return;
+      }
+    }
+
+    const periodiciteError = validatePeriodicite(editPeriodicite);
+    if (periodiciteError) {
+      toast.error("Erreur", periodiciteError);
       return;
     }
-  }
 
-  const periodiciteError = validatePeriodicite(editPeriodicite);
-  if (periodiciteError) {
-    toast.error("Erreur", periodiciteError);
-    return;
-  }
+    setIsSaving(true);
+    try {
+      const updates: Partial<IChargeFixeTemplate> = {};
 
-  setIsSaving(true);
-  try {
-    const updates: Partial<IChargeFixeTemplate> = {};
+      if (currentIsEcheancier) {
+        if (charge.montantTotal !== 0) updates.montantTotal = 0;
+      } else if (newAmount !== charge.montantTotal) {
+        updates.montantTotal = newAmount;
+      }
 
+      if (editCategorieId !== charge.categorie) {
+        updates.categorie = editCategorieId;
+      }
+
+      if (!isSoloMode && editPayeurId !== charge.payeur) {
+        updates.payeur = editPayeurId;
+      }
+
+      const originalPeriodicite = extractPeriodiciteValue(charge);
+      if (JSON.stringify(editPeriodicite) !== JSON.stringify(originalPeriodicite)) {
+        updates.periodiciteType = editPeriodicite.periodiciteType;
+        updates.periodiciteIntervalle = editPeriodicite.periodiciteIntervalle;
+        updates.datePremierPrelevement = editPeriodicite.datePremierPrelevement;
+        updates.dateFin = editPeriodicite.dateFin;
+        updates.echeancier = editPeriodicite.echeancier;
+        updates.jourNommeConfig = editPeriodicite.jourNommeConfig;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await onUpdate(charge.id, updates);
+      }
+
+      setIsEditModalVisible(false);
+    } catch {
+      toast.error("Erreur", "Impossible de mettre à jour la charge");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    editAmount,
+    editPeriodicite,
+    editCategorieId,
+    editPayeurId,
+    charge,
+    onUpdate,
+    isSoloMode,
+    toast,
+  ]);
+
+  // ──────────────────────────────────────────────
+  // Affichage du montant selon le type de périodicité
+  // ──────────────────────────────────────────────
+  const renderMontant = () => {
     if (isEcheancier) {
-      if (charge.montantTotal !== 0) updates.montantTotal = 0;
-    } else if (newAmount !== charge.montantTotal) {
-      updates.montantTotal = newAmount;
+      const total = getEcheancierTotal(charge);
+      const count = charge.echeancier?.length ?? 0;
+      return (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Text style={{ fontSize: 16, fontWeight: "700", color: "#27ae60" }}>
+            {total.toFixed(2)} €
+          </Text>
+          <Text style={{ fontSize: 12, color: "#888" }}>
+            ({count} éch.)
+          </Text>
+        </View>
+      );
     }
-
-    if (editCategorieId !== charge.categorie) {
-      updates.categorie = editCategorieId;
-    }
-
-    if (!isSoloMode && editPayeurId !== charge.payeur) {
-      updates.payeur = editPayeurId;
-    }
-
-    const originalPeriodicite = extractPeriodiciteValue(charge);
-    if (JSON.stringify(editPeriodicite) !== JSON.stringify(originalPeriodicite)) {
-      updates.periodiciteType = editPeriodicite.periodiciteType;
-      updates.periodiciteIntervalle = editPeriodicite.periodiciteIntervalle;
-      updates.datePremierPrelevement = editPeriodicite.datePremierPrelevement;
-      updates.dateFin = editPeriodicite.dateFin;
-      updates.echeancier = editPeriodicite.echeancier;
-      updates.jourNommeConfig = editPeriodicite.jourNommeConfig;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      await onUpdate(charge.id, updates);
-    }
-
-    setIsEditModalVisible(false);
-  } catch {
-    toast.error("Erreur", "Impossible de mettre à jour la charge");
-  } finally {
-    setIsSaving(false);
-  }
-}, [
-  editAmount,
-  editPeriodicite,
-  editCategorieId,
-  editPayeurId,
-  charge,
-  onUpdate,
-  isSoloMode,
-  toast,
-]);
+    return (
+      <Text style={{ fontSize: 16, fontWeight: "700", color: "#27ae60" }}>
+        {charge.montantTotal.toFixed(2)} €
+      </Text>
+    );
+  };
 
   return (
     <View style={styles.chargeItem}>
@@ -161,9 +191,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 10 }}>
-        <Text style={{ fontSize: 16, fontWeight: "700", color: "#27ae60" }}>
-          {charge.montantTotal.toFixed(2)} €
-        </Text>
+        {renderMontant()}
         <Text style={{ color: "#ccc", fontSize: 16 }}>•</Text>
         <Text style={{ fontSize: 13, color: "#888", flex: 1 }} numberOfLines={1}>
           {getPeriodiciteDetailLabel(charge)} · {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}

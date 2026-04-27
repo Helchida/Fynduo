@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { styles } from "styles/screens/ChargesFixesScreen/PeriodiciteFormSection/PeriodiciteFormSection.style";
 import { common } from "styles/common.style";
@@ -12,9 +12,14 @@ import { DayPickerModal } from "components/ui/DayPickerModal/DayPickerModal";
 import { PeriodicityPickerModal } from "./PeriodicityPickerModal/PeriodicityPickerModal";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import {
+  Calendar,
   CalendarDays,
   ChevronsUpDown,
+  ClipboardList,
+  MapPin,
   Plus,
+  Repeat,
+  Sun,
   Trash2,
 } from "lucide-react-native";
 import dayjs from "dayjs";
@@ -46,14 +51,14 @@ export const DEFAULT_PERIODICITE_VALUE: PeriodiciteValue = {
 
 const PERIODICITE_META: Record<
   PeriodiciteType,
-  { label: string; icon: string }
+  { label: string; icon: React.ElementType }
 > = {
-  mensuel: { label: "Mensuel", icon: "🔁" },
-  annuel: { label: "Annuel", icon: "🗓️" },
-  hebdomadaire: { label: "Hebdomadaire", icon: "📆" },
-  journalier: { label: "Journalier", icon: "☀️" },
-  jour_nomme: { label: "Jour nommé", icon: "📌" },
-  echeancier: { label: "Échéancier libre", icon: "📋" },
+  mensuel: { label: "Mensuel", icon: Repeat },
+  annuel: { label: "Annuel", icon: Calendar },
+  hebdomadaire: { label: "Hebdomadaire", icon: CalendarDays },
+  journalier: { label: "Journalier", icon: Sun },
+  jour_nomme: { label: "Jour nommé", icon: MapPin },
+  echeancier: { label: "Échéancier libre", icon: ClipboardList },
 };
 
 const POSITIONS: { value: 1 | 2 | 3 | 4 | -1; label: string }[] = [
@@ -75,18 +80,8 @@ const DAYS_WEEK: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; label: string }[] = [
 ];
 
 const MONTHS_FR = [
-  "Jan",
-  "Fév",
-  "Mar",
-  "Avr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Aoû",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Déc",
+  "Jan", "Fév", "Mar", "Avr", "Mai", "Jun",
+  "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc",
 ];
 
 export function extractPeriodiciteValue(
@@ -154,7 +149,6 @@ const PICKER_STYLES = {
   selectorContainer: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
-
   },
   miniUserText: {
     fontSize: 15,
@@ -233,9 +227,29 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
   const [dayModalTarget, setDayModalTarget] = useState<DayTarget>(null);
   const [isTypeModalVisible, setIsTypeModalVisible] = useState(false);
   const [showDateFin, setShowDateFin] = useState(!!value.dateFin);
-  // "anchor" | "dateFin" | number (index écheancier) | null
   type PickerTarget = "anchor" | "dateFin" | number | null;
   const [visiblePicker, setVisiblePicker] = useState<PickerTarget>(null);
+
+  const [echeancierMontantTexts, setEcheancierMontantTexts] = useState<string[]>(
+    () => (value.echeancier ?? []).map((e) =>
+      e.montant > 0 ? e.montant.toString() : ""
+    ),
+  );
+
+  const echeancierLen = value.echeancier?.length ?? 0;
+  useEffect(() => {
+    setEcheancierMontantTexts((prev) => {
+      if (prev.length === echeancierLen) return prev;
+      if (prev.length < echeancierLen) {
+        const added = (value.echeancier ?? []).slice(prev.length).map((e) =>
+          e.montant > 0 ? e.montant.toString() : ""
+        );
+        return [...prev, ...added];
+      }
+      return prev.slice(0, echeancierLen);
+    });
+
+  }, [echeancierLen]);
 
   const set = useCallback(
     (patch: Partial<PeriodiciteValue>) => onChange({ ...value, ...patch }),
@@ -423,7 +437,6 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
               <View key={idx} style={styles.echeRow}>
                 <UniversalDatePicker
                   date={toDate(entry.date)}
-                  
                   isVisible={visiblePicker === idx}
                   onOpen={() => setVisiblePicker(idx)}
                   onConfirm={(date: Date) => {
@@ -443,20 +456,37 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
                 />
                 <TextInput
                   style={styles.echeInputMontant}
-                  value={entry.montant > 0 ? entry.montant.toString() : ""}
+                  value={echeancierMontantTexts[idx] ?? ""}
                   onChangeText={(t) => {
+                    const cleaned = t.replace(",", ".");
+                    setEcheancierMontantTexts((prev) => {
+                      const next = [...prev];
+                      next[idx] = cleaned;
+                      return next;
+                    });
+                    const parsed = parseFloat(cleaned);
                     const updated = [...(value.echeancier ?? [])];
                     updated[idx] = {
                       ...entry,
-                      montant: parseFloat(t.replace(",", ".")) || 0,
+                      montant: isNaN(parsed) || parsed < 0 ? 0 : parsed,
                     };
                     set({ echeancier: updated });
+                  }}
+                  onBlur={() => {
+                    setEcheancierMontantTexts((prev) => {
+                      const next = [...prev];
+                      const parsed = parseFloat(next[idx] ?? "");
+                      next[idx] = isNaN(parsed) || parsed <= 0
+                        ? ""
+                        : parsed.toString();
+                      return next;
+                    });
                   }}
                   placeholder="0.00 €"
                   placeholderTextColor="#95a5a6"
                   keyboardType="decimal-pad"
                   {...({ inputMode: "decimal" } as any)}
-                  maxLength={9}
+                  maxLength={10}
                   editable={!disabled}
                 />
                 <TouchableOpacity
@@ -479,7 +509,7 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
               onPress={() => {
                 const newEntry: IEcheancierEntry = {
                   date: dayjs().format("YYYY-MM-DD"),
-                  montant: montantDefault,
+                  montant: montantDefault > 0 ? montantDefault : 0,
                 };
                 set({ echeancier: [...(value.echeancier ?? []), newEntry] });
               }}
@@ -496,6 +526,7 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
     }
   };
 
+  const MetaIcon = meta.icon; 
 
   return (
     <View>
@@ -506,7 +537,7 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
         disabled={disabled}
       >
         <View style={styles.typeSelectorLeft}>
-          <Text style={styles.typeSelectorIcon}>{meta.icon}</Text>
+          <MetaIcon size={20} color="#3498db" style={{ marginRight: 8 }} />
           <Text style={styles.typeSelectorValue}>{meta.label}</Text>
         </View>
         <ChevronsUpDown size={14} color="#8E8E93" />
