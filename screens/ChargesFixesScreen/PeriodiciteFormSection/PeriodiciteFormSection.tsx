@@ -51,14 +51,14 @@ export const DEFAULT_PERIODICITE_VALUE: PeriodiciteValue = {
 
 const PERIODICITE_META: Record<
   PeriodiciteType,
-  { label: string; icon: React.ElementType }
+  { label: string; icon: React.ElementType, color: string }
 > = {
-  mensuel: { label: "Mensuel", icon: Repeat },
-  annuel: { label: "Annuel", icon: Calendar },
-  hebdomadaire: { label: "Hebdomadaire", icon: CalendarDays },
-  journalier: { label: "Journalier", icon: Sun },
-  jour_nomme: { label: "Jour nommé", icon: MapPin },
-  echeancier: { label: "Échéancier libre", icon: ClipboardList },
+  mensuel: { label: "Mensuel", icon: Repeat, color: "#2ecc71" },
+  annuel: { label: "Annuel", icon: Calendar, color: "#9b59b6" },
+  hebdomadaire: { label: "Hebdomadaire", icon: CalendarDays, color: "#27a1d1ff" },
+  journalier: { label: "Journalier", icon: Sun, color: "#f39c12" },
+  jour_nomme: { label: "Jour nommé", icon: MapPin, color: "#34495e" },
+  echeancier: { label: "Échéancier libre", icon: ClipboardList, color: "#d14127ff" },
 };
 
 const POSITIONS: { value: 1 | 2 | 3 | 4 | -1; label: string }[] = [
@@ -537,7 +537,7 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
         disabled={disabled}
       >
         <View style={styles.typeSelectorLeft}>
-          <MetaIcon size={20} color="#3498db" style={{ marginRight: 8 }} />
+          <MetaIcon size={20} color={meta.color} style={{ marginRight: 8 }} />
           <Text style={styles.typeSelectorValue}>{meta.label}</Text>
         </View>
         <ChevronsUpDown size={14} color="#8E8E93" />
