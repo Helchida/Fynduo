@@ -18,6 +18,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral500,
     fontSize: 14,
+    minWidth: 0,
   },
   descriptionInput: {
     flex: 6,
@@ -26,7 +27,6 @@ export const styles = StyleSheet.create({
   },
   montantInput: {
     flex: 3,
-    width: 100,
     marginRight: 8,
   },
 

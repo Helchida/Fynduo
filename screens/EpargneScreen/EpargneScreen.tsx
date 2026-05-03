@@ -672,13 +672,12 @@ const EpargneScreen: React.FC = () => {
                   <Text style={styles.miniStatLabel}>Total Revenus</Text>
                   <Text style={styles.miniStatValue}>
                     {formatCurrency(statsMois.revenus)}
-                    {statsMois.retraits > 0 && (
+                  </Text>
+                  {statsMois.retraits > 0 && (
                       <Text style={{ fontSize: 10 }}>
-                        {" "}
                         (+{formatCurrency(statsMois.retraits)} épargne)
                       </Text>
                     )}
-                  </Text>
                 </View>
                 <View style={{ marginLeft: 20 }}>
                   <Text style={styles.miniStatLabel}>Total Dépenses</Text>
