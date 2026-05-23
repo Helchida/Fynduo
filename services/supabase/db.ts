@@ -1572,7 +1572,7 @@ export async function placeEpargne(
   }
 }
 
-export async function getTotalPlaceMois(
+export async function getTotalMouvEpargneMois(
   userId: string,
   moisAnnee: string,
 ): Promise<number> {
@@ -1585,6 +1585,29 @@ export async function getTotalPlaceMois(
     .eq("user_id", userId)
     .filter("date_mouvement", "gte", startOfMonth)
     .filter("date_mouvement", "lte", endOfMonth);
+
+  if (error) {
+    console.error("Erreur getTotalPlaceMois:", error.message);
+    throw error;
+  }
+
+  return (data || []).reduce((acc, curr) => acc + Number(curr.montant), 0);
+}
+
+export async function getTotalPlaceEpargneMois(
+  userId: string,
+  moisAnnee: string,
+): Promise<number> {
+  const startOfMonth = `${moisAnnee}-01`;
+  const endOfMonth = dayjs(startOfMonth).endOf("month").format("YYYY-MM-DD");
+
+  const { data, error } = await supabase
+    .from("epargne_mouvements")
+    .select("montant")
+    .eq("user_id", userId)
+    .filter("date_mouvement", "gte", startOfMonth)
+    .filter("date_mouvement", "lte", endOfMonth)
+    .filter("montant", "gt", 0);
 
   if (error) {
     console.error("Erreur getTotalPlaceMois:", error.message);

@@ -1,9 +1,9 @@
 import { ITirelire } from "@/types";
-import { get } from "http";
 import { useCallback, useState } from "react";
 import {
   getTirelires,
-  getTotalPlaceMois,
+  getTotalMouvEpargneMois,
+  getTotalPlaceEpargneMois,
   getSubTirelires,
 } from "services/supabase/db";
 
@@ -12,7 +12,8 @@ export const useEpargneData = (
   moisAnnee: string,
 ) => {
   const [tirelires, setTirelires] = useState<ITirelire[]>([]);
-  const [dejaPlaceCeMois, setDejaPlaceCeMois] = useState(0);
+  const [totalEpargnesMouvementCeMois, setTotalEpargnesMouvementCeMois] = useState(0);
+  const [totalEpargnesPlaceCeMois, setTotalEpargnesPlaceCeMois] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const getCagnottes = useCallback((idTirelire: string) => {
@@ -24,12 +25,14 @@ export const useEpargneData = (
     if (!userId) return;
     setLoading(true);
     try {
-      const [list, total] = await Promise.all([
+      const [list, total, totalPlace] = await Promise.all([
         getTirelires(userId),
-        getTotalPlaceMois(userId, moisAnnee),
+        getTotalMouvEpargneMois(userId, moisAnnee),
+        getTotalPlaceEpargneMois(userId, moisAnnee),
       ]);
       setTirelires(list);
-      setDejaPlaceCeMois(total);
+      setTotalEpargnesMouvementCeMois(total);
+      setTotalEpargnesPlaceCeMois(totalPlace);
     } catch (err) {
       console.error("Erreur de chargement épargne:", err);
     } finally {
@@ -49,7 +52,8 @@ export const useEpargneData = (
 
   return {
     tirelires,
-    dejaPlaceCeMois,
+    totalEpargnesMouvementCeMois,
+    totalEpargnesPlaceCeMois,
     loading,
     refresh,
     getCagnottes,

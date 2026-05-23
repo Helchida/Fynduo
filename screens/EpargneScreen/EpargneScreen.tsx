@@ -106,7 +106,8 @@ const EpargneScreen: React.FC = () => {
 
   const {
     tirelires,
-    dejaPlaceCeMois,
+    totalEpargnesMouvementCeMois,
+    totalEpargnesPlaceCeMois,
     loading,
     refresh,
     getCagnottes,
@@ -178,9 +179,9 @@ const EpargneScreen: React.FC = () => {
   const epargneDisponible = useMemo(() => {
     if (loading) return 0;
 
-    const dispo = statsMois.solde - dejaPlaceCeMois;
+    const dispo = statsMois.solde - totalEpargnesMouvementCeMois;
     return dispo;
-  }, [statsMois.solde, dejaPlaceCeMois, loading]);
+  }, [statsMois.solde, totalEpargnesMouvementCeMois, loading]);
 
   const totalCumuleTirelires = useMemo(() => {
     return tirelires.reduce((sum, t) => sum + (t.montantActuel || 0), 0);
@@ -688,7 +689,7 @@ const EpargneScreen: React.FC = () => {
                 <View style={{ marginLeft: 20 }}>
                   <Text style={styles.miniStatLabel}>Épargné ce mois</Text>
                   <Text style={styles.miniStatValue}>
-                    {formatCurrency(dejaPlaceCeMois)}
+                    {formatCurrency(totalEpargnesPlaceCeMois)}
                   </Text>
                 </View>
               </View>
