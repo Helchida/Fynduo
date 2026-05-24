@@ -3,6 +3,7 @@ import { ICategoriesContext } from "./types/CategoriesContext.type";
 import { ICategorie, ICategorieRevenu } from "@/types";
 import { useAuth } from "hooks/useAuth";
 import * as DB from "../services/supabase/db";
+import { findSimilarCategories } from "utils/fuzzyMatch";
 
 export const CategoriesContext = createContext<ICategoriesContext>(
   {} as ICategoriesContext,
@@ -78,8 +79,12 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({
   const createCategory = async (label: string, icon: string) => {
     if (!user?.activeHouseholdId) return;
     const newCat = { label, icon, isDefault: false };
-    await DB.addCategory(user.activeHouseholdId, newCat);
-    await fetchCats();
+    try {
+      await DB.addCategory(user.activeHouseholdId, newCat);
+      await fetchCats();
+    } catch (error: any) {
+      throw error;
+    }
   };
 
   const editCategory = async (id: string, data: Partial<ICategorie>) => {
@@ -128,6 +133,16 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({
   const defaultCategory = categories.find((c) => c.isDefault);
   const defaultCategoryRevenu = categoriesRevenus.find((c) => c.isDefault);
 
+  const getSimilarCategories = useCallback(
+    (input: string) => findSimilarCategories(input, categories),
+    [categories],
+  );
+
+  const getSimilarCategoriesRevenus = useCallback(
+    (input: string) => findSimilarCategories(input, categoriesRevenus),
+    [categoriesRevenus],
+  );
+
   return (
     <CategoriesContext.Provider
       value={{
@@ -145,6 +160,8 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({
         createCategoryRevenu,
         editCategoryRevenu,
         removeCategoryRevenu,
+        getSimilarCategories,
+        getSimilarCategoriesRevenus,
       }}
     >
       {children}

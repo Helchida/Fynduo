@@ -809,6 +809,7 @@ export async function getHouseholdCategories(
       label: row.label,
       icon: row.icon,
       isDefault: row.is_default,
+      sourceId: row.source_category_id ?? undefined,
     }));
   } catch (error) {
     console.error("Erreur getHouseholdCategories:", error);
@@ -817,7 +818,68 @@ export async function getHouseholdCategories(
 }
 
 /**
- * Ajoute une catégorie
+ * Cherche ou crée une catégorie dans un foyer solo lors de la propagation.
+ * - Si une catégorie avec le même label (normalisé) existe déjà -> on crée
+ *   uniquement le lien source_category_id sans doublon.
+ * - Sinon -> on crée la catégorie + le lien.
+ */
+async function findOrCreateSoloCategoryForPropagation(
+  soloHouseholdId: string,
+  label: string,
+  icon: string,
+  sharedDocId: string,
+  sharedFullId: string,
+): Promise<string> {
+  const normalizedLabel = label.trim().toLowerCase();
+
+  const { data: existing } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("household_id", soloHouseholdId)
+    .ilike("label", normalizedLabel)  
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from("categories")
+      .update({ source_category_id: sharedFullId })
+      .eq("id", existing.id)
+      .is("source_category_id", null);
+
+    return existing.id;
+  }
+
+  const soloFullId = makeUniqueId(soloHouseholdId, sharedDocId);
+
+  const { error } = await supabase.from("categories").insert({
+    id: soloFullId,
+    household_id: soloHouseholdId,
+    label: label,
+    icon: icon,
+    is_default: false,
+    source_category_id: sharedFullId,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      const { data: fallback } = await supabase
+        .from("categories")
+        .select("id")
+        .eq("household_id", soloHouseholdId)
+        .ilike("label", normalizedLabel)
+        .maybeSingle();
+      return fallback?.id ?? soloFullId;
+    }
+    throw error;
+  }
+
+  return soloFullId;
+}
+
+/**
+ * Ajoute une catégorie dans un foyer.
+ * Si le foyer est partagé, propage vers chaque foyer solo membre
+ * avec un Find or Create (évite les doublons).
  */
 export async function addCategory(
   householdId: string,
@@ -827,18 +889,25 @@ export async function addCategory(
     const newCatId = generateId();
     const uniqueId = makeUniqueId(householdId, newCatId);
 
-    // 1. Créer la catégorie dans le foyer principal
+    // 1. Créer dans le foyer courant (solo ou partagé)
     const { error } = await supabase.from("categories").insert({
       id: uniqueId,
       household_id: householdId,
       label: category.label,
       icon: category.icon,
       is_default: category.isDefault || false,
+      source_category_id: null,
     });
 
-    if (error) throw error;
+    if (error) {
+      // Doublon de label dans ce même foyer
+      if (error.code === "23505") {
+        throw new Error(`Une catégorie "${category.label}" existe déjà.`);
+      }
+      throw error;
+    }
 
-    // 2. Propager aux foyers solo des membres
+    // 2. Propager aux foyers solo des membres (si foyer partagé)
     const { data: householdData } = await supabase
       .from("households")
       .select("members")
@@ -846,22 +915,20 @@ export async function addCategory(
       .single();
 
     if (householdData) {
-      const members = householdData.members || [];
-      const categoriesToInsert = members
-        .filter((uid: string) => uid !== householdId)
-        .map((uid: string) => ({
-          id: makeUniqueId(uid, newCatId),
-          household_id: uid,
-          label: category.label,
-          icon: category.icon,
-          is_default: category.isDefault || false,
-        }));
+      const members: string[] = householdData.members || [];
+      const soloMembers = members.filter((uid) => uid !== householdId);
 
-      if (categoriesToInsert.length > 0) {
-        await supabase
-          .from("categories")
-          .upsert(categoriesToInsert, { onConflict: "id" });
-      }
+      await Promise.all(
+        soloMembers.map((uid) =>
+          findOrCreateSoloCategoryForPropagation(
+            uid,
+            category.label,
+            category.icon,
+            newCatId,
+            uniqueId,
+          ),
+        ),
+      );
     }
 
     return newCatId;
@@ -872,7 +939,9 @@ export async function addCategory(
 }
 
 /**
- * Met à jour une catégorie
+ * Met à jour une catégorie.
+ * Pour les foyers partagés, propage aux solos en résolvant l'ID via
+ * source_category_id (robuste au renommage côté solo).
  */
 export async function updateCategory(
   householdId: string,
@@ -883,11 +952,10 @@ export async function updateCategory(
     const uniqueId = makeUniqueId(householdId, categoryId);
     const supabaseUpdates: any = {};
 
-    if (updateData.label !== undefined)
-      supabaseUpdates.label = updateData.label;
-    if (updateData.icon !== undefined) supabaseUpdates.icon = updateData.icon;
+    if (updateData.label !== undefined) supabaseUpdates.label = updateData.label;
+    if (updateData.icon !== undefined)  supabaseUpdates.icon  = updateData.icon;
 
-    // 1. Mettre à jour dans le foyer principal
+    // 1. Mettre à jour dans le foyer courant
     const { error } = await supabase
       .from("categories")
       .update(supabaseUpdates)
@@ -902,18 +970,33 @@ export async function updateCategory(
       .eq("id", householdId)
       .single();
 
-    if (householdData) {
-      const members = householdData.members || [];
+    if (!householdData) return;
 
-      for (const uid of members) {
-        if (uid !== householdId) {
-          const soloCatId = makeUniqueId(uid, categoryId);
-          await supabase
-            .from("categories")
-            .update(supabaseUpdates)
-            .eq("id", soloCatId);
-        }
+    const members: string[] = householdData.members || [];
+    const soloMembers = members.filter((uid) => uid !== householdId);
+
+    for (const uid of soloMembers) {
+      // Priorité 1 : résolution via source_category_id (lien explicite)
+      const { data: linked } = await supabase
+        .from("categories")
+        .select("id")
+        .eq("household_id", uid)
+        .eq("source_category_id", uniqueId)
+        .maybeSingle();
+
+      if (linked) {
+        await supabase
+          .from("categories")
+          .update(supabaseUpdates)
+          .eq("id", linked.id);
+        continue;
       }
+
+      const soloCatId = makeUniqueId(uid, categoryId);
+      await supabase
+        .from("categories")
+        .update(supabaseUpdates)
+        .eq("id", soloCatId);
     }
   } catch (error) {
     console.error("Erreur updateCategory:", error);
@@ -1241,7 +1324,7 @@ export async function getCategoriesRevenus(
 export async function addCategorieRevenu(
   householdId: string,
   category: Omit<ICategorieRevenu, "id">,
-): Promise<string> {
+) {
   try {
     const newCatId = generateId();
     const uniqueId = makeUniqueId(householdId, newCatId);
@@ -1254,7 +1337,13 @@ export async function addCategorieRevenu(
       is_default: category.isDefault || false,
     });
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === "23505") {
+        throw new Error(`Une catégorie "${category.label}" existe déjà.`);
+      }
+      throw error;
+    }
+
     return newCatId;
   } catch (error) {
     console.error("Erreur addCategorieRevenu:", error);

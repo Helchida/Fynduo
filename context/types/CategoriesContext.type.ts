@@ -15,4 +15,6 @@ export interface ICategoriesContext {
   createCategoryRevenu: (label: string, icon: string) => Promise<void>;
   editCategoryRevenu: (id: string, data: Partial<ICategorieRevenu>) => Promise<void>;
   removeCategoryRevenu: (id: string) => Promise<void>;
+  getSimilarCategories: (input: string) => Array<ICategorie & { score: number }>;
+  getSimilarCategoriesRevenus: (input: string) => Array<ICategorieRevenu & { score: number }>;
 }

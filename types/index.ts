@@ -172,6 +172,7 @@ export interface ICategorie extends FirestoreDocument {
   label: string;
   icon: string;
   isDefault: boolean;
+  sourceId?: string;
 }
 
 export type ToastType = "success" | "error" | "info" | "warning";
