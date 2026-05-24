@@ -175,6 +175,23 @@ export interface ICategorie extends FirestoreDocument {
   sourceId?: string;
 }
 
+export interface PropagationConflict {
+  soloHouseholdId: string;
+  memberDisplayName: string;
+  existingCategory: {
+    id: string; 
+    label: string;
+    icon: string;
+  };
+  score: number;
+}
+
+export interface PropagationResolution {
+  soloHouseholdId: string;
+  action: "link" | "create";
+  existingCategoryId?: string;
+}
+
 export type ToastType = "success" | "error" | "info" | "warning";
 
 export interface Toast {

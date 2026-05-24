@@ -11,10 +11,13 @@ import {
   ICategorieRevenu,
   IRevenu,
   ITirelire,
+  PropagationConflict,
+  PropagationResolution,
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 import { supabase } from "../supabase/config";
 import { DEFAULT_CATEGORIES_REVENUS } from "constants/categories_revenus";
+import { normalizeLabel, similarity, FUZZY_THRESHOLD } from "utils/fuzzyMatch";
 
 // ============================================
 // HELPERS
@@ -33,7 +36,7 @@ const makeUniqueId = (householdId: string, docId: string) => {
  */
 const extractDocId = (uniqueId: string) => {
   const parts = uniqueId.split("_");
-  return parts.slice(1).join("_"); // Au cas où l'ID contient des underscores
+  return parts.slice(1).join("_"); 
 };
 
 /**
@@ -818,6 +821,79 @@ export async function getHouseholdCategories(
 }
 
 /**
+ * Détecte les catégories similaires (fuzzy) dans les foyers solo des membres
+ * AVANT de créer dans le foyer partagé.
+ * - Exact match (normalisé) -> ignoré ici, find or create s'en charge silencieusement
+ * - Fuzzy match (score ≥ 0.5, pas exact) -> remonte comme conflit
+ */
+export async function checkPropagationConflicts(
+  sharedHouseholdId: string,
+  label: string,
+): Promise<PropagationConflict[]> {
+  const { data: householdData } = await supabase
+    .from("households")
+    .select("members")
+    .eq("id", sharedHouseholdId)
+    .single();
+
+  if (!householdData) return [];
+
+  const soloMembers: string[] = (householdData.members || []).filter(
+    (uid: string) => uid !== sharedHouseholdId,
+  );
+
+  if (soloMembers.length === 0) return [];
+
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, display_name")
+    .in("id", soloMembers);
+
+  const userMap = Object.fromEntries(
+    (users || []).map((u) => [u.id, u.display_name]),
+  );
+
+  const conflicts: PropagationConflict[] = [];
+
+  for (const uid of soloMembers) {
+    const { data: soloCategories } = await supabase
+      .from("categories")
+      .select("id, label, icon")
+      .eq("household_id", uid)
+      .eq("is_default", false);
+
+    let bestMatch: { id: string; label: string; icon: string } | null = null;
+    let bestScore = 0;
+
+    for (const cat of soloCategories || []) {
+      const score = similarity(label, cat.label);
+      const isExact = normalizeLabel(cat.label) === normalizeLabel(label);
+
+      if (isExact) {
+        bestMatch = null;
+        break;
+      }
+
+      if (score >= FUZZY_THRESHOLD && !isExact) {
+        bestScore = score;
+        bestMatch = { id: cat.id, label: cat.label, icon: cat.icon };
+      }
+    }
+
+    if (bestMatch) {
+      conflicts.push({
+        soloHouseholdId: uid,
+        memberDisplayName: userMap[uid] ?? uid,
+        existingCategory: bestMatch,
+        score: bestScore,
+      });
+    }
+  }
+
+  return conflicts;
+}
+
+/**
  * Cherche ou crée une catégorie dans un foyer solo lors de la propagation.
  * - Si une catégorie avec le même label (normalisé) existe déjà -> on crée
  *   uniquement le lien source_category_id sans doublon.
@@ -877,9 +953,7 @@ async function findOrCreateSoloCategoryForPropagation(
 }
 
 /**
- * Ajoute une catégorie dans un foyer.
- * Si le foyer est partagé, propage vers chaque foyer solo membre
- * avec un Find or Create (évite les doublons).
+ * Ajoute une catégorie dans un foyer solo.
  */
 export async function addCategory(
   householdId: string,
@@ -889,7 +963,6 @@ export async function addCategory(
     const newCatId = generateId();
     const uniqueId = makeUniqueId(householdId, newCatId);
 
-    // 1. Créer dans le foyer courant (solo ou partagé)
     const { error } = await supabase.from("categories").insert({
       id: uniqueId,
       household_id: householdId,
@@ -900,35 +973,9 @@ export async function addCategory(
     });
 
     if (error) {
-      // Doublon de label dans ce même foyer
-      if (error.code === "23505") {
+      if (error.code === "23505")
         throw new Error(`Une catégorie "${category.label}" existe déjà.`);
-      }
       throw error;
-    }
-
-    // 2. Propager aux foyers solo des membres (si foyer partagé)
-    const { data: householdData } = await supabase
-      .from("households")
-      .select("members")
-      .eq("id", householdId)
-      .single();
-
-    if (householdData) {
-      const members: string[] = householdData.members || [];
-      const soloMembers = members.filter((uid) => uid !== householdId);
-
-      await Promise.all(
-        soloMembers.map((uid) =>
-          findOrCreateSoloCategoryForPropagation(
-            uid,
-            category.label,
-            category.icon,
-            newCatId,
-            uniqueId,
-          ),
-        ),
-      );
     }
 
     return newCatId;
@@ -936,6 +983,71 @@ export async function addCategory(
     console.error("Erreur addCategory:", error);
     throw error;
   }
+}
+
+/**
+ * Crée une catégorie dans le foyer partagé et propage vers les solos
+ * selon les résolutions choisies par l'utilisateur.
+ *
+ * Pour chaque membre solo :
+ *  - Si résolution "link"   -> met à jour source_category_id de la catégorie existante
+ *  - Si résolution "create" -> find or create classique (crée une nouvelle)
+ *  - Si pas de résolution   -> find or create classique (pas de conflit)
+ */
+export async function addCategoryWithResolutions(
+  householdId: string,
+  category: Omit<ICategorie, "id">,
+  resolutions: PropagationResolution[],
+): Promise<string> {
+  const newCatId = generateId();
+  const uniqueId = makeUniqueId(householdId, newCatId);
+
+  const { error } = await supabase.from("categories").insert({
+    id: uniqueId,
+    household_id: householdId,
+    label: category.label,
+    icon: category.icon,
+    is_default: false,
+    source_category_id: null,
+  });
+
+  if (error) {
+    if (error.code === "23505")
+      throw new Error(`Une catégorie "${category.label}" existe déjà.`);
+    throw error;
+  }
+
+  const { data: householdData } = await supabase
+    .from("households")
+    .select("members")
+    .eq("id", householdId)
+    .single();
+
+  const soloMembers: string[] = (householdData?.members || []).filter(
+    (uid: string) => uid !== householdId,
+  );
+
+  for (const uid of soloMembers) {
+    const resolution = resolutions.find((r) => r.soloHouseholdId === uid);
+
+    if (resolution?.action === "link" && resolution.existingCategoryId) {
+      await supabase
+        .from("categories")
+        .update({ source_category_id: uniqueId })
+        .eq("id", resolution.existingCategoryId);
+      continue;
+    }
+
+    await findOrCreateSoloCategoryForPropagation(
+      uid,
+      category.label,
+      category.icon,
+      newCatId,
+      uniqueId,
+    );
+  }
+
+  return newCatId;
 }
 
 /**

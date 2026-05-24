@@ -4,6 +4,10 @@ import { ICategorie, ICategorieRevenu } from "@/types";
 import { useAuth } from "hooks/useAuth";
 import * as DB from "../services/supabase/db";
 import { findSimilarCategories } from "utils/fuzzyMatch";
+import {
+  PropagationConflict,
+  PropagationResolution,
+} from "@/types";
 
 export const CategoriesContext = createContext<ICategoriesContext>(
   {} as ICategoriesContext,
@@ -76,16 +80,37 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({
     await fetchCats();
   };
 
-  const createCategory = async (label: string, icon: string) => {
-    if (!user?.activeHouseholdId) return;
-    const newCat = { label, icon, isDefault: false };
-    try {
-      await DB.addCategory(user.activeHouseholdId, newCat);
-      await fetchCats();
-    } catch (error: any) {
-      throw error;
-    }
-  };
+ const createCategory = async (label: string, icon: string) => {
+  if (!user?.activeHouseholdId) return;
+  await DB.addCategory(user.activeHouseholdId, { label, icon, isDefault: false });
+  await fetchCats();
+};
+
+const checkCategoryConflicts = async (
+  label: string,
+): Promise<PropagationConflict[]> => {
+  if (!user?.activeHouseholdId) return [];
+  try {
+    return await DB.checkPropagationConflicts(user.activeHouseholdId, label);
+  } catch (error) {
+    console.error("Erreur checkCategoryConflicts:", error);
+    return [];
+  }
+};
+
+const createCategoryWithResolutions = async (
+  label: string,
+  icon: string,
+  resolutions: PropagationResolution[],
+) => {
+  if (!user?.activeHouseholdId) return;
+  await DB.addCategoryWithResolutions(
+    user.activeHouseholdId,
+    { label, icon, isDefault: false },
+    resolutions,
+  );
+  await fetchCats();
+};
 
   const editCategory = async (id: string, data: Partial<ICategorie>) => {
     if (!user?.activeHouseholdId) return;
@@ -162,6 +187,8 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({
         removeCategoryRevenu,
         getSimilarCategories,
         getSimilarCategoriesRevenus,
+        checkCategoryConflicts,
+        createCategoryWithResolutions,
       }}
     >
       {children}

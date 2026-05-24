@@ -1,4 +1,4 @@
-import { ICategorie, ICategorieRevenu } from "@/types";
+import { ICategorie, ICategorieRevenu, PropagationConflict, PropagationResolution } from "@/types";
 
 export interface ICategoriesContext {
   categories: ICategorie[];
@@ -17,4 +17,10 @@ export interface ICategoriesContext {
   removeCategoryRevenu: (id: string) => Promise<void>;
   getSimilarCategories: (input: string) => Array<ICategorie & { score: number }>;
   getSimilarCategoriesRevenus: (input: string) => Array<ICategorieRevenu & { score: number }>;
+  checkCategoryConflicts: (label: string) => Promise<PropagationConflict[]>;
+  createCategoryWithResolutions: (
+    label: string,
+    icon: string,
+    resolutions: PropagationResolution[],
+  ) => Promise<void>;
 }

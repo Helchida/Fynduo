@@ -11,8 +11,16 @@ import {
 import { styles } from "../../../../styles/screens/ChargeDetailScreen/EditChargeForm/CategoryPickerModal/CategoryPickerModal.style";
 import { common } from "../../../../styles/common.style";
 import { CategoryPickerModalProps } from "./CategoryPickerModal.type";
-import { CategoryType, ICategorie } from "@/types";
+import {
+  CategoryType,
+  ICategorie,
+  PropagationConflict,
+  PropagationResolution,
+} from "@/types";
 import { useCategories } from "hooks/useCategories";
+import { Link2, PlusCircle } from "lucide-react-native";
+
+type ModalStep = "form" | "resolving";
 
 export const CategoryPickerModal = ({
   isVisible,
@@ -21,8 +29,14 @@ export const CategoryPickerModal = ({
   onSelect,
   categories,
 }: CategoryPickerModalProps) => {
-  const { createCategory, removeCategory, editCategory, getSimilarCategories } =
-    useCategories();
+  const {
+    createCategory,
+    removeCategory,
+    editCategory,
+    getSimilarCategories,
+    checkCategoryConflicts,
+    createCategoryWithResolutions,
+  } = useCategories();
 
   const [isAdding, setIsAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
@@ -30,8 +44,16 @@ export const CategoryPickerModal = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [suggestion, setSuggestion] = useState<(ICategorie & { score: number }) | null>(null);
+  const [suggestion, setSuggestion] = useState<
+    (ICategorie & { score: number }) | null
+  >(null);
   const suggestionAnim = useRef(new Animated.Value(0)).current;
+
+  const [step, setStep] = useState<ModalStep>("form");
+  const [conflicts, setConflicts] = useState<PropagationConflict[]>([]);
+  const [resolutions, setResolutions] = useState<
+    Record<string, "link" | "create">
+  >({});
 
   const emojiInputRef = useRef<TextInput>(null);
 
@@ -78,9 +100,41 @@ export const CategoryPickerModal = ({
           label: newLabel.trim(),
           icon: newIcon,
         });
-      } else {
-        await createCategory(newLabel.trim(), newIcon);
+        resetForm();
+        return;
       }
+
+      const found = await checkCategoryConflicts(newLabel.trim());
+
+      if (found.length > 0) {
+        setConflicts(found);
+        const defaults: Record<string, "link" | "create"> = {};
+        found.forEach((c) => {
+          defaults[c.soloHouseholdId] = "link";
+        });
+        setResolutions(defaults);
+        setStep("resolving");
+      } else {
+        await createCategoryWithResolutions(newLabel.trim(), newIcon, []);
+        resetForm();
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Une erreur est survenue.");
+    }
+  };
+
+  const handleConfirmResolutions = async () => {
+    setError(null);
+    try {
+      const resolved: PropagationResolution[] = conflicts.map((c) => ({
+        soloHouseholdId: c.soloHouseholdId,
+        action: resolutions[c.soloHouseholdId] ?? "create",
+        existingCategoryId:
+          resolutions[c.soloHouseholdId] === "link"
+            ? c.existingCategory.id
+            : undefined,
+      }));
+      await createCategoryWithResolutions(newLabel.trim(), newIcon, resolved);
       resetForm();
     } catch (err: any) {
       setError(err?.message ?? "Une erreur est survenue.");
@@ -94,6 +148,9 @@ export const CategoryPickerModal = ({
     setIsAdding(false);
     setError(null);
     setSuggestion(null);
+    setStep("form");
+    setConflicts([]);
+    setResolutions({});
   };
 
   const handleEmojiInput = (text: string) => {
@@ -129,7 +186,7 @@ export const CategoryPickerModal = ({
             <TouchableOpacity
               onPress={() => {
                 if (isAdding) resetForm();
-                setIsAdding(!isAdding);
+                else setIsAdding(true);
               }}
             >
               <Text style={{ color: "#3498DB", fontWeight: "600" }}>
@@ -138,11 +195,20 @@ export const CategoryPickerModal = ({
             </TouchableOpacity>
           </View>
 
-          {isAdding ? (
-            <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "#eee" }}>
+          {isAdding && step === "form" && (
+            <View
+              style={{
+                padding: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: "#eee",
+              }}
+            >
               <View style={{ flexDirection: "row", gap: 10, marginBottom: 8 }}>
                 <TouchableOpacity
-                  style={[styles.modalItem, { flex: 0.25, justifyContent: "center" }]}
+                  style={[
+                    styles.modalItem,
+                    { flex: 0.25, justifyContent: "center" },
+                  ]}
                   onPress={() => emojiInputRef.current?.focus()}
                 >
                   <Text style={{ fontSize: 30 }}>{newIcon}</Text>
@@ -183,11 +249,25 @@ export const CategoryPickerModal = ({
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 12, color: "#5D6D7E", marginBottom: 2 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#5D6D7E",
+                        marginBottom: 2,
+                      }}
+                    >
                       Catégorie similaire existante :
                     </Text>
-                    <Text style={{ fontSize: 14, fontWeight: "600", color: "#1A5276" }}>
-                      {suggestion.icon}  {suggestion.label}
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "600",
+                        color: "#1A5276",
+                      }}
+                    >
+                      {suggestion.icon}
+                      {"  "}
+                      {suggestion.label}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -200,7 +280,9 @@ export const CategoryPickerModal = ({
                       marginLeft: 8,
                     }}
                   >
-                    <Text style={{ color: "#fff", fontWeight: "600", fontSize: 12 }}>
+                    <Text
+                      style={{ color: "#fff", fontWeight: "600", fontSize: 12 }}
+                    >
                       Utiliser
                     </Text>
                   </TouchableOpacity>
@@ -208,7 +290,9 @@ export const CategoryPickerModal = ({
               )}
 
               {error && (
-                <Text style={{ color: "#E74C3C", fontSize: 12, marginBottom: 8 }}>
+                <Text
+                  style={{ color: "#E74C3C", fontSize: 12, marginBottom: 8 }}
+                >
                   {error}
                 </Text>
               )}
@@ -225,7 +309,13 @@ export const CategoryPickerModal = ({
                       resetForm();
                     }}
                   >
-                    <Text style={{ color: "#fff", textAlign: "center", fontWeight: "600" }}>
+                    <Text
+                      style={{
+                        color: "#fff",
+                        textAlign: "center",
+                        fontWeight: "600",
+                      }}
+                    >
                       Supprimer
                     </Text>
                   </TouchableOpacity>
@@ -237,13 +327,191 @@ export const CategoryPickerModal = ({
                   ]}
                   onPress={handleSave}
                 >
-                  <Text style={{ color: "#fff", textAlign: "center", fontWeight: "600" }}>
+                  <Text
+                    style={{
+                      color: "#fff",
+                      textAlign: "center",
+                      fontWeight: "600",
+                    }}
+                  >
                     {editingId ? "Mettre à jour" : "Enregistrer"}
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
-          ) : (
+          )}
+
+          {isAdding && step === "resolving" && (
+            <View style={{ padding: 16 }}>
+              <Text
+                style={{ fontWeight: "700", fontSize: 15, marginBottom: 4 }}
+              >
+                Catégories similaires détectées
+              </Text>
+              <Text
+                style={{ color: "#5D6D7E", fontSize: 13, marginBottom: 16 }}
+              >
+                Des catégories proches existent chez certains membres. Que
+                souhaitez-vous faire ?
+              </Text>
+
+              <ScrollView style={{ maxHeight: 380 }}>
+                {conflicts.map((conflict) => (
+                  <View
+                    key={conflict.soloHouseholdId}
+                    style={{
+                      backgroundColor: "#F8F9FA",
+                      borderRadius: 10,
+                      padding: 12,
+                      marginBottom: 12,
+                      borderLeftWidth: 3,
+                      borderLeftColor: "#3498DB",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontWeight: "600",
+                        fontSize: 14,
+                        marginBottom: 10,
+                      }}
+                    >
+                      {conflict.memberDisplayName}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        padding: 10,
+                        borderRadius: 8,
+                        marginBottom: 6,
+                        backgroundColor:
+                          resolutions[conflict.soloHouseholdId] === "link"
+                            ? "#D6EAF8"
+                            : "#fff",
+                        borderWidth: 1,
+                        borderColor:
+                          resolutions[conflict.soloHouseholdId] === "link"
+                            ? "#3498DB"
+                            : "#DDD",
+                      }}
+                      onPress={() =>
+                        setResolutions((prev) => ({
+                          ...prev,
+                          [conflict.soloHouseholdId]: "link",
+                        }))
+                      }
+                    >
+                      <Link2
+                        size={20}
+                        color={
+                          resolutions[conflict.soloHouseholdId] === "link"
+                            ? "#3498DB"
+                            : "#AAB7B8"
+                        }
+                        style={{ marginRight: 8 }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontWeight: "600", fontSize: 13 }}>
+                          Lier « {conflict.existingCategory.label} »
+                        </Text>
+                        <Text style={{ color: "#5D6D7E", fontSize: 12 }}>
+                          Utiliser la catégorie existante comme équivalent
+                        </Text>
+                      </View>
+                      {resolutions[conflict.soloHouseholdId] === "link" && (
+                        <Text style={{ color: "#3498DB", fontWeight: "700" }}>
+                          ✓
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        padding: 10,
+                        borderRadius: 8,
+                        backgroundColor:
+                          resolutions[conflict.soloHouseholdId] === "create"
+                            ? "#FDEBD0"
+                            : "#fff",
+                        borderWidth: 1,
+                        borderColor:
+                          resolutions[conflict.soloHouseholdId] === "create"
+                            ? "#E67E22"
+                            : "#DDD",
+                      }}
+                      onPress={() =>
+                        setResolutions((prev) => ({
+                          ...prev,
+                          [conflict.soloHouseholdId]: "create",
+                        }))
+                      }
+                    >
+                      <PlusCircle
+                        size={20}
+                        color={"#E67E22"}
+                        style={{ marginRight: 8 }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontWeight: "600", fontSize: 13 }}>
+                          Créer « {newLabel.trim()} »
+                        </Text>
+                        <Text style={{ color: "#5D6D7E", fontSize: 12 }}>
+                          Ajouter une nouvelle catégorie dans son foyer
+                        </Text>
+                      </View>
+                      {resolutions[conflict.soloHouseholdId] === "create" && (
+                        <Text style={{ color: "#E67E22", fontWeight: "700" }}>
+                          ✓
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+
+              {error && (
+                <Text
+                  style={{ color: "#E74C3C", fontSize: 12, marginBottom: 8 }}
+                >
+                  {error}
+                </Text>
+              )}
+
+              <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
+                <TouchableOpacity
+                  style={[
+                    styles.modalCloseButton,
+                    { flex: 1, marginBottom: 0 },
+                  ]}
+                  onPress={() => setStep("form")}
+                >
+                  <Text style={styles.modalCloseButtonText}>Retour</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalCloseButton,
+                    { flex: 1, backgroundColor: "#2ECC71", marginBottom: 0 },
+                  ]}
+                  onPress={handleConfirmResolutions}
+                >
+                  <Text
+                    style={{
+                      color: "#fff",
+                      textAlign: "center",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Confirmer
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {!isAdding && (
             <ScrollView>
               {categories.map((cat) => (
                 <TouchableOpacity
@@ -266,7 +534,9 @@ export const CategoryPickerModal = ({
                     <Text style={styles.modalItemText}>{cat.label}</Text>
                   </View>
                   {selectedId === cat.id && (
-                    <Text style={{ color: "#3498DB", fontWeight: "bold" }}>✓</Text>
+                    <Text style={{ color: "#3498DB", fontWeight: "bold" }}>
+                      ✓
+                    </Text>
                   )}
                 </TouchableOpacity>
               ))}

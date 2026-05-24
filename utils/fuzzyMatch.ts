@@ -41,7 +41,7 @@ export function similarity(a: string, b: string): number {
   return 1 - dist / maxLen;
 }
 
-export const FUZZY_THRESHOLD = 0.50;
+export const FUZZY_THRESHOLD = 0.65;
 
 
 export function findSimilarCategories<T extends { label: string; isDefault?: boolean }>(
