@@ -19,6 +19,7 @@ import {
 } from "@/types";
 import { useCategories } from "hooks/useCategories";
 import { Link2, PlusCircle } from "lucide-react-native";
+import EmojiPicker from "rn-emoji-keyboard";
 
 type ModalStep = "form" | "resolving";
 
@@ -54,8 +55,7 @@ export const CategoryPickerModal = ({
   const [resolutions, setResolutions] = useState<
     Record<string, "link" | "create">
   >({});
-
-  const emojiInputRef = useRef<TextInput>(null);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
 
   useEffect(() => {
     if (!newLabel.trim() || editingId) {
@@ -153,26 +153,13 @@ export const CategoryPickerModal = ({
     setResolutions({});
   };
 
-  const handleEmojiInput = (text: string) => {
-    if (text.length > 0) {
-      const emojis = Array.from(text);
-      const lastEmoji = emojis[emojis.length - 1];
-      if (lastEmoji) {
-        setNewIcon(lastEmoji);
-        setTimeout(() => emojiInputRef.current?.blur(), 100);
-      }
-    }
-  };
-
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <View style={common.modalOverlay}>
         <View style={common.modalContent}>
           <TextInput
-            ref={emojiInputRef}
             style={{ position: "absolute", opacity: 0, height: 0, width: 0 }}
             value=""
-            onChangeText={handleEmojiInput}
             keyboardType="default"
             autoCorrect={false}
             autoCapitalize="none"
@@ -209,7 +196,7 @@ export const CategoryPickerModal = ({
                     styles.modalItem,
                     { flex: 0.25, justifyContent: "center" },
                   ]}
-                  onPress={() => emojiInputRef.current?.focus()}
+                  onPress={() => setIsEmojiOpen(true)}
                 >
                   <Text style={{ fontSize: 30 }}>{newIcon}</Text>
                 </TouchableOpacity>
@@ -548,6 +535,14 @@ export const CategoryPickerModal = ({
           </TouchableOpacity>
         </View>
       </View>
+      <EmojiPicker
+        open={isEmojiOpen}
+        onClose={() => setIsEmojiOpen(false)}
+        onEmojiSelected={(emoji) => {
+          setNewIcon(emoji.emoji);
+          setIsEmojiOpen(false);
+        }}
+      />
     </Modal>
   );
 };
