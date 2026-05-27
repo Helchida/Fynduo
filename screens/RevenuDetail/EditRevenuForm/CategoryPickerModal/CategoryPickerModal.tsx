@@ -7,11 +7,16 @@ import {
   ScrollView,
   TextInput,
   Animated,
+  FlatList,
+  Platform,
 } from "react-native";
 import { styles } from "./CategoryPickerModal.style";
 import { CategoryPickerModalProps } from "./CategoryPickerModal.type";
 import { CategoryType, ICategorieRevenu } from "@/types";
 import { useCategories } from "hooks/useCategories";
+import EmojiPickerModal, {
+  emojiData,
+} from "@hiraku-ai/react-native-emoji-picker";
 
 export const CategoryPickerModal = ({
   isVisible,
@@ -37,6 +42,8 @@ export const CategoryPickerModal = ({
   const suggestionAnim = useRef(new Animated.Value(0)).current;
 
   const emojiInputRef = useRef<TextInput>(null);
+
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
 
   useEffect(() => {
     if (!newLabel.trim() || editingId) {
@@ -110,6 +117,11 @@ export const CategoryPickerModal = ({
     }
   };
 
+  const handleEmojiPicker = (emoji: any) => {
+    setNewIcon(emoji);
+    setEmojiPickerVisible(false);
+  };
+
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
@@ -148,7 +160,7 @@ export const CategoryPickerModal = ({
               <View style={{ flexDirection: "row", gap: 10, marginBottom: 8 }}>
                 <TouchableOpacity
                   style={[styles.modalItem, { flex: 0.25, justifyContent: "center" }]}
-                  onPress={() => emojiInputRef.current?.focus()}
+                  onPress={() => setEmojiPickerVisible(true)}
                 >
                   <Text style={{ fontSize: 30 }}>{newIcon}</Text>
                 </TouchableOpacity>
@@ -281,6 +293,47 @@ export const CategoryPickerModal = ({
           </TouchableOpacity>
         </View>
       </View>
+      <EmojiPickerModal
+        visible={emojiPickerVisible}
+        onClose={() => setEmojiPickerVisible(false)}
+        onEmojiSelect={handleEmojiPicker}
+        emojis={emojiData}
+        categoryNameMap={{
+          "Recently Used": "Récents",
+          "Smileys & Emotion": "Smileys & Émotions",
+          "People & Body": "Personnes & Corps",
+          "Animals & Nature": "Animaux & Nature",
+          "Food & Drink": "Nourriture & Boissons",
+          "Travel & Places": "Voyages & Lieux",
+          Activities: "Activités",
+          Objects: "Objets",
+          Symbols: "Symboles",
+          Flags: "Drapeaux",
+        }}
+        removeClippedSubviews={Platform.OS === "ios"}
+        searchPlaceholder={"Rechercher un Emoji"}
+        modalTitle={"Choisir un Emoji"}
+        FlatListComponent={(flatListProps: any) => (
+          <FlatList
+            {...flatListProps}
+            ListEmptyComponent={
+              !flatListProps.data || flatListProps.data.length === 0 ? (
+                <View style={{ padding: 30, alignItems: "center" }}>
+                  <Text
+                    style={{
+                      color: "#7F8C8D",
+                      fontSize: 15,
+                      fontWeight: "500",
+                    }}
+                  >
+                    Aucun Emoji trouvé
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
+        )}
+      />
     </Modal>
   );
 };
