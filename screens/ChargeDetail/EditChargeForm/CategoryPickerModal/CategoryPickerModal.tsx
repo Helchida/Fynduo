@@ -7,6 +7,8 @@ import {
   ScrollView,
   TextInput,
   Animated,
+  Platform,
+  FlatList,
 } from "react-native";
 import { styles } from "../../../../styles/screens/ChargeDetailScreen/EditChargeForm/CategoryPickerModal/CategoryPickerModal.style";
 import { common } from "../../../../styles/common.style";
@@ -19,7 +21,9 @@ import {
 } from "@/types";
 import { useCategories } from "hooks/useCategories";
 import { Link2, PlusCircle } from "lucide-react-native";
-import EmojiPicker from "rn-emoji-keyboard";
+import EmojiPickerModal, {
+  emojiData,
+} from "@hiraku-ai/react-native-emoji-picker";
 
 type ModalStep = "form" | "resolving";
 
@@ -31,7 +35,6 @@ export const CategoryPickerModal = ({
   categories,
 }: CategoryPickerModalProps) => {
   const {
-    createCategory,
     removeCategory,
     editCategory,
     getSimilarCategories,
@@ -55,7 +58,10 @@ export const CategoryPickerModal = ({
   const [resolutions, setResolutions] = useState<
     Record<string, "link" | "create">
   >({});
-  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+
+  const emojiInputRef = useRef<TextInput>(null);
+
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
 
   useEffect(() => {
     if (!newLabel.trim() || editingId) {
@@ -153,13 +159,31 @@ export const CategoryPickerModal = ({
     setResolutions({});
   };
 
+  const handleEmojiInput = (text: string) => {
+    if (text.length > 0) {
+      const emojis = Array.from(text);
+      const lastEmoji = emojis[emojis.length - 1];
+      if (lastEmoji) {
+        setNewIcon(lastEmoji);
+        setTimeout(() => emojiInputRef.current?.blur(), 100);
+      }
+    }
+  };
+
+  const handleEmojiPicker = (emoji: any) => {
+    setNewIcon(emoji);
+    setEmojiPickerVisible(false);
+  };
+
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <View style={common.modalOverlay}>
         <View style={common.modalContent}>
           <TextInput
+            ref={emojiInputRef}
             style={{ position: "absolute", opacity: 0, height: 0, width: 0 }}
             value=""
+            onChangeText={handleEmojiInput}
             keyboardType="default"
             autoCorrect={false}
             autoCapitalize="none"
@@ -196,7 +220,7 @@ export const CategoryPickerModal = ({
                     styles.modalItem,
                     { flex: 0.25, justifyContent: "center" },
                   ]}
-                  onPress={() => setIsEmojiOpen(true)}
+                  onPress={() => setEmojiPickerVisible(true)}
                 >
                   <Text style={{ fontSize: 30 }}>{newIcon}</Text>
                 </TouchableOpacity>
@@ -535,13 +559,46 @@ export const CategoryPickerModal = ({
           </TouchableOpacity>
         </View>
       </View>
-      <EmojiPicker
-        open={isEmojiOpen}
-        onClose={() => setIsEmojiOpen(false)}
-        onEmojiSelected={(emoji) => {
-          setNewIcon(emoji.emoji);
-          setIsEmojiOpen(false);
+      <EmojiPickerModal
+        visible={emojiPickerVisible}
+        onClose={() => setEmojiPickerVisible(false)}
+        onEmojiSelect={handleEmojiPicker}
+        emojis={emojiData}
+        categoryNameMap={{
+          "Recently Used": "Récents",
+          "Smileys & Emotion": "Smileys & Émotions",
+          "People & Body": "Personnes & Corps",
+          "Animals & Nature": "Animaux & Nature",
+          "Food & Drink": "Nourriture & Boissons",
+          "Travel & Places": "Voyages & Lieux",
+          Activities: "Activités",
+          Objects: "Objets",
+          Symbols: "Symboles",
+          Flags: "Drapeaux",
         }}
+        removeClippedSubviews={Platform.OS === "ios"}
+        searchPlaceholder={"Rechercher un Emoji"}
+        modalTitle={"Choisir un Emoji"}
+        FlatListComponent={(flatListProps: any) => (
+          <FlatList
+            {...flatListProps}
+            ListEmptyComponent={
+              !flatListProps.data || flatListProps.data.length === 0 ? (
+                <View style={{ padding: 30, alignItems: "center" }}>
+                  <Text
+                    style={{
+                      color: "#7F8C8D",
+                      fontSize: 15,
+                      fontWeight: "500",
+                    }}
+                  >
+                    Aucun Emoji trouvé
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
+        )}
       />
     </Modal>
   );
