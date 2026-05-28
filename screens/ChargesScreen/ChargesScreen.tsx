@@ -18,6 +18,7 @@ import ChargeItem from "./ChargeItem/ChargeItem";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useNavigation } from "@react-navigation/native";
 import { useCategories } from "../../hooks/useCategories";
+import { similarity, FUZZY_THRESHOLD_DESCRIPTION } from "utils/fuzzyMatch";
 import { CategoryPickerModal } from "../ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
 import { PayeurPickerModal } from "../ChargeDetail/EditChargeForm/PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "../ChargeDetail/EditChargeForm/BeneficiariesSelector/BeneficiariesSelector";
@@ -28,6 +29,7 @@ import {
   Puzzle,
   Receipt,
   Scale,
+  Sparkles,
   Tag,
   TriangleAlert,
   UserRound,
@@ -75,6 +77,8 @@ const ChargesScreen: React.FC = () => {
   const [selectedCategorie, setSelectedCategorie] = useState(
     defaultCategory?.id || "Autre",
   );
+
+  const [categoryAutoSuggested, setCategoryAutoSuggested] = useState(false);
   const [selectedDateStatistiques, setSelectedDateStatistiques] =
     useState<Date>(new Date());
 
@@ -103,6 +107,39 @@ const ChargesScreen: React.FC = () => {
       }
     }
   }, [categories]);
+
+  useEffect(() => {
+    if (!description.trim() || charges.length === 0) {
+      if (categoryAutoSuggested && defaultCategory) {
+        setSelectedCategorie(defaultCategory.id);
+        setCategoryAutoSuggested(false);
+      }
+      return;
+    }
+
+    const scored = charges
+      .filter((c) => c.categorie && c.description)
+      .map((c) => ({
+        categoryId: c.categorie as string,
+        score: similarity(description, c.description),
+      }))
+      .filter((c) => c.score >= FUZZY_THRESHOLD_DESCRIPTION);
+
+    if (scored.length === 0) return;
+
+    const totals: Record<string, number> = {};
+    scored.forEach(({ categoryId, score }) => {
+      totals[categoryId] = (totals[categoryId] ?? 0) + score;
+    });
+
+    const bestId = Object.entries(totals).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+    const exists = categories.find((c) => c.id === bestId);
+    if (bestId && exists) {
+      setSelectedCategorie(bestId);
+      setCategoryAutoSuggested(true);
+    }
+  }, [description]);
 
   const handleOpenDetail = useCallback(
     (charge: ICharge) => {
@@ -233,6 +270,7 @@ const ChargesScreen: React.FC = () => {
       setMontant("");
       setSelectedDateStatistiques(new Date());
       setSelectedCategorie(defaultCategory?.label || "Autre");
+      setCategoryAutoSuggested(false);
       setPayeurUid(user.id || null);
       if (isSoloHousehold) {
         setBeneficiairesUid([user.id]);
@@ -347,7 +385,25 @@ const ChargesScreen: React.FC = () => {
               style={common.selectorButton}
               onPress={() => setIsCategoryModalVisible(true)}
             >
-              <Text style={common.selectorLabel}>Catégorie</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <Text style={common.selectorLabel}>Catégorie</Text>
+                {categoryAutoSuggested && (
+                  <View style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "#EBF5FB",
+                    borderRadius: 10,
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    gap: 3,
+                  }}>
+                    <Sparkles size={11} color="#3498DB" />
+                    <Text style={{ fontSize: 10, color: "#3498DB", fontWeight: "600" }}>
+                      Suggestion
+                    </Text>
+                  </View>
+                )}
+              </View>
               <View
                 style={{
                   flexDirection: "row",
@@ -675,6 +731,7 @@ const ChargesScreen: React.FC = () => {
         categories={categories}
         onSelect={(id) => {
           setSelectedCategorie(id);
+          setCategoryAutoSuggested(false);
           setIsCategoryModalVisible(false);
         }}
       />

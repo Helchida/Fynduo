@@ -41,13 +41,14 @@ export function similarity(a: string, b: string): number {
   return 1 - dist / maxLen;
 }
 
-export const FUZZY_THRESHOLD = 0.65;
+export const FUZZY_THRESHOLD_CATEGORY = 0.65;
+export const FUZZY_THRESHOLD_DESCRIPTION = 0.90;
 
 
 export function findSimilarCategories<T extends { label: string; isDefault?: boolean }>(
   input: string,
   categories: T[],
-  threshold = FUZZY_THRESHOLD,
+  threshold = FUZZY_THRESHOLD_CATEGORY,
 ): Array<T & { score: number }> {
   if (!input.trim()) return [];
 

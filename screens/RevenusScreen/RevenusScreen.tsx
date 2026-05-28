@@ -19,13 +19,21 @@ import { useNavigation } from "@react-navigation/native";
 import { useCategories } from "../../hooks/useCategories";
 import { CategoryPickerModal } from "../RevenuDetail/EditRevenuForm/CategoryPickerModal/CategoryPickerModal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { CalendarSearch, ChevronsUpDown, CircleQuestionMark, Lightbulb, Tag, TriangleAlert } from "lucide-react-native";
+import {
+  CalendarSearch,
+  ChevronsUpDown,
+  CircleQuestionMark,
+  Lightbulb,
+  Tag,
+  Sparkles,
+} from "lucide-react-native";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { useToast } from "hooks/useToast";
 import { PeriodPickerModal } from "components/ui/PeriodPickerModal/PeriodPickerModal";
 import RevenuItem from "./RevenuItem/RevenuItem";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
+import { similarity, FUZZY_THRESHOLD_DESCRIPTION } from "utils/fuzzyMatch";
 
 dayjs.locale("fr");
 
@@ -55,6 +63,7 @@ const RevenusScreen: React.FC = () => {
   const [montant, setMontant] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categoryAutoSuggested, setCategoryAutoSuggested] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState(
     defaultCategoryRevenu?.id || "cat_autre",
@@ -81,6 +90,38 @@ const RevenusScreen: React.FC = () => {
       }
     }
   }, [categoriesRevenus]);
+
+  useEffect(() => {
+    if (!description.trim() || revenus.length === 0) {
+      if (categoryAutoSuggested && defaultCategoryRevenu) {
+        setSelectedCategorie(defaultCategoryRevenu.id);
+        setCategoryAutoSuggested(false);
+      }
+      return;
+    }
+
+    const scored = revenus
+      .filter((r) => r.categorie && r.description)
+      .map((r) => ({
+        categoryId: r.categorie as string,
+        score: similarity(description, r.description),
+      }))
+      .filter((r) => r.score >= FUZZY_THRESHOLD_DESCRIPTION);
+
+    if (scored.length === 0) return;
+
+    const totals: Record<string, number> = {};
+    scored.forEach(({ categoryId, score }) => {
+      totals[categoryId] = (totals[categoryId] ?? 0) + score;
+    });
+
+    const bestId = Object.entries(totals).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const exists = categoriesRevenus.find((c) => c.id === bestId);
+    if (bestId && exists) {
+      setSelectedCategorie(bestId);
+      setCategoryAutoSuggested(true);
+    }
+  }, [description]);
 
   const handleOpenDetail = useCallback(
     (revenu: IRevenu) => {
@@ -176,6 +217,7 @@ const RevenusScreen: React.FC = () => {
       setMontant("");
       setSelectedDateReception(new Date());
       setSelectedCategorie(defaultCategoryRevenu?.label || "Autre");
+      setCategoryAutoSuggested(false);
       setShowForm(false);
       toast.success("Succès", "Revenu enregistré.");
     } catch (error) {
@@ -266,7 +308,39 @@ const RevenusScreen: React.FC = () => {
               style={common.selectorButton}
               onPress={() => setIsCategoryModalVisible(true)}
             >
-              <Text style={common.selectorLabel}>Catégorie</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={common.selectorLabel}>Catégorie</Text>
+                {categoryAutoSuggested && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#EBF5FB",
+                      borderRadius: 10,
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      gap: 3,
+                    }}
+                  >
+                    <Sparkles size={11} color="#3498DB" />
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: "#3498DB",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Suggestion
+                    </Text>
+                  </View>
+                )}
+              </View>
               <View
                 style={{
                   flexDirection: "row",
@@ -437,6 +511,7 @@ const RevenusScreen: React.FC = () => {
         categoriesRevenus={categoriesRevenus}
         onSelect={(id) => {
           setFilterCategory(id);
+          setCategoryAutoSuggested(false);
           setIsFilterCategoryModalVisible(false);
         }}
       />
@@ -473,19 +548,36 @@ const RevenusScreen: React.FC = () => {
         onClose={() => setShowInfoModal(false)}
       >
         <View style={common.centerRow}>
-          <Lightbulb size={30} color={"#d6d43d"} style={common.infoModalIconTitle} />
+          <Lightbulb
+            size={30}
+            color={"#d6d43d"}
+            style={common.infoModalIconTitle}
+          />
           <Text style={common.infoModalTitle}>Gestion des revenus</Text>
         </View>
         <Text style={common.infoModalText}>
-          Les <Text style={common.bold}>revenus</Text> sont des apports d'argent. Renseignez le <Text style={common.bold}>titre</Text>, le <Text style={common.bold}>montant</Text>, la <Text style={common.bold}>catégorie</Text> et la <Text style={common.bold}>date</Text>.
+          Les <Text style={common.bold}>revenus</Text> sont des apports
+          d'argent. Renseignez le <Text style={common.bold}>titre</Text>, le{" "}
+          <Text style={common.bold}>montant</Text>, la{" "}
+          <Text style={common.bold}>catégorie</Text> et la{" "}
+          <Text style={common.bold}>date</Text>.
         </Text>
         <View style={[common.infoModalBox, common.trickBox]}>
           <View style={common.row}>
-            <CircleQuestionMark size={14} color={"#077ad8"} style={common.boxIconTitle} />
-            <Text style={[common.boxTitle, common.trickTitle]}> Astuce de filtrage</Text>
+            <CircleQuestionMark
+              size={14}
+              color={"#077ad8"}
+              style={common.boxIconTitle}
+            />
+            <Text style={[common.boxTitle, common.trickTitle]}>
+              {" "}
+              Astuce de filtrage
+            </Text>
           </View>
           <Text style={[common.boxText, common.trickText]}>
-            Utilisez les filtres par <Text style={common.bold}>Période</Text> ou par <Text style={common.bold}>Catégorie</Text> pour analyser vos finances en un clin d'œil.
+            Utilisez les filtres par <Text style={common.bold}>Période</Text> ou
+            par <Text style={common.bold}>Catégorie</Text> pour analyser vos
+            finances en un clin d'œil.
           </Text>
         </View>
       </InfoModal>
