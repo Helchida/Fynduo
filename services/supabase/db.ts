@@ -17,7 +17,7 @@ import {
 import { DEFAULT_CATEGORIES } from "constants/categories";
 import { supabase } from "../supabase/config";
 import { DEFAULT_CATEGORIES_REVENUS } from "constants/categories_revenus";
-import { normalizeLabel, similarity, FUZZY_THRESHOLD } from "utils/fuzzyMatch";
+import { normalizeLabel, similarity, FUZZY_THRESHOLD_CATEGORY } from "utils/fuzzyMatch";
 
 // ============================================
 // HELPERS
@@ -874,7 +874,7 @@ export async function checkPropagationConflicts(
         break;
       }
 
-      if (score >= FUZZY_THRESHOLD && !isExact) {
+      if (score >= FUZZY_THRESHOLD_CATEGORY && !isExact) {
         bestScore = score;
         bestMatch = { id: cat.id, label: cat.label, icon: cat.icon };
       }
