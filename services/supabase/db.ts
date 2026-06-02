@@ -17,7 +17,11 @@ import {
 import { DEFAULT_CATEGORIES } from "constants/categories";
 import { supabase } from "../supabase/config";
 import { DEFAULT_CATEGORIES_REVENUS } from "constants/categories_revenus";
-import { normalizeLabel, similarity, FUZZY_THRESHOLD_CATEGORY } from "utils/fuzzyMatch";
+import {
+  normalizeLabel,
+  similarity,
+  FUZZY_THRESHOLD_CATEGORY,
+} from "utils/fuzzyMatch";
 
 // ============================================
 // HELPERS
@@ -36,7 +40,7 @@ const makeUniqueId = (householdId: string, docId: string) => {
  */
 const extractDocId = (uniqueId: string) => {
   const parts = uniqueId.split("_");
-  return parts.slice(1).join("_"); 
+  return parts.slice(1).join("_");
 };
 
 /**
@@ -479,7 +483,6 @@ export async function updateChargeFixeConfig(
   chargeId: string,
   updates: Partial<Omit<IChargeFixeTemplate, "id">>,
 ) {
-
   const supabaseUpdates: any = {};
 
   if (updates.categorie !== undefined)
@@ -492,12 +495,17 @@ export async function updateChargeFixeConfig(
   if (updates.beneficiaires !== undefined)
     supabaseUpdates.beneficiaires = updates.beneficiaires;
   if (updates.scope !== undefined) supabaseUpdates.scope = updates.scope;
-  if (updates.periodiciteType !== undefined)        supabaseUpdates.periodicite_type = updates.periodiciteType;
-  if (updates.periodiciteIntervalle !== undefined)  supabaseUpdates.periodicite_intervalle = updates.periodiciteIntervalle;
-  if (updates.datePremierPrelevement !== undefined) supabaseUpdates.date_premier_prelevement = updates.datePremierPrelevement;
-  if (updates.dateFin !== undefined)                supabaseUpdates.date_fin = updates.dateFin;
-  if (updates.echeancier !== undefined)             supabaseUpdates.echeancier = updates.echeancier;
-  if (updates.jourNommeConfig !== undefined)        supabaseUpdates.jour_nomme_config = updates.jourNommeConfig;
+  if (updates.periodiciteType !== undefined)
+    supabaseUpdates.periodicite_type = updates.periodiciteType;
+  if (updates.periodiciteIntervalle !== undefined)
+    supabaseUpdates.periodicite_intervalle = updates.periodiciteIntervalle;
+  if (updates.datePremierPrelevement !== undefined)
+    supabaseUpdates.date_premier_prelevement = updates.datePremierPrelevement;
+  if (updates.dateFin !== undefined) supabaseUpdates.date_fin = updates.dateFin;
+  if (updates.echeancier !== undefined)
+    supabaseUpdates.echeancier = updates.echeancier;
+  if (updates.jourNommeConfig !== undefined)
+    supabaseUpdates.jour_nomme_config = updates.jourNommeConfig;
 
   const { data, error } = await supabase
     .from("charges_fixes")
@@ -516,7 +524,6 @@ export async function deleteChargeFixeConfig(
   householdId: string,
   chargeId: string,
 ) {
-
   const { error } = await supabase
     .from("charges_fixes")
     .delete()
@@ -912,7 +919,7 @@ async function findOrCreateSoloCategoryForPropagation(
     .from("categories")
     .select("id")
     .eq("household_id", soloHouseholdId)
-    .ilike("label", normalizedLabel)  
+    .ilike("label", normalizedLabel)
     .maybeSingle();
 
   if (existing) {
@@ -1064,8 +1071,9 @@ export async function updateCategory(
     const uniqueId = makeUniqueId(householdId, categoryId);
     const supabaseUpdates: any = {};
 
-    if (updateData.label !== undefined) supabaseUpdates.label = updateData.label;
-    if (updateData.icon !== undefined)  supabaseUpdates.icon  = updateData.icon;
+    if (updateData.label !== undefined)
+      supabaseUpdates.label = updateData.label;
+    if (updateData.icon !== undefined) supabaseUpdates.icon = updateData.icon;
 
     // 1. Mettre à jour dans le foyer courant
     const { error } = await supabase
@@ -1975,10 +1983,18 @@ export async function breakSubTirelire(
     throw new Error("Tirelire introuvable");
   }
 
+  if (!subTirelire[0].parent_id) {
+    throw new Error(
+      "breakSubTirelire appelée sur une tirelire parent — opération refusée",
+    );
+  }
+
   const montantSubTirelire = subTirelire[0].montant_initial || 0;
+  const nouveau = Math.max(0, montantSubTirelire - montant);
+
   const { error } = await supabase
     .from("tirelires")
-    .update({ montant_initial: montantSubTirelire - montant })
+    .update({ montant_initial: nouveau })
     .eq("id", subId);
 
   if (error) throw error;

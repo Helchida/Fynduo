@@ -366,7 +366,10 @@ const EpargneScreen: React.FC = () => {
 
     try {
       if (tirelireToBreak.parentId !== null) {
-        await breakSubTirelire(tirelireToBreak.id, montant);
+        const montantSafe = Math.min(montant, tirelireToBreak.montantInitial);
+        if (montantSafe > 0) {
+          await breakSubTirelire(tirelireToBreak.id, montantSafe);
+        }
       }
       await breakTirelire(user.id, realTirelireMovement, montant);
 
@@ -675,10 +678,10 @@ const EpargneScreen: React.FC = () => {
                     {formatCurrency(statsMois.revenus)}
                   </Text>
                   {statsMois.retraits > 0 && (
-                      <Text style={{ fontSize: 10 }}>
-                        (+{formatCurrency(statsMois.retraits)} épargne)
-                      </Text>
-                    )}
+                    <Text style={{ fontSize: 10 }}>
+                      (+{formatCurrency(statsMois.retraits)} épargne)
+                    </Text>
+                  )}
                 </View>
                 <View style={{ marginLeft: 20 }}>
                   <Text style={styles.miniStatLabel}>Total Dépenses</Text>
