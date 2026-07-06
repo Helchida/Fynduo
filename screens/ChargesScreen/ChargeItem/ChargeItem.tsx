@@ -57,7 +57,7 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
       </View>
 
       <View style={common.cashFlowMontantContainer}>
-        <BadgeCharge chargeScope={charge.scope} chargeType={charge.type} />
+        <BadgeCharge chargeScope={charge.scope} chargeType={charge.type} chargeNature={charge.nature}/>
         <Text style={common.cashFlowMontant}>{montantAffiche} €</Text>
       </View>
     </TouchableOpacity>

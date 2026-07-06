@@ -17,6 +17,7 @@ export const useStats = (
 ) => {
   const variablesStatsParCategorie = useMemo((): StatCategorie[] => {
     const filtered = charges.filter((c) => {
+      if (c.nature === "remboursement") return false;
       if (c.type === "fixe") return false;
       if (period === "tout") return true;
 
@@ -70,13 +71,14 @@ export const useStats = (
         };
       })
       .filter(
-        (item) => item.montant > 0 && item.categoryId !== "cat_remboursement",
+        (item) => item.montant > 0
       )
       .sort((a, b) => b.montant - a.montant);
   }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
 
   const fixesStatsParCategorie = useMemo((): StatCategorie[] => {
     const filtered = charges.filter((c) => {
+      if (c.nature === "remboursement") return false;
       if (c.type === "variable") return false;
       if (period === "tout") return true;
 
@@ -130,13 +132,14 @@ export const useStats = (
         };
       })
       .filter(
-        (item) => item.montant > 0 && item.categoryId !== "cat_remboursement",
+        (item) => item.montant > 0
       )
       .sort((a, b) => b.montant - a.montant);
   }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
 
   const allChargesStatsParCategorie = useMemo((): StatCategorie[] => {
     const filtered = charges.filter((c) => {
+      if (c.nature === "remboursement") return false;
       if (period === "tout") return true;
 
       const chargeMoisAnnee =
@@ -189,7 +192,7 @@ export const useStats = (
         };
       })
       .filter(
-        (item) => item.montant > 0 && item.categoryId !== "cat_remboursement",
+        (item) => item.montant > 0
       )
       .sort((a, b) => b.montant - a.montant);
   }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);

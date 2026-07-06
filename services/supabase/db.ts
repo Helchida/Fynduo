@@ -564,6 +564,7 @@ export async function getChargesByType<T extends ICharge>(
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
+    nature: row.nature
   })) as T[];
 }
 
@@ -590,6 +591,7 @@ export async function getAllCharges(householdId: string): Promise<ICharge[]> {
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
+    nature: row.nature,
   }));
 }
 
@@ -606,7 +608,8 @@ export async function getSoloChargesByType<T extends ICharge>(
     .select("*")
     .in("household_id", householdIds)
     .eq("type", type)
-    .contains("beneficiaires", [userId]);
+    .contains("beneficiaires", [userId])
+    .eq("nature", "depense");
 
   if (error) throw error;
 
@@ -622,6 +625,7 @@ export async function getSoloChargesByType<T extends ICharge>(
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
+    nature: row.nature,
   })) as T[];
 
   // Trier par date
@@ -655,6 +659,7 @@ export async function addCharge(
     mois_annee: (charge as any).moisAnnee,
     scope: charge.scope,
     jour_prelevement_mensuel: (charge as any).jourPrelevementMensuel,
+    nature: (charge as any).nature || "depense",
   });
 
   if (error) throw error;
@@ -789,7 +794,8 @@ export async function addChargeVariableRegularisation(
       moisAnnee: moisAnnee,
       categorie: "cat_remboursement",
       type: "variable",
-      scope: "partage",
+      scope: "solo",
+      nature: "remboursement"
     });
   }
 

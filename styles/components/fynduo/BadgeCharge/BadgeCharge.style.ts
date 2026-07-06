@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 
 // Couleurs spécifiques aux badges — non présentes dans theme car usage unique
 export const styles = StyleSheet.create({
-
   // ── Layout ────────────────────────────────────
   container: {
     flexDirection: "row",
@@ -21,15 +20,18 @@ export const styles = StyleSheet.create({
   },
 
   // ── Variantes ─────────────────────────────────
-  soloBadge:     { backgroundColor: "#ebf5ff", borderColor: "#badbff" },
+  soloBadge: { backgroundColor: "#ebf5ff", borderColor: "#badbff" },
   soloBadgeText: { color: "#3182ce" },
 
-  sharedBadge:     { backgroundColor: "#fef9c3", borderColor: "#fde047" },
+  sharedBadge: { backgroundColor: "#fef9c3", borderColor: "#fde047" },
   sharedBadgeText: { color: "#854d0e" },
 
-  fixedBadge:     { backgroundColor: "#fee2e2", borderColor: "#fecaca" },
+  fixedBadge: { backgroundColor: "#fee2e2", borderColor: "#fecaca" },
   fixedBadgeText: { color: "#b91c1c" },
 
-  variableBadge:     { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" },
+  variableBadge: { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" },
   variableBadgeText: { color: "#15803d" },
+
+  remboursementBadge: { backgroundColor: "#f3e8ff", borderColor: "#e9d5ff" },
+  remboursementBadgeText: { color: "#7e22ce" },
 });

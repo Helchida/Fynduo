@@ -26,6 +26,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import {
   CalendarSearch,
   ChevronsUpDown,
+  HandCoins,
   Puzzle,
   Receipt,
   Scale,
@@ -97,7 +98,7 @@ const ChargesScreen: React.FC = () => {
     useState(false);
   const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
-    const { showInfoModal, setShowInfoModal } = useScreenInfo();
+  const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -262,6 +263,7 @@ const ChargesScreen: React.FC = () => {
       type: "variable",
       scope:
         beneficiairesUid.length > 1 && !isSoloHousehold ? "partage" : "solo",
+      nature: "depense",
     };
 
     try {
@@ -385,20 +387,34 @@ const ChargesScreen: React.FC = () => {
               style={common.selectorButton}
               onPress={() => setIsCategoryModalVisible(true)}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Text style={common.selectorLabel}>Catégorie</Text>
                 {categoryAutoSuggested && (
-                  <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    backgroundColor: "#EBF5FB",
-                    borderRadius: 10,
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    gap: 3,
-                  }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#EBF5FB",
+                      borderRadius: 10,
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      gap: 3,
+                    }}
+                  >
                     <Sparkles size={11} color="#3498DB" />
-                    <Text style={{ fontSize: 10, color: "#3498DB", fontWeight: "600" }}>
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: "#3498DB",
+                        fontWeight: "600",
+                      }}
+                    >
                       Suggestion
                     </Text>
                   </View>
@@ -802,6 +818,30 @@ const ChargesScreen: React.FC = () => {
             Lors de l'ajout, vous choisissez qui paie et pour qui la dépense
             s'applique.
           </Text>
+        )}
+
+        {!isSoloHousehold && (
+          <View style={[common.infoModalBox, common.infoBoxRemboursement]}>
+            <View style={common.row}>
+              <HandCoins
+                size={14}
+                color={"#7e22ce"}
+                style={common.boxIconTitle}
+              />
+              <Text style={[common.boxTitle, common.remboursementTitle]}>
+                {" "}
+                Remboursement
+              </Text>
+            </View>
+            <Text style={[common.boxText, common.remboursementText]}>
+              Lorsqu'un membre vous rembourse une somme qu'il vous devait, la
+              charge créée est marquée comme{" "}
+              <Text style={common.bold}>remboursement</Text> (badge violet).
+              Elle n'apparaît pas dans vos statistiques personnelles de
+              dépenses, mais elle est bien prise en compte dans le calcul de
+              l'équilibrage du foyer.
+            </Text>
+          </View>
         )}
 
         {!isSoloHousehold && (

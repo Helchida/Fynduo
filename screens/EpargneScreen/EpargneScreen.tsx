@@ -128,9 +128,7 @@ const EpargneScreen: React.FC = () => {
     const monthCharges = charges.filter((c) => {
       const isSameMonth =
         dayjs(c.dateStatistiques).format("YYYY-MM") === moisKey;
-      const isNotRegul = !(
-        c.type === "variable" && c.categorie === "cat_remboursement"
-      );
+      const isNotRegul = c.nature !== "remboursement";
       return isSameMonth && isNotRegul;
     });
 

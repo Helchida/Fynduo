@@ -34,6 +34,7 @@ export type CategoryType =
 
 export type ChargeScope = "solo" | "partage";
 export type ChargeType = "fixe" | "variable";
+export type ChargeNature = "depense" | "remboursement"
 export type PeriodiciteType =
   | "journalier"
   | "hebdomadaire"
@@ -62,6 +63,7 @@ export interface ICharge extends FirestoreDocument {
   householdId: string;
   type: ChargeType;
   scope: ChargeScope;
+  nature: ChargeNature;
   categorie: ICategorie["id"];
 }
 

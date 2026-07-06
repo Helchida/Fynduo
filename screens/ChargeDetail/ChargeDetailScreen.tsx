@@ -299,6 +299,7 @@ const ChargeDetailScreen: React.FC = () => {
               <BadgeCharge
                 chargeScope={charge.scope}
                 chargeType={charge.type}
+                chargeNature={charge.nature}
               />
             )}
             <Text style={styles.detailDateText}>

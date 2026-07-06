@@ -130,7 +130,7 @@ const HomeScreen: React.FC = () => {
 
     const allMonthsSet = new Set<string>();
     charges.forEach((c) => {
-      if (c.type === "variable" && c.categorie === "cat_remboursement") return;
+      if (c.nature === "remboursement") return;
       allMonthsSet.add(dayjs(c.dateStatistiques).format("YYYY-MM"));
     });
     revenus.forEach((r) =>
@@ -147,9 +147,7 @@ const HomeScreen: React.FC = () => {
       const monthCharges = charges.filter((c) => {
         const isSameMonth =
           dayjs(c.dateStatistiques).format("YYYY-MM") === monthKey;
-        const isNotRegul = !(
-          c.type === "variable" && c.categorie === "cat_remboursement"
-        );
+        const isNotRegul = c.nature !== "remboursement";
 
         return isSameMonth && isNotRegul;
       });

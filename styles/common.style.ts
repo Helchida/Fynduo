@@ -614,6 +614,16 @@ export const common = StyleSheet.create({
     marginVertical: spacing.md,
     borderLeftWidth: 4,
   },
+  infoBoxRemboursement: {
+    backgroundColor: "#f3e8ff",
+    borderColor: "#e9d5ff",
+  },
+  remboursementTitle: {
+    color: "#7e22ce",
+  },
+  remboursementText: {
+    color: "#6b21a8",
+  },
   boxTitle: {
     fontSize: 14,
     fontWeight: "bold",
@@ -649,7 +659,7 @@ export const common = StyleSheet.create({
   },
   successBox: {
     borderLeftColor: "#28a745",
-    backgroundColor: "#eafaf1", 
+    backgroundColor: "#eafaf1",
   },
   successTitle: {
     color: "#155724",
@@ -658,7 +668,7 @@ export const common = StyleSheet.create({
     color: "#155724",
   },
   errorBox: {
-    borderLeftColor: "#dc3545", 
+    borderLeftColor: "#dc3545",
     backgroundColor: "#fdf2f2",
   },
   errorTitle: {
