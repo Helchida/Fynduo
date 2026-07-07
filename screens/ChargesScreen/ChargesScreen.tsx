@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -99,6 +100,17 @@ const ChargesScreen: React.FC = () => {
   const [isFilterCategoryModalVisible, setIsFilterCategoryModalVisible] =
     useState(false);
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
+
+  const [remboursementModalVisible, setRemboursementModalVisible] =
+    useState(false);
+  const [remboursementData, setRemboursementData] = useState<{
+    de: string;
+    a: string;
+    montant: number;
+  } | null>(null);
+  const [remboursementMontant, setRemboursementMontant] = useState("");
+  const [isSubmittingRemboursement, setIsSubmittingRemboursement] =
+    useState(false);
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -298,6 +310,62 @@ const ChargesScreen: React.FC = () => {
     addChargeVariable,
     user.id,
     householdUsers,
+  ]);
+
+  const handleOpenRemboursement = useCallback(
+    (virement: { de: string; a: string; montant: number }) => {
+      setRemboursementData(virement);
+      setRemboursementMontant(virement.montant.toFixed(2));
+      setRemboursementModalVisible(true);
+    },
+    [],
+  );
+
+  const handleConfirmRemboursement = useCallback(async () => {
+    if (!remboursementData || !currentMonthData) return;
+
+    const montantTotal = parseFloat(remboursementMontant.replace(",", "."));
+    if (isNaN(montantTotal) || montantTotal <= 0) {
+      toast.warning(
+        "Erreur de saisie",
+        "Veuillez indiquer un montant valide (> 0).",
+      );
+      return;
+    }
+
+    setIsSubmittingRemboursement(true);
+
+    const chargeRemboursementToAdd: Omit<ICharge, "id" | "householdId"> = {
+      description: `Remboursement à ${getDisplayName(remboursementData.a)}`,
+      montantTotal,
+      payeur: remboursementData.de,
+      beneficiaires: [remboursementData.a],
+      dateStatistiques: new Date().toISOString(),
+      moisAnnee: dayjs().format("YYYY-MM"),
+      categorie: defaultCategory?.id || "cat_autre",
+      type: "variable",
+      scope: "partage",
+      nature: "remboursement",
+    };
+
+    try {
+      await addChargeVariable(chargeRemboursementToAdd);
+      toast.success("Succès", "Remboursement enregistré.");
+      setRemboursementModalVisible(false);
+      setRemboursementData(null);
+    } catch (error) {
+      console.error("Erreur remboursement:", error);
+      toast.error("Erreur", "Échec de l'enregistrement du remboursement.");
+    } finally {
+      setIsSubmittingRemboursement(false);
+    }
+  }, [
+    remboursementData,
+    remboursementMontant,
+    currentMonthData,
+    addChargeVariable,
+    getDisplayName,
+    defaultCategory,
   ]);
 
   const isSoloHousehold = user.activeHouseholdId === user.id;
@@ -531,21 +599,31 @@ const ChargesScreen: React.FC = () => {
               <Text style={common.emptyText}>Tout est déjà équilibré ! ✨</Text>
             ) : (
               suggestionsVirements.map((virement, index) => (
-                <View key={index} style={styles.virementRow}>
-                  <Text style={styles.virementText}>
-                    <Text style={common.bold}>
-                      {getDisplayName(virement.de)}
-                    </Text>{" "}
-                    doit envoyer{" "}
-                    <Text style={styles.amountText}>
-                      {virement.montant.toFixed(2)}€
-                    </Text>{" "}
-                    à{" "}
-                    <Text style={common.bold}>
-                      {getDisplayName(virement.a)}
+                <TouchableOpacity
+                  key={index}
+                  style={styles.virementRow}
+                  onPress={() => handleOpenRemboursement(virement)}
+                  activeOpacity={0.6}
+                >
+                  <View style={styles.virementTextContainer}>
+                    <Text style={styles.virementText}>
+                      <Text style={common.bold}>
+                        {getDisplayName(virement.de)}
+                      </Text>{" "}
+                      doit envoyer{" "}
+                      <Text style={[common.remboursementText, common.bold]}>
+                        {virement.montant.toFixed(2)}€
+                      </Text>{" "}
+                      à{" "}
+                      <Text style={common.bold}>
+                        {getDisplayName(virement.a)}
+                      </Text>
                     </Text>
-                  </Text>
-                </View>
+                  </View>
+                  <View style={styles.virementIconBadge}>
+                    <HandCoins size={16} color={"#7e22ce"} />
+                  </View>
+                </TouchableOpacity>
               ))
             )}
           </View>
@@ -780,6 +858,82 @@ const ChargesScreen: React.FC = () => {
         textColor="black"
         {...({ themeVariant: "light" } as any)}
       />
+
+      <Modal
+        visible={remboursementModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRemboursementModalVisible(false)}
+      >
+        <View style={[common.modalOverlay, common.modalCenteredOverlay]}>
+          <View style={common.modalCenteredContainer}>
+            <View style={common.centerRow}>
+              <HandCoins
+                size={26}
+                color={"#7e22ce"}
+                style={common.infoModalIconTitle}
+              />
+              <Text style={common.infoModalTitle}>
+                Confirmer le remboursement
+              </Text>
+            </View>
+
+            {remboursementData && (
+              <Text style={[common.infoModalText, { textAlign: "center" }]}>
+                <Text style={common.bold}>
+                  {getDisplayName(remboursementData.de)}
+                </Text>{" "}
+                rembourse{" "}
+                <Text style={common.bold}>
+                  {getDisplayName(remboursementData.a)}
+                </Text>
+              </Text>
+            )}
+
+            <View style={[styles.inputFieldContainer, { width: "100%" }]}>
+              <TextInput
+                style={styles.editInputActive}
+                placeholder="0.00"
+                placeholderTextColor="#95a5a6"
+                value={remboursementMontant}
+                onChangeText={setRemboursementMontant}
+                keyboardType="decimal-pad"
+                {...({ inputMode: "decimal" } as any)}
+                editable={!isSubmittingRemboursement}
+              />
+              <Text style={{ fontSize: 17, fontWeight: "600", marginLeft: 8 }}>
+                €
+              </Text>
+            </View>
+
+            <View style={common.modalButtons}>
+              <TouchableOpacity
+                style={common.btnCancel}
+                onPress={() => setRemboursementModalVisible(false)}
+                disabled={isSubmittingRemboursement}
+              >
+                <Text style={common.btnCancelText}>Annuler</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  common.btnConfirm,
+                  { backgroundColor: "#7e22ce" },
+                  isSubmittingRemboursement && common.disabledButton,
+                ]}
+                onPress={handleConfirmRemboursement}
+                disabled={isSubmittingRemboursement}
+              >
+                <Text style={common.btnConfirmText}>
+                  {isSubmittingRemboursement
+                    ? "Enregistrement..."
+                    : "Confirmer"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <InfoModal
         visible={showInfoModal}

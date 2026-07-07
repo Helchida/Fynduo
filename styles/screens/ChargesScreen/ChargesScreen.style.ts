@@ -1,8 +1,13 @@
 import { StyleSheet } from "react-native";
-import { colors, spacing, radius, shadows, typography } from "../../theme.style";
+import {
+  colors,
+  spacing,
+  radius,
+  shadows,
+  typography,
+} from "../../theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Layout ────────────────────────────────────
   container: {
     flex: 1,
@@ -125,15 +130,31 @@ export const styles = StyleSheet.create({
     color: "#1C1C1E",
     marginBottom: spacing.md,
     borderLeftWidth: 4,
-    borderLeftColor: colors.success,
+    borderLeftColor: "#7e22ce",
     paddingLeft: spacing.sm + 2,
   },
   virementRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm + 2,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.neutral600,
+    gap: spacing.md,
+  },
+  virementTextContainer: {
+    flex: 1,
+  },
+  virementIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.full,
+    backgroundColor: "#f3e8ff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e9d5ff",
   },
   virementText: {
     fontSize: 15,
