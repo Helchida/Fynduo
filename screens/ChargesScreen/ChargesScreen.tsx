@@ -342,7 +342,7 @@ const ChargesScreen: React.FC = () => {
       beneficiaires: [remboursementData.a],
       dateStatistiques: new Date().toISOString(),
       moisAnnee: dayjs().format("YYYY-MM"),
-      categorie: defaultCategory?.id || "cat_autre",
+      categorie: "cat_remboursement",
       type: "variable",
       scope: "partage",
       nature: "remboursement",
