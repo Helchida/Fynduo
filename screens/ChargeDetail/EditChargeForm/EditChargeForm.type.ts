@@ -20,11 +20,19 @@ export interface EditChargeFormProps {
   handleToggleEditBeneficiaire: (userId: string) => void;
   currentUserId: string;
   isSubmitting: boolean;
-  handleUpdateCharge: () => void;
+  handleUpdateCharge: (repartitionParam?: Record<string, number>) => Promise<void>;
   setIsEditing: (value: boolean) => void;
   editCategorie: string;
   setEditCategorie: (value: string) => void;
   setIsCategoryModalVisible: (value: boolean) => void;
   isCategoryModalVisible: boolean;
   categories: ICategorie[];
+  editSplitMode: "egal" | "part";
+  setEditSplitMode: (mode: "egal" | "part") => void;
+  editRepartition: Record<string, number>;
+  editLockedUids: string[];
+  handleChangeEditMontant: (uid: string, montant: number) => void;
+  handleChangeEditTaux: (uid: string, taux: number) => void;
+  handleResetEditRepartition: () => void;
+  editRepartitionError: string | null;
 }

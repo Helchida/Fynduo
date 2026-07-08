@@ -564,7 +564,8 @@ export async function getChargesByType<T extends ICharge>(
     dateStatistiques: row.date_statistiques,
     moisAnnee: row.mois_annee,
     scope: row.scope,
-    nature: row.nature
+    nature: row.nature,
+    repartition: row.repartition || null,
   })) as T[];
 }
 
@@ -592,6 +593,7 @@ export async function getAllCharges(householdId: string): Promise<ICharge[]> {
     moisAnnee: row.mois_annee,
     scope: row.scope,
     nature: row.nature,
+    repartition: row.repartition || null,
   }));
 }
 
@@ -626,6 +628,7 @@ export async function getSoloChargesByType<T extends ICharge>(
     moisAnnee: row.mois_annee,
     scope: row.scope,
     nature: row.nature,
+    repartition: row.repartition || null,
   })) as T[];
 
   // Trier par date
@@ -660,6 +663,7 @@ export async function addCharge(
     scope: charge.scope,
     jour_prelevement_mensuel: (charge as any).jourPrelevementMensuel,
     nature: (charge as any).nature || "depense",
+    repartition: charge.repartition ? JSON.stringify(charge.repartition) : null,
   });
 
   if (error) throw error;
@@ -735,6 +739,8 @@ export async function updateCharge(
       supabaseUpdates.mois_annee = (updateData as any).moisAnnee;
     if ((updateData as any).scope !== undefined)
       supabaseUpdates.scope = (updateData as any).scope;
+    if (updateData.repartition !== undefined)
+      supabaseUpdates.repartition = updateData.repartition;
 
     const { error } = await supabase
       .from("charges")

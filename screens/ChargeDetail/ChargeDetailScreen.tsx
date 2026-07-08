@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   ICharge,
+  ChargeScope,
   RootStackNavigationProp,
   RootStackRouteProp,
 } from "../../types";
@@ -25,9 +26,22 @@ import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
 import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
+import { calculateRepartition } from "../../utils/repartition";
 dayjs.locale("fr");
 
 type ChargeDetailRouteProp = RootStackRouteProp<"ChargeDetail">;
+
+function parseRepartition(
+  raw: ICharge["repartition"],
+): Record<string, number> | null {
+  if (!raw) return null;
+  try {
+    return typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch (e) {
+    console.error("Erreur de parsing de la répartition :", e);
+    return null;
+  }
+}
 
 const ChargeDetailScreen: React.FC = () => {
   const route = useRoute<ChargeDetailRouteProp>();
@@ -48,9 +62,7 @@ const ChargeDetailScreen: React.FC = () => {
 
   const initialCharge = charges.find((c) => c.id === chargeId);
 
-  const [charge, setCharge] = useState<
-    ICharge | undefined
-  >(initialCharge);
+  const [charge, setCharge] = useState<ICharge | undefined>(initialCharge);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -77,6 +89,12 @@ const ChargeDetailScreen: React.FC = () => {
     charge?.categorie || 'cat_autre',
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+  const [editSplitMode, setEditSplitMode] = useState<"egal" | "part">(
+    parseRepartition(charge?.repartition) ? "part" : "egal",
+  );
+  const [editLockedMontants, setEditLockedMontants] = useState<
+    Record<string, number>
+  >(parseRepartition(charge?.repartition) || {});
 
   const showDateStatistiquesPicker = () =>
     setDateStatistiquesPickerVisibility(true);
@@ -88,11 +106,27 @@ const ChargeDetailScreen: React.FC = () => {
     hideDateStatistiquesPicker();
   };
 
+  const getDisplayName = useCallback((uid: string) => {
+    const userItem = householdUsers.find((u) => u.id === uid);
+    return userItem ? userItem.displayName : "Inconnu";
+  }, [householdUsers]);
 
-  const getDisplayName = (uid: string) => {
-    const user = householdUsers.find((u) => u.id === uid);
-    return user ? user.displayName : "Inconnu";
-  };
+  const repartitionMap = useMemo(
+    () => parseRepartition(charge?.repartition),
+    [charge?.repartition],
+  );
+
+  const editAmountNum = parseFloat(editMontant.replace(",", ".")) || 0;
+
+  const { montants: editRepartition, error: editRepartitionError } = useMemo(
+    () =>
+      calculateRepartition(
+        editBeneficiairesUid,
+        editAmountNum,
+        editLockedMontants,
+      ),
+    [editBeneficiairesUid, editAmountNum, editLockedMontants],
+  );
 
   useEffect(() => {
     if (initialCharge) {
@@ -102,9 +136,12 @@ const ChargeDetailScreen: React.FC = () => {
       setEditPayeurUid(initialCharge.payeur);
       setEditBeneficiairesUid(initialCharge.beneficiaires);
 
+      const initialRepartition = parseRepartition(initialCharge.repartition);
+      setEditSplitMode(initialRepartition ? "part" : "egal");
+      setEditLockedMontants(initialRepartition || {});
+
       const categoryExists = categories.some(
-        (c) =>
-          c.id === initialCharge.categorie,
+        (c) => c.id === initialCharge.categorie,
       );
 
       if (categoryExists) {
@@ -130,15 +167,8 @@ const ChargeDetailScreen: React.FC = () => {
     navigation,
     categories,
     defaultCategory,
+    toast,
   ]);
-
-  if (isLoadingComptes || !charge) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
 
   const handleUpdateCharge = useCallback(async () => {
     if (!charge || !editPayeurUid) return;
@@ -155,22 +185,28 @@ const ChargeDetailScreen: React.FC = () => {
       return;
     }
 
+    if (editSplitMode === "part" && editRepartitionError) {
+      toast.warning("Erreur de répartition", editRepartitionError);
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const updatedDataBase = {
+    const chargeScope: ChargeScope = editBeneficiairesUid.length > 1 ? "partage" : "solo";
+
+    const finalRepartition = editSplitMode === "egal" ? null : editRepartition;
+
+    const updatedData: Partial<ICharge> = {
       description: editDescription.trim(),
       montantTotal,
       payeur: editPayeurUid,
       beneficiaires: editBeneficiairesUid,
       dateStatistiques: editDateStatistiques.toISOString(),
       moisAnnee: dayjs(editDateStatistiques).format("YYYY-MM"),
-      scope: editBeneficiairesUid.length > 1 ? "partage" : "solo",
+      scope: chargeScope,
+      categorie: editCategorie,
+      repartition: finalRepartition, 
     };
-
-    const updatedData: Partial<ICharge> = {
-      ...updatedDataBase,
-      ...({ categorie: editCategorie }),
-    } as Partial<ICharge>;
 
     try {
       await updateCharge(charge.id, updatedData);
@@ -190,6 +226,10 @@ const ChargeDetailScreen: React.FC = () => {
     editDateStatistiques,
     updateCharge,
     editCategorie,
+    toast,
+    editSplitMode,        
+    editRepartition,      
+    editRepartitionError, 
   ]);
 
   const handleToggleEditBeneficiaire = (userId: string) => {
@@ -207,16 +247,49 @@ const ChargeDetailScreen: React.FC = () => {
         return [...prev, userId];
       }
     });
+
+    setEditLockedMontants((prev) => {
+      const { [userId]: _, ...rest } = prev;
+      return rest;
+    });
   };
+
+  const handleChangeEditMontant = useCallback((uid: string, montant: number) => {
+    setEditLockedMontants((prev) => ({ ...prev, [uid]: montant }));
+  }, []);
+
+  const handleChangeEditTaux = useCallback(
+    (uid: string, taux: number) => {
+      setEditLockedMontants((prev) => ({
+        ...prev,
+        [uid]: (taux / 100) * editAmountNum,
+      }));
+    },
+    [editAmountNum],
+  );
+
+  const handleResetEditRepartition = useCallback(() => {
+    setEditLockedMontants({});
+  }, []);
+
+  const handleEditSplitModeChange = useCallback((mode: "egal" | "part") => {
+    setEditSplitMode(mode);
+    if (mode === "egal") setEditLockedMontants({});
+  }, []);
 
   const calculatedSplit = useMemo(() => {
     if (!charge || !householdUsers.length) return [];
 
     const total = charge.montantTotal;
     const nbBeneficiaires = charge.beneficiaires.length;
-    const amountPerPerson = nbBeneficiaires > 0 ? total / nbBeneficiaires : 0;
+    const equitableAmount = nbBeneficiaires > 0 ? total / nbBeneficiaires : 0;
 
     return charge.beneficiaires.map((userId) => {
+      const amountPerPerson =
+        repartitionMap && repartitionMap[userId] !== undefined
+          ? repartitionMap[userId]
+          : equitableAmount;
+
       return {
         userId: userId,
         name: getDisplayName(userId),
@@ -225,15 +298,23 @@ const ChargeDetailScreen: React.FC = () => {
         amountPerPerson,
       };
     });
-  }, [charge, householdUsers, user.id, getDisplayName]);
+  }, [charge, householdUsers, user.id, getDisplayName, repartitionMap]);
 
   const payeurItem = calculatedSplit.find((item) => item.isPayeur) || {
-    userId: charge.payeur,
-    name: getDisplayName(charge.payeur),
-    isCurrentUser: charge.payeur === user.id,
+    userId: charge?.payeur || "",
+    name: getDisplayName(charge?.payeur || ""),
+    isCurrentUser: charge?.payeur === user.id,
     isPayeur: true,
     amountPerPerson: 0,
   };
+
+  if (isLoadingComptes || !charge) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   const dateStatistiquesFormatted = dayjs(charge.dateStatistiques).format(
     "DD MMMM YYYY",
@@ -249,15 +330,19 @@ const ChargeDetailScreen: React.FC = () => {
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
   const isFromSharedHousehold = charge.householdId !== user.id;
 
-  const displayAmountTotal = useMemo(() => {
+  const displayAmountTotal = (() => {
     if (!initialCharge) return "0,00";
-    const amount =
-      isActiveHouseholdSolo && isFromSharedHousehold
-        ? initialCharge.montantTotal /
-          (initialCharge.beneficiaires?.length || 1)
-        : initialCharge.montantTotal;
-    return amount.toFixed(2).replace(".", ",");
-  }, [initialCharge, isActiveHouseholdSolo, isFromSharedHousehold]);
+
+    if (isActiveHouseholdSolo && isFromSharedHousehold) {
+      if (repartitionMap && repartitionMap[user.id] !== undefined) {
+        return repartitionMap[user.id].toFixed(2).replace(".", ",");
+      }
+      const amount = initialCharge.montantTotal / (initialCharge.beneficiaires?.length || 1);
+      return amount.toFixed(2).replace(".", ",");
+    }
+
+    return initialCharge.montantTotal.toFixed(2).replace(".", ",");
+  })();
 
   return (
     <ScrollView style={styles.detailContainer}>
@@ -289,6 +374,14 @@ const ChargeDetailScreen: React.FC = () => {
           isCategoryModalVisible={isCategoryModalVisible}
           setIsCategoryModalVisible={setIsCategoryModalVisible}
           categories={categories}
+          editSplitMode={editSplitMode}
+          setEditSplitMode={handleEditSplitModeChange}
+          editRepartition={editRepartition}
+          editLockedUids={Object.keys(editLockedMontants)}
+          handleChangeEditMontant={handleChangeEditMontant}
+          handleChangeEditTaux={handleChangeEditTaux}
+          handleResetEditRepartition={handleResetEditRepartition}
+          editRepartitionError={editRepartitionError}
         />
       ) : (
         <>

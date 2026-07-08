@@ -11,18 +11,33 @@ export const useMultiUserBalance = (
 
     charges.forEach((charge) => {
       const montant = charge.montantTotal;
-      const nbBeneficiaires = charge.beneficiaires.length;
-      if (nbBeneficiaires === 0) return;
-
-      const partIndividuelle = montant / nbBeneficiaires;
 
       if (balances[charge.payeur] !== undefined) {
         balances[charge.payeur] += montant;
       }
 
-      charge.beneficiaires.forEach((uid) => {
+      let repartitionMap: Record<string, number> = {};
+
+      if (charge.repartition) {
+        repartitionMap = typeof charge.repartition === "string" 
+          ? JSON.parse(charge.repartition) 
+          : charge.repartition;
+      } else {
+        const nbBeneficiaires = charge.beneficiaires?.length || 0;
+        if (nbBeneficiaires === 0) {
+          if (balances[charge.payeur] !== undefined) balances[charge.payeur] -= montant;
+          return;
+        }
+        
+        const partIndividuelle = montant / nbBeneficiaires;
+        charge.beneficiaires.forEach((uid) => {
+          repartitionMap[uid] = partIndividuelle;
+        });
+      }
+
+      Object.entries(repartitionMap).forEach(([uid, part]) => {
         if (balances[uid] !== undefined) {
-          balances[uid] -= partIndividuelle;
+          balances[uid] -= part;
         }
       });
     });

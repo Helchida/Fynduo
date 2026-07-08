@@ -12,6 +12,17 @@ import { UniversalDatePicker } from "components/ui/UniversalDatePicker/Universal
 import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 
+type ExtendedEditChargeFormProps = EditChargeFormProps & {
+  editSplitMode?: "egal" | "part";
+  setEditSplitMode?: (mode: "egal" | "part") => void;
+  editRepartition?: Record<string, number>;
+  editLockedUids?: string[];
+  handleChangeEditMontant?: (uid: string, montant: number) => void;
+  handleChangeEditTaux?: (uid: string, taux: number) => void;
+  handleResetEditRepartition?: () => void;
+  editRepartitionError?: string | null;
+};
+
 export const EditChargeForm = ({
   editDescription,
   setEditDescription,
@@ -39,7 +50,15 @@ export const EditChargeForm = ({
   setIsCategoryModalVisible,
   isCategoryModalVisible,
   categories,
-}: EditChargeFormProps) => {
+  editSplitMode,
+  setEditSplitMode,
+  editRepartition,
+  editLockedUids,
+  handleChangeEditMontant,
+  handleChangeEditTaux,
+  handleResetEditRepartition,
+  editRepartitionError,
+}: ExtendedEditChargeFormProps) => {
   const { user } = useAuth();
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -50,9 +69,11 @@ export const EditChargeForm = ({
     editBeneficiairesUid.length === 0 ||
     !editDescription.trim() ||
     isNaN(parseFloat(editMontant)) ||
-    parseFloat(editMontant) <= 0;
+    parseFloat(editMontant) <= 0 ||
+    !!editRepartitionError;
 
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
+
   return (
     <View style={styles.editFormContainer}>
       <View style={[common.userCard, common.payorCard, { marginBottom: 12 }]}>
@@ -165,6 +186,7 @@ export const EditChargeForm = ({
         }}
         getDisplayName={getDisplayName}
       />
+      
       {!isActiveHouseholdSolo && (
         <BeneficiariesSelector
           users={householdUsers}
@@ -173,8 +195,17 @@ export const EditChargeForm = ({
           onToggle={handleToggleEditBeneficiaire}
           getDisplayName={getDisplayName}
           currentUserId={currentUserId}
+          splitMode={editSplitMode}
+          onSplitModeChange={setEditSplitMode}
+          repartition={editRepartition}
+          lockedUids={editLockedUids}
+          onChangeMontant={handleChangeEditMontant}
+          onChangeTaux={handleChangeEditTaux}
+          onReset={handleResetEditRepartition}
+          hasError={editRepartitionError}
         />
       )}
+
       <TouchableOpacity
         style={[
           common.saveButton,
@@ -182,7 +213,7 @@ export const EditChargeForm = ({
             opacity: 0.5,
           },
         ]}
-        onPress={handleUpdateCharge}
+        onPress={() => handleUpdateCharge(editRepartition)}
         disabled={isInvalid}
       >
         <Text style={common.saveButtonText}>

@@ -44,6 +44,7 @@ import { calculSimplifiedTransfers } from "utils/calculSimplifiedTransfers";
 import { TypeChargePickerModal } from "components/ui/TypeChargePickerModal/TypeChargePickerModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
+import { calculateRepartition } from "../../utils/repartition";
 
 dayjs.locale("fr");
 
@@ -111,6 +112,13 @@ const ChargesScreen: React.FC = () => {
   const [remboursementMontant, setRemboursementMontant] = useState("");
   const [isSubmittingRemboursement, setIsSubmittingRemboursement] =
     useState(false);
+
+  const [splitMode, setSplitMode] = useState<"egal" | "part">("egal");
+  const [lockedMontants, setLockedMontants] = useState<Record<string, number>>(
+    {},
+  );
+
+  const amountNum = parseFloat(montant.replace(",", ".")) || 0;
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -235,6 +243,13 @@ const ChargesScreen: React.FC = () => {
     filterCategory,
   ]);
 
+  const isSoloHousehold = user.activeHouseholdId === user.id;
+
+  const { montants: repartitionCalculee, error: repartitionError } = useMemo(
+    () => calculateRepartition(beneficiairesUid, amountNum, lockedMontants),
+    [beneficiairesUid, amountNum, lockedMontants],
+  );
+
   const handleAddDepense = useCallback(async () => {
     const montantTotal = parseFloat(montant.replace(",", "."));
 
@@ -262,6 +277,11 @@ const ChargesScreen: React.FC = () => {
       return;
     }
 
+    if (repartitionError) {
+      toast.warning("Erreur de répartition", repartitionError);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const chargeVariableToAdd: Omit<ICharge, "id" | "householdId"> = {
@@ -276,12 +296,15 @@ const ChargesScreen: React.FC = () => {
       scope:
         beneficiairesUid.length > 1 && !isSoloHousehold ? "partage" : "solo",
       nature: "depense",
+      repartition: repartitionCalculee,
     };
 
     try {
       await addChargeVariable(chargeVariableToAdd);
       setDescription("");
       setMontant("");
+      setLockedMontants({});
+      setSplitMode("egal");
       setSelectedDateStatistiques(new Date());
       setSelectedCategorie(defaultCategory?.label || "Autre");
       setCategoryAutoSuggested(false);
@@ -310,6 +333,10 @@ const ChargesScreen: React.FC = () => {
     addChargeVariable,
     user.id,
     householdUsers,
+    repartitionCalculee,
+    repartitionError,
+    isSoloHousehold,
+    defaultCategory,
   ]);
 
   const handleOpenRemboursement = useCallback(
@@ -365,10 +392,7 @@ const ChargesScreen: React.FC = () => {
     currentMonthData,
     addChargeVariable,
     getDisplayName,
-    defaultCategory,
   ]);
-
-  const isSoloHousehold = user.activeHouseholdId === user.id;
 
   useEffect(() => {
     if (isSoloHousehold) {
@@ -393,6 +417,30 @@ const ChargesScreen: React.FC = () => {
   const currentCategoryData = categories.find(
     (c) => c.id === selectedCategorie,
   );
+
+  const handleChangeMontant = useCallback(
+    (uid: string, montantSaisi: number) => {
+      setLockedMontants((prev) => ({ ...prev, [uid]: montantSaisi }));
+    },
+    [],
+  );
+
+  const handleChangeTaux = useCallback(
+    (uid: string, taux: number) => {
+      const montantConverti = (taux / 100) * amountNum;
+      setLockedMontants((prev) => ({ ...prev, [uid]: montantConverti }));
+    },
+    [amountNum],
+  );
+
+  const handleResetRepartition = useCallback(() => {
+    setLockedMontants({});
+  }, []);
+
+  const handleSplitModeChange = useCallback((mode: "egal" | "part") => {
+    setSplitMode(mode);
+    if (mode === "egal") setLockedMontants({});
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -555,15 +603,27 @@ const ChargesScreen: React.FC = () => {
                   users={householdUsers}
                   selectedUids={beneficiairesUid}
                   totalAmount={montant}
-                  onToggle={(uid) =>
+                  onToggle={(uid) => {
                     setBeneficiairesUid((prev) =>
                       prev.includes(uid)
                         ? prev.filter((i) => i !== uid)
                         : [...prev, uid],
-                    )
-                  }
+                    );
+                    setLockedMontants((prev) => {
+                      const { [uid]: _, ...rest } = prev;
+                      return rest;
+                    });
+                  }}
                   getDisplayName={getDisplayName}
                   currentUserId={user.id}
+                  splitMode={splitMode}
+                  onSplitModeChange={handleSplitModeChange}
+                  repartition={repartitionCalculee}
+                  lockedUids={Object.keys(lockedMontants)}
+                  onChangeMontant={handleChangeMontant}
+                  onChangeTaux={handleChangeTaux}
+                  onReset={handleResetRepartition}
+                  hasError={repartitionError}
                 />
               </>
             )}
@@ -1032,7 +1092,7 @@ const ChargesScreen: React.FC = () => {
             <Text style={common.bold}>dépense fixe</Text> depuis cet écran ne
             modifie que cette occurrence. Pour changer le montant de façon
             permanente, rendez-vous dans les{" "}
-            <Text style={common.bold}>Charges fixes</Text>.
+            <Text style={common.bold}>Charges charges fixes</Text>.
           </Text>
         </View>
       </InfoModal>

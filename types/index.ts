@@ -65,6 +65,7 @@ export interface ICharge extends FirestoreDocument {
   scope: ChargeScope;
   nature: ChargeNature;
   categorie: ICategorie["id"];
+  repartition?: Record<string, number> | null;
 }
 
 export interface IChargeFixeTemplate extends FirestoreDocument {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { common } from "../../../styles/common.style";
 import { ChargeItemProps } from "./ChargeItem.type";
@@ -7,7 +7,6 @@ import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
 import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
-
 
 const ChargeItem: React.FC<ChargeItemProps> = ({
   charge,
@@ -34,10 +33,28 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
   const isFromSharedHousehold = charge.householdId !== user.id;
 
-  const montantAffiche =
-    isActiveHouseholdSolo && isFromSharedHousehold
-      ? (charge.montantTotal / (charge.beneficiaires?.length || 1)).toFixed(2)
-      : charge.montantTotal.toFixed(2);
+  const repartitionMap = useMemo(() => {
+    if (!charge.repartition) return null;
+    try {
+      return typeof charge.repartition === "string"
+        ? (JSON.parse(charge.repartition) as Record<string, number>)
+        : (charge.repartition as Record<string, number>);
+    } catch (e) {
+      console.error("Erreur de parsing de la répartition dans ChargeItem :", e);
+      return null;
+    }
+  }, [charge.repartition]);
+
+  const montantAffiche = useMemo(() => {
+    if (isActiveHouseholdSolo && isFromSharedHousehold) {
+      if (repartitionMap && repartitionMap[user.id] !== undefined) {
+        return repartitionMap[user.id].toFixed(2);
+      }
+      return (charge.montantTotal / (charge.beneficiaires?.length || 1)).toFixed(2);
+    }
+    
+    return charge.montantTotal.toFixed(2);
+  }, [isActiveHouseholdSolo, isFromSharedHousehold, charge.montantTotal, charge.beneficiaires, repartitionMap, user.id]);
 
   return (
     <TouchableOpacity
