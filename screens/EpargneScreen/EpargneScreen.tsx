@@ -363,7 +363,7 @@ const EpargneScreen: React.FC = () => {
     }
 
     try {
-      if (tirelireToBreak.parentId !== null) {
+      if (tirelireToBreak.parentId !== null && tirelireToBreak.parentId !== undefined) {
         const montantSafe = Math.min(montant, tirelireToBreak.montantInitial);
         if (montantSafe > 0) {
           await breakSubTirelire(tirelireToBreak.id, montantSafe);
