@@ -2,14 +2,12 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-
     "baseUrl": ".",
     "paths": {
       "@/types": ["types/index.ts"],
       "@/types/*": ["types/*"]
     },
-
-    "ignoreDeprecations": "5.0"
+    "ignoreDeprecations": "6.0"
   },
   "exclude": ["supabase/functions", "dist"]
 }
