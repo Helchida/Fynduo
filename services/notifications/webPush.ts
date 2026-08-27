@@ -16,7 +16,14 @@ export async function requestWebPushSubscription(vapidPublicKey: string) {
   const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
   if (permission !== "granted") throw new Error("Permission de notifications non accordée.");
   const registration = await navigator.serviceWorker.ready;
-  return registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) });
+  const existingSubscription = await registration.pushManager.getSubscription();
+  return existingSubscription ?? registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) });
+}
+
+export async function getCurrentWebPushSubscription(): Promise<PushSubscription | null> {
+  if (!isWebPushSupported() || Notification.permission !== "granted") return null;
+  const registration = await navigator.serviceWorker.ready;
+  return registration.pushManager.getSubscription();
 }
 
 export async function updateAppBadge(count: number) {
