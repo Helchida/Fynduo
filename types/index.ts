@@ -14,6 +14,15 @@ export interface IUser extends FirestoreDocument {
   activeHouseholdId: string;
 }
 
+export interface INotification extends FirestoreDocument {
+  type: "expense_created";
+  title: string;
+  message: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  readAt: string | null;
+}
+
 export interface LoginAttempt {
   count: number;
   firstAttempt: number;
@@ -88,6 +97,7 @@ export interface IChargeFixeTemplate extends FirestoreDocument {
 export interface ChargeFixeForm extends IChargeFixeTemplate {
   montantForm: string;
   isNew?: boolean;
+  jourPrelevementMensuel?: number;
 }
 
 export interface IChargeFixeSnapshot {
@@ -246,6 +256,7 @@ export type RootStackParamList = {
   ChargeDetail: { chargeId: string; description: string };
   RevenuDetail: { revenuId: string; description: string };
   Tirelire: { tirelire : ITirelire };
+  Notifications: undefined;
 };
 
 export type RootStackNavigationProp =

@@ -50,6 +50,9 @@ yarn-error.*
 *-debug.log
 .firebase/
 
+#supabase
+/supabase/.temp/
+
 # Script migration
 scripts/serviceAccountKey.json
 scripts/migrateDataChargesVariables.ts

@@ -13,6 +13,7 @@ import { navigate } from "navigation/RootNavigation";
 import { ToastProvider } from "./context/ToastContext";
 import { CategoriesProvider } from "context/CategoriesContext";
 import { ChargesFixesConfigProvider } from "context/ChargesFixesConfigContext";
+import { NotificationsProvider } from "context/NotificationsContext";
 
 const AppContent: React.FC = () => {
   const { isLoading } = useAuth();
@@ -78,6 +79,7 @@ const App: React.FC = () => {
         }
       `;
       document.head.append(style);
+      navigator.serviceWorker?.register("/sw.js").catch((error) => console.warn("service_worker_registration_failed", error));
       const preventZoom = (e: TouchEvent) => {
         if (e.touches.length > 1) {
           e.preventDefault();
@@ -111,11 +113,13 @@ const App: React.FC = () => {
       <AuthProvider>
         <CategoriesProvider>
           <ChargesFixesConfigProvider>
-            <ComptesProvider>
-              <ToastProvider>
-                <AppContent />
-              </ToastProvider>
-            </ComptesProvider>
+            <NotificationsProvider>
+              <ComptesProvider>
+                <ToastProvider>
+                  <AppContent />
+                </ToastProvider>
+              </ComptesProvider>
+            </NotificationsProvider>
           </ChargesFixesConfigProvider>
         </CategoriesProvider>
       </AuthProvider>

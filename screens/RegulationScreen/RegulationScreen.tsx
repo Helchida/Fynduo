@@ -183,6 +183,9 @@ const RegulationScreen: React.FC = () => {
                 montantForm: c.montantTotal.toString(),
                 isNew: false,
                 jourPrelevementMensuel: 1,
+                periodiciteType: "mensuel",
+                periodiciteIntervalle: 1,
+                datePremierPrelevement: null,
               }) as ChargeFixeForm,
           );
 
@@ -227,6 +230,9 @@ const RegulationScreen: React.FC = () => {
         beneficiaires: householdUsers.map((u) => u.id),
         scope: "partage",
         categorie: "cat_autre",
+        periodiciteType: "mensuel",
+        periodiciteIntervalle: 1,
+        datePremierPrelevement: null,
       };
 
       setChargesFormMap((prev) => ({
@@ -345,6 +351,7 @@ const RegulationScreen: React.FC = () => {
               scope: "partage",
               dateStatistiques: new Date().toISOString(),
               categorie: charge.categorie,
+              nature: "depense",
             }),
           ),
         ...allChargesForm

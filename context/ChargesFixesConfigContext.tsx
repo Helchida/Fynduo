@@ -123,6 +123,7 @@ export const ChargesFixesConfigProvider: React.FC<{
             categorie: config.categorie,
             type: "fixe",
             scope: beneficiaryUids.length > 1 ? "partage" : "solo",
+            nature: "depense",
             householdId: activeHouseholdId,
           };
 
