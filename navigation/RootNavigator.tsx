@@ -26,6 +26,7 @@ import EpargneScreen from "screens/EpargneScreen/EpargneScreen";
 import ChargeDetailScreen from "screens/ChargeDetail/ChargeDetailScreen";
 import RevenuDetailScreen from "screens/RevenuDetail/RevenuDetailScreen";
 import TirelireScreen from "screens/EpargneScreen/TirelireScreen/TirelireScreen";
+import NotificationsScreen from "screens/NotificationsScreen/NotificationsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -67,6 +68,7 @@ const AppStack = () => (
       component={UserSettingsScreen}
       options={{ title: "Paramètres" }}
     />
+    <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Notifications" }} />
     <Stack.Screen
       name="Households"
       component={HouseholdsScreen}

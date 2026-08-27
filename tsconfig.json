@@ -9,6 +9,7 @@
       "@/types/*": ["types/*"]
     },
 
-    "ignoreDeprecations": "6.0"
-  }
+    "ignoreDeprecations": "5.0"
+  },
+  "exclude": ["supabase/functions", "dist"]
 }

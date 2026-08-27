@@ -16,6 +16,7 @@ import {
 } from "../../types";
 import { DEFAULT_CATEGORIES } from "constants/categories";
 import { supabase } from "../supabase/config";
+import { auth } from "../firebase/config";
 import { DEFAULT_CATEGORIES_REVENUS } from "constants/categories_revenus";
 import {
   normalizeLabel,
@@ -649,23 +650,18 @@ export async function addCharge(
   const docId = generateId();
   const uniqueId = makeUniqueId(householdId, docId);
 
-  const { error } = await supabase.from("charges").insert({
-    id: uniqueId,
-    household_id: householdId,
-    type: charge.type || "variable",
-    categorie: charge.categorie || null,
-    description: charge.description,
-    montant_total: charge.montantTotal,
-    payeur: charge.payeur,
-    beneficiaires: charge.beneficiaires || [],
-    date_statistiques: (charge as any).dateStatistiques,
-    mois_annee: (charge as any).moisAnnee,
-    scope: charge.scope,
-    jour_prelevement_mensuel: (charge as any).jourPrelevementMensuel,
-    nature: (charge as any).nature || "depense",
-    repartition: charge.repartition ? JSON.stringify(charge.repartition) : null,
+  const firebaseToken = await auth.currentUser?.getIdToken();
+  if (!firebaseToken) throw new Error("Utilisateur non authentifié");
+  const { error } = await supabase.functions.invoke("create-charge", {
+    headers: { Authorization: `Bearer ${firebaseToken}` },
+    body: {
+      id: docId, householdId, type: charge.type || "variable", categorie: charge.categorie || "",
+      description: charge.description, montantTotal: charge.montantTotal, payeur: charge.payeur,
+      beneficiaires: charge.beneficiaires || [], dateStatistiques: (charge as any).dateStatistiques,
+      moisAnnee: (charge as any).moisAnnee, scope: charge.scope,
+      nature: (charge as any).nature || "depense", repartition: charge.repartition ?? null,
+    },
   });
-
   if (error) throw error;
 
   try {

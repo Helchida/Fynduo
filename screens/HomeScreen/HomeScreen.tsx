@@ -25,6 +25,7 @@ import {
   BadgeEuro,
   Lightbulb,
   LayoutDashboard,
+  Bell,
 } from "lucide-react-native";
 import { useToast } from "hooks/useToast";
 import { supabase } from "services/supabase/config";
@@ -33,6 +34,7 @@ import "dayjs/locale/fr";
 import HistogramCashflow from "components/fynduo/HistogramCashflow/HistogramCashflow";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
+import { useNotifications } from "hooks/useNotifications";
 
 dayjs.locale("fr");
 
@@ -48,6 +50,7 @@ const HomeScreen: React.FC = () => {
   const [monthOffset, setMonthOffset] = useState(0);
   const [isStackedView, setIsStackedView] = useState(false);
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
+  const { unreadNotificationCount } = useNotifications();
 
   if (!user) {
     return <NoAuthenticatedUser />;
@@ -253,12 +256,15 @@ const HomeScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.userIconButton}
-            onPress={() => setMenuVisible(true)}
-          >
-            <User color="#2c3e50" size={22} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TouchableOpacity style={styles.userIconButton} onPress={() => navigation.navigate("Notifications")}>
+              <Bell color="#2c3e50" size={22} />
+              {unreadNotificationCount > 0 && <View style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#e74c3c", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "white", fontSize: 11, fontWeight: "800" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text></View>}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.userIconButton} onPress={() => setMenuVisible(true)}>
+              <User color="#2c3e50" size={22} />
+            </TouchableOpacity>
+          </View>
         </View>
         <Modal
           visible={menuVisible}

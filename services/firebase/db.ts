@@ -560,6 +560,7 @@ export async function addChargeVariableRegularisation(
       categorie: "Remboursement",
       type: "variable",
       scope: "partage",
+      nature: "remboursement",
     });
   }
 
