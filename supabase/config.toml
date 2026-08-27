@@ -1,0 +1,7 @@
+# These functions validate Firebase ID tokens in firebase-auth.ts. Supabase's
+# platform JWT verifier only accepts Supabase tokens and must remain disabled.
+[functions.notifications]
+verify_jwt = false
+
+[functions.create-charge]
+verify_jwt = false

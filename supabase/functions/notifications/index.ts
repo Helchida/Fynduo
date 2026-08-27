@@ -31,6 +31,13 @@ Deno.serve(async (request) => {
       if (error) throw error;
       return respond({ ok: true });
     }
+    if (body.action === "subscription_status") {
+      if (!body.fingerprint) return respond({ error: "invalid_subscription" }, 400);
+      const { data, error } = await supabase.from("push_subscriptions").select("active")
+        .eq("user_id", userId).eq("fingerprint", body.fingerprint).maybeSingle();
+      if (error) throw error;
+      return respond({ active: Boolean(data?.active) });
+    }
     if (body.action === "subscribe") {
       const subscription = body.subscription;
       if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth || !body.fingerprint) return respond({ error: "invalid_subscription" }, 400);
@@ -39,6 +46,14 @@ Deno.serve(async (request) => {
         auth: subscription.keys.auth, platform: body.platform || "web", fingerprint: body.fingerprint,
         active: true, invalidated_at: null, last_used_at: new Date().toISOString(),
       }, { onConflict: "fingerprint" });
+      if (error) throw error;
+      return respond({ ok: true });
+    }
+    if (body.action === "unsubscribe") {
+      if (!body.fingerprint) return respond({ error: "invalid_subscription" }, 400);
+      const { error } = await supabase.from("push_subscriptions").update({
+        active: false, invalidated_at: new Date().toISOString(),
+      }).eq("user_id", userId).eq("fingerprint", body.fingerprint);
       if (error) throw error;
       return respond({ ok: true });
     }
