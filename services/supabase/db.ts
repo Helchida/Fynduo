@@ -135,6 +135,44 @@ export async function deleteUserInfo(uid: string) {
 }
 
 /**
+ * Réinitialise complètement les données applicatives de l'utilisateur.
+ *
+ */
+export async function resetUserData(): Promise<void> {
+  try {
+    const token = await auth.currentUser?.getIdToken(true);
+
+    if (!token) {
+      throw new Error("Utilisateur non authentifié");
+    }
+
+    const { data, error } = await supabase.functions.invoke(
+      "reset-user-data",
+      {
+        body: {},
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.success) {
+      throw new Error("La réinitialisation a échoué");
+    }
+  } catch (error) {
+    console.error(
+      "Erreur lors de la réinitialisation des données:",
+      error,
+    );
+    throw error;
+  }
+}
+
+/**
  * Récupère tous les utilisateurs appartenant à un household
  */
 export async function getHouseholdUsers(householdId: string): Promise<IUser[]> {

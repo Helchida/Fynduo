@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
 import { styles } from "../../styles/screens/UserSettingsScreen/UserSettingsScreen.style";
@@ -16,6 +17,7 @@ import {
   Trash2,
   ChevronRight,
   X,
+  RotateCcw,
 } from "lucide-react-native";
 import {
   updateProfile,
@@ -26,7 +28,7 @@ import {
   reauthenticateWithCredential,
 } from "firebase/auth";
 import { auth } from "services/firebase/config";
-import { updateUserInfo } from "services/supabase/db";
+import { updateUserInfo, resetUserData } from "services/supabase/db";
 import { useToast } from "hooks/useToast";
 
 const UserSettingsScreen: React.FC = () => {
@@ -37,11 +39,12 @@ const UserSettingsScreen: React.FC = () => {
   const [isUpdatingName, setIsUpdatingName] = useState(false);
 
   const [activeAction, setActiveAction] = useState<
-    "EMAIL" | "PASSWORD" | "DELETE" | null
+    "EMAIL" | "PASSWORD" | "RESET" | "DELETE" | null
   >(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newValue, setNewValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [confirmationText, setConfirmationText] = useState("");
 
   if (!user) return null;
 
@@ -84,6 +87,18 @@ const UserSettingsScreen: React.FC = () => {
   };
 
   const handleConfirmAction = async () => {
+
+    if (
+      activeAction === "RESET" &&
+      confirmationText.trim().toUpperCase() !== "REINITIALISER"
+    ) {
+      toast.error(
+        "Confirmation requise",
+        'Tapez "REINITIALISER" pour confirmer.',
+      );
+      return;
+    }
+
     setIsProcessing(true);
     const success = await reauthenticate();
 
@@ -96,6 +111,18 @@ const UserSettingsScreen: React.FC = () => {
         } else if (activeAction === "PASSWORD") {
           await updatePassword(auth.currentUser!, newValue);
           toast.success("Succès", "Mot de passe modifié");
+        } else if (activeAction === "RESET") {
+          await resetUserData();
+
+          toast.success(
+            "Données réinitialisées",
+            "Vos données ont été supprimées et votre foyer solo a été recréé.",
+          );
+
+          if (Platform.OS === "web") {
+            window.location.reload();
+            return;
+          }
         } else if (activeAction === "DELETE") {
           const uid = auth.currentUser!.uid;
           const { deleteUserInfo } = require("services/supabase/db");
@@ -111,6 +138,7 @@ const UserSettingsScreen: React.FC = () => {
         setActiveAction(null);
         setCurrentPassword("");
         setNewValue("");
+        setConfirmationText("");
       } catch (err: any) {
         toast.error("Erreur", "L'action a échoué");
       }
@@ -171,6 +199,7 @@ const UserSettingsScreen: React.FC = () => {
               {activeAction === "EMAIL" && "Nouveau mail"}
               {activeAction === "PASSWORD" && "Nouveau mot de passe"}
               {activeAction === "DELETE" && "Supprimer le compte"}
+              {activeAction === "RESET" && "Réinitialiser mes données"}
             </Text>
             <TouchableOpacity onPress={() => setActiveAction(null)}>
               <X color="#bdc3c7" size={20} />
@@ -199,12 +228,42 @@ const UserSettingsScreen: React.FC = () => {
             />
           )}
 
+          {activeAction === "RESET" && (
+            <>
+              <Text
+                style={{
+                  color: "#7f8c8d",
+                  fontSize: 14,
+                  lineHeight: 20,
+                  marginBottom: 12,
+                }}
+              >
+                Cette action supprimera toutes vos données personnelles
+                et vous retirera de vos foyers partagés.
+                Les données des autres membres de ces foyers seront conservées.
+                Votre compte et votre mot de passe ne seront pas supprimés.
+              </Text>
+
+              <TextInput
+                style={styles.input}
+                placeholder='Tapez "REINITIALISER"'
+                value={confirmationText}
+                onChangeText={setConfirmationText}
+                autoCapitalize="characters"
+              />
+            </>
+          )}
+
           <TouchableOpacity
             style={[
               styles.saveButton,
               {
                 backgroundColor:
-                  activeAction === "DELETE" ? "#e74c3c" : "#2c3e50",
+                  activeAction === "DELETE"
+                    ? "#e74c3c"
+                    : activeAction === "RESET"
+                      ? "#e67e22"
+                      : "#2c3e50",
               },
             ]}
             onPress={handleConfirmAction}
@@ -239,6 +298,37 @@ const UserSettingsScreen: React.FC = () => {
           <Text style={styles.actionText}>Changer le mot de passe</Text>
         </View>
         <ChevronRight color="#bdc3c7" size={20} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.actionButton,
+          {
+            borderLeftColor: "#e67e22",
+          },
+        ]}
+        onPress={() => {
+          setActiveAction("RESET");
+          setCurrentPassword("");
+          setConfirmationText("");
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <RotateCcw
+            color="#e67e22"
+            size={20}
+            style={{ marginRight: 15 }}
+          />
+
+          <Text style={styles.actionText}>
+            Réinitialiser mes données
+          </Text>
+        </View>
+
+        <ChevronRight
+          color="#bdc3c7"
+          size={20}
+        />
       </TouchableOpacity>
 
       <TouchableOpacity
