@@ -38,7 +38,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { common } from "styles/common.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
-import { getCalendarPeriod, getPayPeriods } from "utils/financialPeriods";
+import { getAvailablePayPeriods, getCalendarPeriod } from "utils/financialPeriods";
 
 dayjs.locale("fr");
 
@@ -71,9 +71,7 @@ const StatsScreen: React.FC = () => {
   const isSoloMode = user?.activeHouseholdId === user?.id;
   const payPeriodActive = isSoloMode && financialPeriodMode === "PAY_PERIOD";
   const payPeriods = useMemo(
-    () => getPayPeriods(referencePayDates)
-      .filter((financialPeriod) => financialPeriod.start <= dayjs().format("YYYY-MM-DD"))
-      .sort((a, b) => b.start.localeCompare(a.start)),
+    () => getAvailablePayPeriods(referencePayDates).sort((a, b) => b.start.localeCompare(a.start)),
     [referencePayDates],
   );
   useEffect(() => {

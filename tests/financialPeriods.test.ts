@@ -1,6 +1,7 @@
 import {
   getCalendarPeriod,
   getCurrentFinancialPeriod,
+  getAvailablePayPeriods,
   getFinancialPeriodForDate,
   getPayPeriods,
 } from "../utils/financialPeriods";
@@ -49,6 +50,29 @@ describe("financial periods", () => {
       { start: "2026-10-27", end: "2026-11-25", isOpen: false },
       { start: "2026-11-26", end: null, isOpen: true },
     ]);
+  });
+
+  it("generates one selector entry per reference-pay period, independently of savings operations", () => {
+    const savingsOperations = [
+      { date: "2026-09-29", tirelireId: "a" },
+      { date: "2026-10-10", tirelireId: "a" },
+      { date: "2026-10-26", tirelireId: "b" },
+      { date: "2026-10-30", tirelireId: "b" },
+    ];
+
+    expect(savingsOperations.length).toBe(4);
+    expect(getAvailablePayPeriods(paydays, "2026-11-30").map((period) => period.id)).toEqual([
+      "2026-09-28",
+      "2026-10-27",
+      "2026-11-26",
+    ]);
+  });
+
+  it("keeps one calendar selector identity for all operations in the same month", () => {
+    const periodIds = ["2026-10-01", "2026-10-15", "2026-10-31"].map(
+      (date) => getCalendarPeriod(date).id,
+    );
+    expect(Array.from(new Set(periodIds))).toEqual(["2026-10"]);
   });
 
   it("applies inclusive start/end boundaries", () => {
