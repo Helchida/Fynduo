@@ -25,6 +25,7 @@ import {
   FUZZY_THRESHOLD_CATEGORY,
 } from "utils/fuzzyMatch";
 import { FinancialPeriod, getCalendarPeriod } from "utils/financialPeriods";
+import { toRevenuInsertPayload } from "./revenuPayload";
 
 // ============================================
 // HELPERS
@@ -1641,17 +1642,9 @@ export async function addRevenu(
     const docId = generateId();
     const uniqueId = makeUniqueId(householdId, docId);
 
-    const { error } = await supabase.from("revenus").insert({
-      id: uniqueId,
-      household_id: householdId,
-      categorie: revenu.categorie,
-      description: revenu.description,
-      montant: revenu.montant,
-      beneficiaire: revenu.beneficiaire,
-      date_reception: revenu.dateReception,
-      mois_annee: revenu.moisAnnee,
-      is_reference_pay: revenu.isReferencePay ?? false,
-    });
+    const { error } = await supabase
+      .from("revenus")
+      .insert(toRevenuInsertPayload(householdId, uniqueId, revenu));
 
     if (error) throw error;
     return docId;

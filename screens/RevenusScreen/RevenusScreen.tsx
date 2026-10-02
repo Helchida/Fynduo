@@ -56,6 +56,7 @@ const RevenusScreen: React.FC = () => {
     return <NoAuthenticatedUser />;
   }
 
+  const isSoloHousehold = user.activeHouseholdId === user.id;
   const { householdUsers, getDisplayName } = useHouseholdUsers();
   const { categoriesRevenus, getCategoryRevenuLabel, defaultCategoryRevenu } =
     useCategories();
@@ -238,10 +239,11 @@ const RevenusScreen: React.FC = () => {
     currentMonthData,
     addRevenu,
     user.id,
-    householdUsers,
+    isReferencePay,
+    isSoloHousehold,
+    defaultCategoryRevenu,
+    toast,
   ]);
-
-  const isSoloHousehold = user.activeHouseholdId === user.id;
 
   if (isLoadingComptes) {
     return <Text style={common.loadingText}>Chargement des revenus...</Text>;
