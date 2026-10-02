@@ -18,4 +18,7 @@ export interface EditRevenuFormProps {
   setIsCategoryModalVisible: (value: boolean) => void;
   isCategoryModalVisible: boolean;
   categoriesRevenus: ICategorieRevenu[];
+  isReferencePay: boolean;
+  setIsReferencePay: (value: boolean) => void;
+  isSoloHousehold: boolean;
 }

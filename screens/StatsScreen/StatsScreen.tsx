@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,8 @@ import {
   BarChart2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Landmark,
   Lightbulb,
 } from "lucide-react-native";
@@ -36,13 +38,14 @@ import { useFocusEffect } from "@react-navigation/native";
 import { common } from "styles/common.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
+import { getAvailablePayPeriods, getCalendarPeriod } from "utils/financialPeriods";
 
 dayjs.locale("fr");
 
 type ViewMode = "dépenses" | "revenus" | "épargnes";
 
 const StatsScreen: React.FC = () => {
-  const { charges, revenus } = useComptes();
+  const { charges, revenus, financialPeriodMode, currentFinancialPeriod, referencePayDates } = useComptes();
   const { categories, categoriesRevenus } = useCategories();
   const { user } = useAuth();
   const { householdUsers } = useHouseholdUsers();
@@ -54,6 +57,7 @@ const StatsScreen: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>(
     dayjs().format("YYYY"),
   );
+  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dépenses");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -65,13 +69,29 @@ const StatsScreen: React.FC = () => {
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
+  const payPeriodActive = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+  const payPeriods = useMemo(
+    () => getAvailablePayPeriods(referencePayDates).sort((a, b) => b.start.localeCompare(a.start)),
+    [referencePayDates],
+  );
+  useEffect(() => {
+    if (!payPeriodActive) return;
+    if (selectedPayPeriodId && payPeriods.some((financialPeriod) => financialPeriod.id === selectedPayPeriodId)) return;
+    setSelectedPayPeriodId(currentFinancialPeriod?.id ?? payPeriods[0]?.id ?? null);
+  }, [payPeriodActive, selectedPayPeriodId, currentFinancialPeriod, payPeriods]);
+  const selectedFinancialPeriod = payPeriodActive && period === "mois"
+    ? payPeriods.find((financialPeriod) => financialPeriod.id === selectedPayPeriodId) ?? currentFinancialPeriod
+    : null;
+  const selectedPayPeriodIndex = selectedFinancialPeriod
+    ? payPeriods.findIndex((financialPeriod) => financialPeriod.id === selectedFinancialPeriod.id)
+    : -1;
   const effectiveViewMode: ViewMode = isSoloMode ? viewMode : "dépenses";
 
   const referenceDate = period === "annee" ? selectedYear : selectedMonth;
 
   const { tirelires, refresh: refreshEpargne } = useEpargneData(
     user?.id,
-    referenceDate,
+    selectedFinancialPeriod ?? getCalendarPeriod(`${selectedMonth}-01`),
   );
 
   useFocusEffect(
@@ -94,6 +114,7 @@ const StatsScreen: React.FC = () => {
     referenceDate,
     user?.id,
     isSoloMode,
+    selectedFinancialPeriod,
   );
 
   const { statsRevenusParCategorie, totalRevenus } = useRevenusStats(
@@ -102,12 +123,14 @@ const StatsScreen: React.FC = () => {
     period,
     referenceDate,
     user?.id,
+    selectedFinancialPeriod,
   );
 
   const { statsParTirelire, totalDepose, totalRetire } = useEpargneStats(
     tirelires,
     period,
     referenceDate,
+    selectedFinancialPeriod,
   );
 
   const formatMonth = (monthStr: string) => {
@@ -261,13 +284,31 @@ const StatsScreen: React.FC = () => {
             <Text
               style={[styles.tabText, period === p && styles.activeTabText]}
             >
-              {p === "mois" ? "Mois" : p === "annee" ? "Année" : "Total"}
+              {p === "mois" ? (payPeriodActive ? "Période" : "Mois") : p === "annee" ? "Année" : "Total"}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {period !== "tout" && (
+      {period !== "tout" && payPeriodActive && period === "mois" ? (
+        <View style={styles.periodButton}>
+          <TouchableOpacity
+            disabled={selectedPayPeriodIndex < 0 || selectedPayPeriodIndex >= payPeriods.length - 1}
+            onPress={() => setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex + 1]?.id ?? null)}
+          >
+            <ChevronLeft color="#2c3e50" size={24} />
+          </TouchableOpacity>
+          <Text style={[styles.periodButtonText, { flex: 1, textAlign: "center" }]}>
+            {selectedFinancialPeriod?.label ?? "Aucune période de paie"}
+          </Text>
+          <TouchableOpacity
+            disabled={selectedPayPeriodIndex <= 0}
+            onPress={() => setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex - 1]?.id ?? null)}
+          >
+            <ChevronRight color="#2c3e50" size={24} />
+          </TouchableOpacity>
+        </View>
+      ) : period !== "tout" && (
         <TouchableOpacity
           style={styles.periodButton}
           onPress={handleOpenPeriodPicker}
@@ -291,6 +332,7 @@ const StatsScreen: React.FC = () => {
             isSoloMode={isSoloMode}
             getDisplayName={getDisplayName}
             chargeType={"variable"}
+            financialPeriod={selectedFinancialPeriod}
           />
           <ChargesStatsCard
             charges={charges}
@@ -301,6 +343,7 @@ const StatsScreen: React.FC = () => {
             isSoloMode={isSoloMode}
             getDisplayName={getDisplayName}
             chargeType={"fixe"}
+            financialPeriod={selectedFinancialPeriod}
           />
           <ChargesStatsCard
             charges={charges}
@@ -310,6 +353,7 @@ const StatsScreen: React.FC = () => {
             referenceDate={referenceDate}
             isSoloMode={isSoloMode}
             getDisplayName={getDisplayName}
+            financialPeriod={selectedFinancialPeriod}
           />
         </>
       )}
@@ -322,6 +366,7 @@ const StatsScreen: React.FC = () => {
           period={period}
           referenceDate={referenceDate}
           isSoloMode={isSoloMode}
+          financialPeriod={selectedFinancialPeriod}
         />
       )}
 
@@ -335,7 +380,7 @@ const StatsScreen: React.FC = () => {
       )}
 
       <PeriodPickerModal
-        isVisible={isModalVisible}
+        isVisible={isModalVisible && !payPeriodActive}
         onClose={() => setIsModalVisible(false)}
         selectedMonth={period === "mois" ? selectedMonth : null}
         selectedYear={period === "annee" ? selectedYear : null}

@@ -2,19 +2,21 @@ import { ITirelire } from "@/types";
 import { useCallback, useState } from "react";
 import {
   getTirelires,
-  getTotalMouvEpargneMois,
-  getTotalPlaceEpargneMois,
+  getTotalMouvEpargneForPeriod,
+  getTotalPlaceEpargneForPeriod,
   getSubTirelires,
 } from "services/supabase/db";
+import { FinancialPeriod } from "utils/financialPeriods";
 
 export const useEpargneData = (
   userId: string | undefined,
-  moisAnnee: string,
+  period: FinancialPeriod | null,
 ) => {
   const [tirelires, setTirelires] = useState<ITirelire[]>([]);
   const [totalEpargnesMouvementCeMois, setTotalEpargnesMouvementCeMois] = useState(0);
   const [totalEpargnesPlaceCeMois, setTotalEpargnesPlaceCeMois] = useState(0);
   const [loading, setLoading] = useState(false);
+  const periodKey = period ? `${period.start}:${period.end ?? "open"}` : "none";
 
   const getCagnottes = useCallback((idTirelire: string) => {
     const cagnottes = getSubTirelires(idTirelire);
@@ -27,8 +29,8 @@ export const useEpargneData = (
     try {
       const [list, total, totalPlace] = await Promise.all([
         getTirelires(userId),
-        getTotalMouvEpargneMois(userId, moisAnnee),
-        getTotalPlaceEpargneMois(userId, moisAnnee),
+        getTotalMouvEpargneForPeriod(userId, period),
+        getTotalPlaceEpargneForPeriod(userId, period),
       ]);
       setTirelires(list);
       setTotalEpargnesMouvementCeMois(total);
@@ -38,7 +40,7 @@ export const useEpargneData = (
     } finally {
       setLoading(false);
     }
-  }, [userId, moisAnnee]);
+  }, [userId, periodKey]);
 
   const updateLocalTirelire = (id: string, partialData: Partial<ITirelire>) => {
     setTirelires((current) =>

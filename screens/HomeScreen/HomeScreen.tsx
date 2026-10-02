@@ -35,6 +35,7 @@ import HistogramCashflow from "components/fynduo/HistogramCashflow/HistogramCash
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import { useNotifications } from "hooks/useNotifications";
+import { filterByFinancialPeriod, getPayPeriods } from "utils/financialPeriods";
 
 dayjs.locale("fr");
 
@@ -123,13 +124,53 @@ const HomeScreen: React.FC = () => {
     };
   }, [user?.households]);
 
-  const { isLoadingComptes, currentMonthData, charges, revenus } = useComptes();
+  const {
+    isLoadingComptes,
+    currentMonthData,
+    charges,
+    revenus,
+    financialPeriodMode,
+    referencePayDates,
+  } = useComptes();
 
   const { monthsData, canGoNext, canGoPrevious } = useMemo(() => {
     if (!charges)
       return { monthsData: [], canGoNext: false, canGoPrevious: false };
 
     const isSoloMode = user.activeHouseholdId === user.id;
+
+    const usePayPeriods = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+    if (usePayPeriods) {
+      const periods = getPayPeriods(referencePayDates)
+        .filter((period) => period.start <= dayjs().format("YYYY-MM-DD"))
+        .sort((a, b) => b.start.localeCompare(a.start));
+      const startIndex = Math.abs(monthOffset);
+      const displayed = periods.slice(startIndex, startIndex + 3).reverse();
+      const monthsData = displayed.map((period) => {
+        const periodCharges = filterByFinancialPeriod(
+          charges.filter((charge) => charge.nature !== "remboursement"),
+          (charge) => charge.dateStatistiques,
+          period,
+        );
+        const totalDépenses = periodCharges.reduce((total, charge) => {
+          const montant = Number(charge.montantTotal) || 0;
+          return isSoloMode && charge.beneficiaires?.length > 0
+            ? total + (charge.beneficiaires.includes(user.id) ? montant / charge.beneficiaires.length : 0)
+            : total + montant;
+        }, 0);
+        const totalRevenus = filterByFinancialPeriod(
+          revenus,
+          (revenu) => revenu.dateReception,
+          period,
+        ).reduce((total, revenu) => total + (Number(revenu.montant) || 0), 0);
+        return { month: period.label, year: "", total: totalDépenses, totalRevenus, fullDate: period.id };
+      });
+      return {
+        monthsData,
+        canGoPrevious: startIndex + 3 < periods.length,
+        canGoNext: monthOffset < 0,
+      };
+    }
 
     const allMonthsSet = new Set<string>();
     charges.forEach((c) => {
@@ -190,7 +231,7 @@ const HomeScreen: React.FC = () => {
       canGoPrevious: startIndex + 3 < sortedMonths.length,
       canGoNext: monthOffset < 0,
     };
-  }, [charges, revenus, user, monthOffset]);
+  }, [charges, revenus, user, monthOffset, financialPeriodMode, referencePayDates]);
 
   const maxTotal = useMemo(() => {
     return Math.max(
@@ -385,6 +426,11 @@ const HomeScreen: React.FC = () => {
                     isStacked={isStackedView}
                   />
                 ))}
+                {isSolo && financialPeriodMode === "PAY_PERIOD" && monthsData.length === 0 && (
+                  <Text style={{ color: "#7f8c8d", textAlign: "center", paddingHorizontal: 12 }}>
+                    Ajoutez un revenu marqué comme paie de référence pour créer votre première période.
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity

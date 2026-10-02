@@ -6,6 +6,7 @@ import {
   StatCategorie,
 } from "@/types";
 import dayjs from "dayjs";
+import { FinancialPeriod, isDateInFinancialPeriod } from "utils/financialPeriods";
 
 export const useRevenusStats = (
   revenus: IRevenu[],
@@ -13,6 +14,7 @@ export const useRevenusStats = (
   period: StatPeriod,
   referenceDate: string,
   currentUserUid: string | undefined,
+  financialPeriod: FinancialPeriod | null = null,
 ) => {
   const statsRevenusParCategorie = useMemo((): StatCategorie[] => {
     const filtered = revenus.filter((r) => {
@@ -21,7 +23,9 @@ export const useRevenusStats = (
       const revenuMoisAnnee =
         dayjs(r.dateReception).format("YYYY-MM");
 
-      if (period === "mois") return revenuMoisAnnee === referenceDate;
+      if (period === "mois") return financialPeriod
+        ? isDateInFinancialPeriod(r.dateReception, financialPeriod)
+        : revenuMoisAnnee === referenceDate;
       if (period === "annee") {
         return revenuMoisAnnee.startsWith(referenceDate);
       }
@@ -56,7 +60,7 @@ export const useRevenusStats = (
         (item) => item.montant > 0,
       )
       .sort((a, b) => b.montant - a.montant);
-  }, [revenus, categoriesRevenus, period, referenceDate, currentUserUid]);
+  }, [revenus, categoriesRevenus, period, referenceDate, currentUserUid, financialPeriod]);
 
   const totalRevenus = useMemo(
     () => statsRevenusParCategorie.reduce((sum, i) => sum + i.montant, 0),
