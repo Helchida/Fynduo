@@ -59,8 +59,8 @@ import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import {
   filterByFinancialPeriod,
+  getAvailablePayPeriods,
   getCalendarPeriod,
-  getFinancialPeriodForDate,
 } from "utils/financialPeriods";
 
 const formatCurrency = (amount: number) => {
@@ -108,10 +108,26 @@ const EpargneScreen: React.FC = () => {
 
   const { revenus, charges, loadData, financialPeriodMode, referencePayDates } = useComptes();
   const isSoloMode = user.activeHouseholdId === user.id;
-  const selectedFinancialPeriod = isSoloMode && financialPeriodMode === "PAY_PERIOD"
-    ? getFinancialPeriodForDate("PAY_PERIOD", referencePayDates, selectedDate)
+  const payPeriodActive = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+  const payPeriods = useMemo(
+    () => getAvailablePayPeriods(referencePayDates),
+    [referencePayDates],
+  );
+  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!payPeriodActive) return;
+    if (selectedPayPeriodId && payPeriods.some((period) => period.id === selectedPayPeriodId)) return;
+    setSelectedPayPeriodId(payPeriods[payPeriods.length - 1]?.id ?? null);
+  }, [payPeriodActive, payPeriods, selectedPayPeriodId]);
+
+  const selectedFinancialPeriod = payPeriodActive
+    ? payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null
     : getCalendarPeriod(selectedDate);
-  const periodNoun = isSoloMode && financialPeriodMode === "PAY_PERIOD" ? "période" : "mois";
+  const selectedPayPeriodIndex = selectedFinancialPeriod
+    ? payPeriods.findIndex((period) => period.id === selectedFinancialPeriod.id)
+    : -1;
+  const periodNoun = payPeriodActive ? "période" : "mois";
   const periodDemonstrative = periodNoun === "mois" ? "ce" : "cette";
 
   const {
@@ -194,11 +210,15 @@ const EpargneScreen: React.FC = () => {
   const isPositive = epargneDisponible > 0;
   const statusColor = isPositive ? "#27ae60" : "#e74c3c";
 
-  const isMonthFinished = selectedDate.isBefore(
-    dayjs().add(1, "month").startOf("month"),
-  );
-  const isLatestPossibleMonth = selectedDate.isSame(dayjs(), "month");
-  const isCurrentMonth = selectedDate.isSame(dayjs(), "month");
+  const isMonthFinished = payPeriodActive
+    ? Boolean(selectedFinancialPeriod?.end && dayjs(selectedFinancialPeriod.end).isBefore(dayjs(), "day"))
+    : selectedDate.isBefore(dayjs().add(1, "month").startOf("month"));
+  const isLatestPossibleMonth = payPeriodActive
+    ? selectedPayPeriodIndex === payPeriods.length - 1
+    : selectedDate.isSame(dayjs(), "month");
+  const isCurrentMonth = payPeriodActive
+    ? selectedPayPeriodIndex === payPeriods.length - 1
+    : selectedDate.isSame(dayjs(), "month");
 
   const progressionTotalObjectifs = Math.min(
     (totalCumuleTirelires / getTotalObjectifsTirelires()) * 100,
@@ -612,17 +632,25 @@ const EpargneScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.monthArrow,
-                  selectedDate.format("YYYY-MM") === "2026-01" && {
+                  (payPeriodActive
+                    ? selectedPayPeriodIndex <= 0
+                    : selectedDate.format("YYYY-MM") === "2026-01") && {
                     opacity: 0.3,
                   },
                 ]}
                 onPress={() => {
+                  if (payPeriodActive) {
+                    setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex - 1]?.id ?? null);
+                    return;
+                  }
                   const prevMonth = selectedDate.subtract(1, "month");
                   if (prevMonth.isAfter(dayjs("2025-12-31"), "day")) {
                     setSelectedDate(prevMonth);
                   }
                 }}
-                disabled={selectedDate.format("YYYY-MM") === "2026-01"}
+                disabled={payPeriodActive
+                  ? selectedPayPeriodIndex <= 0
+                  : selectedDate.format("YYYY-MM") === "2026-01"}
               >
                 <ChevronLeft size={24} color="#2c3e50" />
               </TouchableOpacity>
@@ -645,6 +673,10 @@ const EpargneScreen: React.FC = () => {
                   isLatestPossibleMonth && { opacity: 0.3 },
                 ]}
                 onPress={() => {
+                  if (payPeriodActive) {
+                    setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex + 1]?.id ?? null);
+                    return;
+                  }
                   if (!isLatestPossibleMonth)
                     setSelectedDate(selectedDate.add(1, "month"));
                 }}

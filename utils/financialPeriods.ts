@@ -75,6 +75,21 @@ export const getPayPeriods = (
   });
 };
 
+/**
+ * Periods that can be selected in a UI as of a given day. This deliberately
+ * depends only on reference-pay boundaries, never on the transactions that
+ * happen to fall inside a period.
+ */
+export const getAvailablePayPeriods = (
+  referencePayDates: Array<string | Date>,
+  asOf: string | Date | dayjs.Dayjs = dayjs(),
+): FinancialPeriod[] => {
+  const currentDay = toFinancialDate(asOf);
+  return getPayPeriods(referencePayDates).filter(
+    (period) => period.start <= currentDay,
+  );
+};
+
 export const getFinancialPeriodForDate = (
   mode: FinancialPeriodMode,
   referencePayDates: Array<string | Date>,
