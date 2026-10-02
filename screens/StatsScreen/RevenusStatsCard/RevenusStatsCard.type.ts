@@ -1,4 +1,5 @@
 import { IRevenu, StatPeriod } from "@/types";
+import { FinancialPeriod } from "utils/financialPeriods";
 
 interface StatRevenusCategorie {
   categoryId: string;
@@ -14,4 +15,5 @@ export interface RevenusStatsCardProps {
   period: StatPeriod;
   referenceDate: string;
   isSoloMode: boolean;
+  financialPeriod?: FinancialPeriod | null;
 }

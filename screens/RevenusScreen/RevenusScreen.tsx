@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Switch,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -71,6 +72,7 @@ const RevenusScreen: React.FC = () => {
   const [selectedDateReception, setSelectedDateReception] = useState<Date>(
     new Date(),
   );
+  const [isReferencePay, setIsReferencePay] = useState(false);
 
   const [isDateReceptionPickerVisible, setDateReceptionPickerVisibility] =
     useState(false);
@@ -209,6 +211,7 @@ const RevenusScreen: React.FC = () => {
       moisAnnee: dayjs(selectedDateReception).format("YYYY-MM"),
       categorie: selectedCategorie,
       beneficiaire: user.id,
+      isReferencePay: isSoloHousehold && isReferencePay,
     };
 
     try {
@@ -218,6 +221,7 @@ const RevenusScreen: React.FC = () => {
       setSelectedDateReception(new Date());
       setSelectedCategorie(defaultCategoryRevenu?.label || "Autre");
       setCategoryAutoSuggested(false);
+      setIsReferencePay(false);
       setShowForm(false);
       toast.success("Succès", "Revenu enregistré.");
     } catch (error) {
@@ -385,6 +389,18 @@ const RevenusScreen: React.FC = () => {
                 }}
               />
             </View>
+
+            {isSoloHousehold && (
+              <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={common.selectorLabel}>Paie de référence</Text>
+                  <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+                    Délimite les périodes financières. Les autres revenus ne créent jamais de période.
+                  </Text>
+                </View>
+                <Switch value={isReferencePay} onValueChange={setIsReferencePay} disabled={isSubmitting} />
+              </View>
+            )}
 
             <TouchableOpacity
               style={[

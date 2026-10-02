@@ -11,6 +11,7 @@ import { common } from "../../../styles/common.style";
 import { RevenusStatsCardProps } from "./RevenusStatsCard.type";
 import { PieChart } from "react-native-gifted-charts";
 import dayjs from "dayjs";
+import { isDateInFinancialPeriod } from "utils/financialPeriods";
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +31,7 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
   period,
   referenceDate,
   isSoloMode,
+  financialPeriod,
 }) => {
   const [focusedSlice, setFocusedSlice] = useState<number | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
@@ -41,11 +43,13 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
 
       const revenuMoisAnnee = dayjs(r.dateReception).format("YYYY-MM");
 
-      if (period === "mois") return revenuMoisAnnee === referenceDate;
+      if (period === "mois") return financialPeriod
+        ? isDateInFinancialPeriod(r.dateReception, financialPeriod)
+        : revenuMoisAnnee === referenceDate;
       if (period === "annee") return revenuMoisAnnee.startsWith(referenceDate);
       return true;
     });
-  }, [revenus, period, referenceDate]);
+  }, [revenus, period, referenceDate, financialPeriod]);
 
   const revenusByCategory = useMemo(() => {
     const grouped: Record<string, typeof revenus> = {};

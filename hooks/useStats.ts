@@ -6,6 +6,7 @@ import {
   StatCategorie,
 } from "@/types";
 import dayjs from "dayjs";
+import { FinancialPeriod, isDateInFinancialPeriod } from "utils/financialPeriods";
 
 export const useStats = (
   charges: ICharge[],
@@ -14,6 +15,7 @@ export const useStats = (
   referenceDate: string,
   currentUserUid: string | undefined,
   isSoloMode: boolean,
+  financialPeriod: FinancialPeriod | null = null,
 ) => {
   const variablesStatsParCategorie = useMemo((): StatCategorie[] => {
     const filtered = charges.filter((c) => {
@@ -24,7 +26,9 @@ export const useStats = (
       const chargeMoisAnnee =
         dayjs(c.dateStatistiques).format("YYYY-MM");
 
-      if (period === "mois") return chargeMoisAnnee === referenceDate;
+      if (period === "mois") return financialPeriod
+        ? isDateInFinancialPeriod(c.dateStatistiques, financialPeriod)
+        : chargeMoisAnnee === referenceDate;
       if (period === "annee") {
         return chargeMoisAnnee.startsWith(referenceDate);
       }
@@ -74,7 +78,7 @@ export const useStats = (
         (item) => item.montant > 0
       )
       .sort((a, b) => b.montant - a.montant);
-  }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
+  }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode, financialPeriod]);
 
   const fixesStatsParCategorie = useMemo((): StatCategorie[] => {
     const filtered = charges.filter((c) => {
@@ -85,7 +89,9 @@ export const useStats = (
       const chargeMoisAnnee =
         dayjs(c.dateStatistiques).format("YYYY-MM");
 
-      if (period === "mois") return chargeMoisAnnee === referenceDate;
+      if (period === "mois") return financialPeriod
+        ? isDateInFinancialPeriod(c.dateStatistiques, financialPeriod)
+        : chargeMoisAnnee === referenceDate;
       if (period === "annee") {
         return chargeMoisAnnee.startsWith(referenceDate);
       }
@@ -135,7 +141,7 @@ export const useStats = (
         (item) => item.montant > 0
       )
       .sort((a, b) => b.montant - a.montant);
-  }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
+  }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode, financialPeriod]);
 
   const allChargesStatsParCategorie = useMemo((): StatCategorie[] => {
     const filtered = charges.filter((c) => {
@@ -145,7 +151,9 @@ export const useStats = (
       const chargeMoisAnnee =
         dayjs(c.dateStatistiques).format("YYYY-MM");
 
-      if (period === "mois") return chargeMoisAnnee === referenceDate;
+      if (period === "mois") return financialPeriod
+        ? isDateInFinancialPeriod(c.dateStatistiques, financialPeriod)
+        : chargeMoisAnnee === referenceDate;
       if (period === "annee") {
         return chargeMoisAnnee.startsWith(referenceDate);
       }
@@ -195,7 +203,7 @@ export const useStats = (
         (item) => item.montant > 0
       )
       .sort((a, b) => b.montant - a.montant);
-  }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode]);
+  }, [charges, categories, period, referenceDate, currentUserUid, isSoloMode, financialPeriod]);
 
   const totalVariable = useMemo(
     () => variablesStatsParCategorie.reduce((sum, i) => sum + i.montant, 0),

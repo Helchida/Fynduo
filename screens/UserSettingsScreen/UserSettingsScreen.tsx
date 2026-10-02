@@ -30,10 +30,13 @@ import {
 import { auth } from "services/firebase/config";
 import { updateUserInfo, resetUserData } from "services/supabase/db";
 import { useToast } from "hooks/useToast";
+import { useComptes } from "hooks/useComptes";
 
 const UserSettingsScreen: React.FC = () => {
   const toast = useToast();
   const { user, logout, updateLocalUser } = useAuth();
+  const { financialPeriodMode, setFinancialPeriodMode } = useComptes();
+  const [isUpdatingPeriodMode, setIsUpdatingPeriodMode] = useState(false);
 
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [isUpdatingName, setIsUpdatingName] = useState(false);
@@ -47,6 +50,23 @@ const UserSettingsScreen: React.FC = () => {
   const [confirmationText, setConfirmationText] = useState("");
 
   if (!user) return null;
+
+  const isSoloHousehold = user.activeHouseholdId === user.id;
+  const handlePeriodMode = async (mode: "CALENDAR_MONTH" | "PAY_PERIOD") => {
+    if (mode === financialPeriodMode) return;
+    setIsUpdatingPeriodMode(true);
+    try {
+      await setFinancialPeriodMode(mode);
+      toast.success("Période financière mise à jour", mode === "PAY_PERIOD"
+        ? "Seuls les revenus marqués comme paies de référence délimitent les périodes."
+        : "Les données sont de nouveau regroupées par mois calendaire.");
+    } catch (error) {
+      console.error("Erreur de mise à jour du mode de période:", error);
+      toast.error("Erreur", "Le mode de période n'a pas pu être enregistré.");
+    } finally {
+      setIsUpdatingPeriodMode(false);
+    }
+  };
 
   const reauthenticate = async () => {
     if (!currentPassword) {
@@ -173,6 +193,23 @@ const UserSettingsScreen: React.FC = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      {isSoloHousehold && (
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Période financière</Text>
+          <Text style={{ color: "#7f8c8d", lineHeight: 20, marginBottom: 12 }}>
+            Ce choix regroupe vos données personnelles sans modifier les transactions.
+          </Text>
+          <TouchableOpacity style={[styles.actionButton, { borderLeftColor: "#2980b9", opacity: isUpdatingPeriodMode ? 0.6 : 1 }]} onPress={() => handlePeriodMode("CALENDAR_MONTH")} disabled={isUpdatingPeriodMode}>
+            <View><Text style={styles.actionText}>Mois calendaire</Text><Text style={{ color: "#7f8c8d", fontSize: 12 }}>Du 1er au dernier jour du mois</Text></View>
+            <Text style={{ fontWeight: "700", color: financialPeriodMode === "CALENDAR_MONTH" ? "#2980b9" : "#bdc3c7" }}>{financialPeriodMode === "CALENDAR_MONTH" ? "✓" : ""}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, { borderLeftColor: "#8e44ad", opacity: isUpdatingPeriodMode ? 0.6 : 1 }]} onPress={() => handlePeriodMode("PAY_PERIOD")} disabled={isUpdatingPeriodMode}>
+            <View style={{ flex: 1 }}><Text style={styles.actionText}>Période de paie</Text><Text style={{ color: "#7f8c8d", fontSize: 12 }}>D'une paie de référence à la veille de la suivante</Text></View>
+            <Text style={{ fontWeight: "700", color: financialPeriodMode === "PAY_PERIOD" ? "#8e44ad" : "#bdc3c7" }}>{financialPeriodMode === "PAY_PERIOD" ? "✓" : ""}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Text style={[styles.sectionTitle, { marginBottom: 10, marginTop: 10 }]}>
         Sécurité

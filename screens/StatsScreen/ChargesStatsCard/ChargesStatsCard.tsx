@@ -13,6 +13,7 @@ import { ICharge } from "@/types";
 import { styles } from "../../../styles/screens/StatsScreen/ChargesStatsCard/ChargesStatsCard.style";
 import { common } from "styles/common.style";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { isDateInFinancialPeriod } from "utils/financialPeriods";
 
 const { width } = Dimensions.get("window");
 
@@ -34,6 +35,7 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
   isSoloMode,
   getDisplayName,
   chargeType,
+  financialPeriod,
 }) => {
   const [focusedSlice, setFocusedSlice] = useState<number | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
@@ -47,11 +49,13 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
 
       const chargeMoisAnnee = dayjs(c.dateStatistiques).format("YYYY-MM");
 
-      if (period === "mois") return chargeMoisAnnee === referenceDate;
+      if (period === "mois") return financialPeriod
+        ? isDateInFinancialPeriod(c.dateStatistiques, financialPeriod)
+        : chargeMoisAnnee === referenceDate;
       if (period === "annee") return chargeMoisAnnee.startsWith(referenceDate);
       return true;
     });
-  }, [charges, period, referenceDate]);
+  }, [charges, period, referenceDate, financialPeriod]);
 
   const chargesByCategory = useMemo(() => {
     const grouped: Record<string, ICharge[]> = {};

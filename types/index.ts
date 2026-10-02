@@ -44,6 +44,7 @@ export type CategoryType =
 export type ChargeScope = "solo" | "partage";
 export type ChargeType = "fixe" | "variable";
 export type ChargeNature = "depense" | "remboursement"
+export type FinancialPeriodMode = "CALENDAR_MONTH" | "PAY_PERIOD";
 export type PeriodiciteType =
   | "journalier"
   | "hebdomadaire"
@@ -129,6 +130,8 @@ export interface IRevenu extends FirestoreDocument {
   beneficiaire: string;
   dateReception: string;
   moisAnnee: string;
+  /** Explicit opt-in: only these revenues delimit pay periods. */
+  isReferencePay: boolean;
 }
 
 // 3. Données du mois (Loyer et APL + Régularisation)

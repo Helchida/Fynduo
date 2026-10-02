@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Switch } from "react-native";
 import { XCircle, ChevronsUpDown } from "lucide-react-native";
 import { styles } from "../../../styles/screens/RevenuDetail/EditRevenuForm/EditRevenuForm.style";
 import { common } from "styles/common.style";
@@ -28,6 +28,9 @@ export const EditRevenuForm = ({
   setIsCategoryModalVisible,
   isCategoryModalVisible,
   categoriesRevenus,
+  isReferencePay,
+  setIsReferencePay,
+  isSoloHousehold,
 }: EditRevenuFormProps) => {
   const { user } = useAuth();
   if (!user) {
@@ -112,6 +115,15 @@ export const EditRevenuForm = ({
           containerStyle={{ flex: 1, marginLeft: 0 }}
         />
       </View>
+      {isSoloHousehold && (
+        <View style={[common.formContainer, common.payorCard, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={common.editLabel}>Paie de référence</Text>
+            <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Utiliser ce revenu pour délimiter les périodes de paie.</Text>
+          </View>
+          <Switch value={isReferencePay} onValueChange={setIsReferencePay} disabled={isSubmitting} />
+        </View>
+      )}
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}
         onClose={() => setIsCategoryModalVisible(false)}

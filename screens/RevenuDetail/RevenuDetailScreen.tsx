@@ -64,6 +64,9 @@ const RevenuDetailScreen: React.FC = () => {
   const [editCategorie, setEditCategorie] = useState<string>(
     revenu?.categorie || "cat_autre",
   );
+  const [editIsReferencePay, setEditIsReferencePay] = useState(
+    revenu?.isReferencePay ?? false,
+  );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
   const showDateReceptionPicker = () => setDateReceptionPickerVisibility(true);
@@ -97,6 +100,7 @@ const RevenuDetailScreen: React.FC = () => {
           ? new Date(initialRevenu.dateReception)
           : new Date(),
       );
+      setEditIsReferencePay(initialRevenu.isReferencePay ?? false);
     } else if (!isLoadingComptes) {
       toast.success("Succès", "Revenu supprimé.");
       navigation.goBack();
@@ -139,6 +143,7 @@ const RevenuDetailScreen: React.FC = () => {
     const updatedData: Partial<IRevenu> = {
       ...updatedDataBase,
       ...{ categorie: editCategorie },
+      isReferencePay: editIsReferencePay,
     } as Partial<IRevenu>;
 
     try {
@@ -157,6 +162,7 @@ const RevenuDetailScreen: React.FC = () => {
     editDateReception,
     updateRevenu,
     editCategorie,
+    editIsReferencePay,
   ]);
 
   const dateReceptionFormatted = dayjs(revenu.dateReception).format(
@@ -195,6 +201,9 @@ const RevenuDetailScreen: React.FC = () => {
           isCategoryModalVisible={isCategoryModalVisible}
           setIsCategoryModalVisible={setIsCategoryModalVisible}
           categoriesRevenus={categoriesRevenus}
+          isReferencePay={editIsReferencePay}
+          setIsReferencePay={setEditIsReferencePay}
+          isSoloHousehold={user.activeHouseholdId === user.id}
         />
       ) : (
         <>
@@ -204,6 +213,11 @@ const RevenuDetailScreen: React.FC = () => {
             <Text style={common.detailDateText}>
               Revenu du {dateReceptionFormatted}
             </Text>
+            {revenu.isReferencePay && user.activeHouseholdId === user.id && (
+              <Text style={{ color: "#8e44ad", fontWeight: "700", marginTop: 6 }}>
+                Paie de référence
+              </Text>
+            )}
           </View>
 
           <View style={common.actionButtons}>

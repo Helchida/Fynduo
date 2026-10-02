@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { ITirelire, StatPeriod } from "@/types";
 import dayjs from "dayjs";
+import { FinancialPeriod, isDateInFinancialPeriod } from "utils/financialPeriods";
 
 export interface StatEpargne {
   tirelireId: string;
@@ -19,6 +20,7 @@ export const useEpargneStats = (
   tirelires: ITirelire[],
   period: StatPeriod,
   referenceDate: string,
+  financialPeriod: FinancialPeriod | null = null,
 ) => {
   const statsParTirelire = useMemo((): StatEpargne[] => {
     return tirelires
@@ -34,7 +36,9 @@ export const useEpargneStats = (
 
           const moisMouvement = dayjs(m.date_mouvement).format("YYYY-MM");
 
-          if (period === "mois") return moisMouvement === referenceDate;
+          if (period === "mois") return financialPeriod
+            ? isDateInFinancialPeriod(m.date_mouvement, financialPeriod)
+            : moisMouvement === referenceDate;
           if (period === "annee")
             return moisMouvement.startsWith(referenceDate);
           return true;
@@ -61,7 +65,7 @@ export const useEpargneStats = (
       })
       .filter((stat) => stat.mouvements.length > 0)
       .sort((a, b) => b.net - a.net);
-  }, [tirelires, period, referenceDate]);
+  }, [tirelires, period, referenceDate, financialPeriod]);
 
   const totalDepose = useMemo(
     () => statsParTirelire.reduce((sum, s) => sum + s.totalDepose, 0),

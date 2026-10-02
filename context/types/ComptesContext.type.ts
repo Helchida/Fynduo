@@ -5,6 +5,10 @@ import {
   IResultatsCalcul,
   IRevenu,
 } from "@/types";
+import {
+  FinancialPeriod,
+  FinancialPeriodMode,
+} from "utils/financialPeriods";
 
 export interface IComptesContext extends IResultatsCalcul {
   currentMonthData: ICompteMensuel | null;
@@ -44,4 +48,8 @@ export interface IComptesContext extends IResultatsCalcul {
     updateData: Partial<IRevenu>,
   ) => Promise<void>;
   deleteRevenu: (revenuId: string) => Promise<void>;
+  financialPeriodMode: FinancialPeriodMode;
+  setFinancialPeriodMode: (mode: FinancialPeriodMode) => Promise<void>;
+  currentFinancialPeriod: FinancialPeriod | null;
+  referencePayDates: string[];
 }

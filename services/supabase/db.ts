@@ -10,6 +10,7 @@ import {
   IChargeFixeTemplate,
   ICategorieRevenu,
   IRevenu,
+  FinancialPeriodMode,
   ITirelire,
   PropagationConflict,
   PropagationResolution,
@@ -23,6 +24,7 @@ import {
   similarity,
   FUZZY_THRESHOLD_CATEGORY,
 } from "utils/fuzzyMatch";
+import { FinancialPeriod, getCalendarPeriod } from "utils/financialPeriods";
 
 // ============================================
 // HELPERS
@@ -1620,6 +1622,7 @@ export async function getRevenus(
       beneficiaire: row.beneficiaire,
       dateReception: row.date_reception,
       moisAnnee: row.mois_annee,
+      isReferencePay: row.is_reference_pay ?? false,
     }));
   } catch (error) {
     console.error("Erreur getRevenus:", error);
@@ -1647,6 +1650,7 @@ export async function addRevenu(
       beneficiaire: revenu.beneficiaire,
       date_reception: revenu.dateReception,
       mois_annee: revenu.moisAnnee,
+      is_reference_pay: revenu.isReferencePay ?? false,
     });
 
     if (error) throw error;
@@ -1681,8 +1685,8 @@ export async function updateRevenu(
       supabaseUpdates.date_reception = updates.dateReception;
     if (updates.moisAnnee !== undefined)
       supabaseUpdates.mois_annee = updates.moisAnnee;
-    if (updates.moisAnnee !== undefined)
-      supabaseUpdates.mois_annee = updates.moisAnnee;
+    if (updates.isReferencePay !== undefined)
+      supabaseUpdates.is_reference_pay = updates.isReferencePay;
 
     const { error } = await supabase
       .from("revenus")
@@ -1694,6 +1698,36 @@ export async function updateRevenu(
     console.error("Erreur updateRevenu:", error);
     throw error;
   }
+}
+
+/** The preference is read from the household because it is persistent and
+ * shared by all sessions of the solo household. Shared households always use
+ * calendar-month aggregation in the UI. */
+export async function getFinancialPeriodMode(
+  householdId: string,
+): Promise<FinancialPeriodMode> {
+  const { data, error } = await supabase
+    .from("households")
+    .select("financial_period_mode")
+    .eq("id", householdId)
+    .single();
+
+  if (error) throw error;
+  return data?.financial_period_mode === "PAY_PERIOD"
+    ? "PAY_PERIOD"
+    : "CALENDAR_MONTH";
+}
+
+export async function updateFinancialPeriodMode(
+  householdId: string,
+  mode: FinancialPeriodMode,
+): Promise<void> {
+  const { error } = await supabase
+    .from("households")
+    .update({ financial_period_mode: mode })
+    .eq("id", householdId);
+
+  if (error) throw error;
 }
 
 /**
@@ -1809,7 +1843,7 @@ export async function placeEpargne(
   userId: string,
   tirelireId: string,
   montant: number,
-  moisAnnee: string,
+  movementDate: string,
 ) {
   const movementId = generateId();
 
@@ -1818,7 +1852,7 @@ export async function placeEpargne(
     tirelire_id: tirelireId,
     user_id: userId,
     montant: montant,
-    date_mouvement: `${moisAnnee}-01`,
+    date_mouvement: movementDate,
   });
 
   if (error) {
@@ -1831,15 +1865,23 @@ export async function getTotalMouvEpargneMois(
   userId: string,
   moisAnnee: string,
 ): Promise<number> {
-  const startOfMonth = `${moisAnnee}-01`;
-  const endOfMonth = dayjs(startOfMonth).endOf("month").format("YYYY-MM-DD");
+  return getTotalMouvEpargneForPeriod(userId, getCalendarPeriod(`${moisAnnee}-01`));
+}
 
-  const { data, error } = await supabase
+export async function getTotalMouvEpargneForPeriod(
+  userId: string,
+  period: FinancialPeriod | null,
+): Promise<number> {
+  if (!period) return 0;
+
+  let query = supabase
     .from("epargne_mouvements")
     .select("montant")
     .eq("user_id", userId)
-    .filter("date_mouvement", "gte", startOfMonth)
-    .filter("date_mouvement", "lte", endOfMonth);
+    .filter("date_mouvement", "gte", period.start);
+
+  if (period.end) query = query.filter("date_mouvement", "lte", period.end);
+  const { data, error } = await query;
 
   if (error) {
     console.error("Erreur getTotalPlaceMois:", error.message);
@@ -1853,16 +1895,24 @@ export async function getTotalPlaceEpargneMois(
   userId: string,
   moisAnnee: string,
 ): Promise<number> {
-  const startOfMonth = `${moisAnnee}-01`;
-  const endOfMonth = dayjs(startOfMonth).endOf("month").format("YYYY-MM-DD");
+  return getTotalPlaceEpargneForPeriod(userId, getCalendarPeriod(`${moisAnnee}-01`));
+}
 
-  const { data, error } = await supabase
+export async function getTotalPlaceEpargneForPeriod(
+  userId: string,
+  period: FinancialPeriod | null,
+): Promise<number> {
+  if (!period) return 0;
+
+  let query = supabase
     .from("epargne_mouvements")
     .select("montant")
     .eq("user_id", userId)
-    .filter("date_mouvement", "gte", startOfMonth)
-    .filter("date_mouvement", "lte", endOfMonth)
+    .filter("date_mouvement", "gte", period.start)
     .filter("montant", "gt", 0);
+
+  if (period.end) query = query.filter("date_mouvement", "lte", period.end);
+  const { data, error } = await query;
 
   if (error) {
     console.error("Erreur getTotalPlaceMois:", error.message);
