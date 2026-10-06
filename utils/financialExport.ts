@@ -20,11 +20,16 @@ export type FinancialExportMonth = {
   balance: number;
 };
 
-export const formatEuro = (amount: number, sign?: "+" | "-") =>
-  `${sign ?? ""}${new Intl.NumberFormat("fr-FR", {
+export const formatEuro = (amount: number, sign?: "+" | "-") => {
+  const formatted = new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(Math.abs(amount))} €`;
+  })
+    .format(Math.abs(amount))
+    .replace(/\u202F/g, " ");
+
+  return `${sign ?? ""}${formatted} €`;
+};
 
 export const validateExportRange = (start?: Date, end?: Date) => {
   if (!start || !end) return "Les deux dates sont obligatoires.";
