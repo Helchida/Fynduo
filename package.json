@@ -27,6 +27,7 @@
     "expo-status-bar": "~3.0.8",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
+    "jspdf": "^4.2.1",
     "lucide-react-native": "^0.561.0",
     "nanoid": "^5.1.6",
     "papaparse": "^5.5.3",
