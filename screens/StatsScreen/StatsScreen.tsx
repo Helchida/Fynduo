@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Landmark,
   Lightbulb,
+  FileDown,
 } from "lucide-react-native";
 import { EpargneStatsCard } from "./EpargnesStatsCard/EpargnesStatsCard";
 import { useEpargneStats } from "hooks/useEpargnesStats";
@@ -39,6 +40,7 @@ import { common } from "styles/common.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import { getAvailablePayPeriods, getCalendarPeriod } from "utils/financialPeriods";
+import { FinancialTransactionsPdfExportModal } from "components/financial/FinancialTransactionsPdfExportModal";
 
 dayjs.locale("fr");
 
@@ -46,7 +48,7 @@ type ViewMode = "dépenses" | "revenus" | "épargnes";
 
 const StatsScreen: React.FC = () => {
   const { charges, revenus, financialPeriodMode, currentFinancialPeriod, referencePayDates } = useComptes();
-  const { categories, categoriesRevenus } = useCategories();
+  const { categories, categoriesRevenus, getCategoryLabel, getCategoryRevenuLabel } = useCategories();
   const { user } = useAuth();
   const { householdUsers } = useHouseholdUsers();
 
@@ -61,6 +63,7 @@ const StatsScreen: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dépenses");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isPdfExportVisible, setIsPdfExportVisible] = useState(false);
   const triggerRef = useRef<View>(null);
   const [dropdownPosition, setDropdownPosition] = useState({
     top: 0,
@@ -167,8 +170,17 @@ const StatsScreen: React.FC = () => {
       <View style={styles.headerRow}>
         <Text style={styles.header}>Statistiques</Text>
 
-        {isSoloMode && (
-          <View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <TouchableOpacity
+            style={styles.trigger}
+            onPress={() => setIsPdfExportVisible(true)}
+            accessibilityLabel="Exporter les transactions en PDF"
+          >
+            <FileDown size={16} color="#007AFF" />
+            <Text style={styles.triggerText}>Exporter</Text>
+          </TouchableOpacity>
+          {isSoloMode && (
+            <View>
             <TouchableOpacity
               ref={triggerRef}
               style={styles.trigger}
@@ -270,8 +282,9 @@ const StatsScreen: React.FC = () => {
                 </View>
               </Pressable>
             </Modal>
-          </View>
-        )}
+            </View>
+          )}
+        </View>
       </View>
 
       <View style={styles.tabContainer}>
@@ -440,6 +453,15 @@ const StatsScreen: React.FC = () => {
           </Text>
         </View>
       </InfoModal>
+      <FinancialTransactionsPdfExportModal
+        visible={isPdfExportVisible}
+        onClose={() => setIsPdfExportVisible(false)}
+        revenus={revenus}
+        charges={charges}
+        revenueCategoryLabel={getCategoryRevenuLabel}
+        chargeCategoryLabel={getCategoryLabel}
+        householdId={user?.activeHouseholdId ?? ""}
+      />
     </ScrollView>
   );
 };
