@@ -1,7 +1,8 @@
 /**
  * Remaining savings capacity is entirely derived from persisted period data:
- * all income (including a piggy-bank withdrawal), expenses, and the net
- * savings movements already recorded in that same financial period.
+ * real income, expenses, and the net savings movements already recorded in
+ * that same financial period. A piggy-bank withdrawal is represented only by
+ * its negative savings movement, not as additional income.
  */
 export const calculateSavingsCapacity = (
   totalIncome: number,

@@ -47,6 +47,7 @@ const RevenuDetailScreen: React.FC = () => {
   const [revenu, setRevenu] = useState<IRevenu | undefined>(initialRevenu);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [editDescription, setEditDescription] = useState(
     revenu?.description || "",
@@ -101,14 +102,9 @@ const RevenuDetailScreen: React.FC = () => {
           : new Date(),
       );
       setEditIsReferencePay(initialRevenu.isReferencePay ?? false);
-    } else if (!isLoadingComptes) {
-      toast.success("Succès", "Revenu supprimé.");
-      navigation.goBack();
     }
   }, [
     initialRevenu,
-    isLoadingComptes,
-    navigation,
     categoriesRevenus,
     defaultCategory,
   ]);
@@ -248,8 +244,19 @@ const RevenuDetailScreen: React.FC = () => {
             confirmText="Supprimer"
             isDestructive={true}
             onConfirm={async () => {
-              setIsDeleteModalVisible(false);
-              deleteRevenu(revenu.id);
+              if (isDeleting) return;
+
+              setIsDeleting(true);
+              try {
+                await deleteRevenu(revenu.id);
+                setIsDeleteModalVisible(false);
+                toast.success("Succès", "Revenu supprimé.");
+                navigation.goBack();
+              } catch (error) {
+                toast.error("Erreur", "Échec de la suppression.");
+              } finally {
+                setIsDeleting(false);
+              }
             }}
             onCancel={() => setIsDeleteModalVisible(false)}
           />

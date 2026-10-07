@@ -171,10 +171,10 @@ const EpargneScreen: React.FC = () => {
     });
 
     const monthRevenus = filterByFinancialPeriod(
-      // A withdrawal is a real income row in this period. Keeping it in the
-      // deterministic revenue total makes the available savings capacity
-      // consistent before and after a reload.
-      revenus,
+      // A tirelire withdrawal is recorded as a revenue row for traceability,
+      // but it is not new income. Its impact is already represented by the
+      // negative savings movement used in the capacity calculation.
+      revenus.filter((revenu) => revenu.categorie !== "cat_retrait_epargne"),
       (revenu) => revenu.dateReception,
       selectedFinancialPeriod,
     );
@@ -211,7 +211,12 @@ const EpargneScreen: React.FC = () => {
       statsMois.depenses,
       totalEpargnesMouvementCeMois,
     );
-  }, [statsMois.solde, totalEpargnesMouvementCeMois, loading]);
+  }, [
+    statsMois.revenus,
+    statsMois.depenses,
+    totalEpargnesMouvementCeMois,
+    loading,
+  ]);
 
   const totalCumuleTirelires = useMemo(() => {
     return tirelires.reduce((sum, t) => sum + (t.montantActuel || 0), 0);
