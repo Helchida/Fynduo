@@ -31,11 +31,6 @@ const RevenuDetailScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user } = useAuth();
   const toast = useToast();
-
-  if (!user) {
-    return <NoAuthenticatedUser />;
-  }
-
   const { revenuId } = route.params;
 
   const { revenus, isLoadingComptes, updateRevenu, deleteRevenu } =
@@ -109,14 +104,6 @@ const RevenuDetailScreen: React.FC = () => {
     defaultCategory,
   ]);
 
-  if (isLoadingComptes || !revenu) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   const handleUpdateRevenu = useCallback(async () => {
     if (!revenu) return;
 
@@ -161,6 +148,25 @@ const RevenuDetailScreen: React.FC = () => {
     editIsReferencePay,
   ]);
 
+  const displayAmountTotal = useMemo(() => {
+    if (!initialRevenu) return "0,00";
+    return initialRevenu.montant.toFixed(2).replace(".", ",");
+  }, [initialRevenu]);
+
+  // Every hook above must run before a conditional return: the deletion
+  // refetch temporarily removes this revenue from context.
+  if (!user) {
+    return <NoAuthenticatedUser />;
+  }
+
+  if (isLoadingComptes || !revenu) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   const dateReceptionFormatted = dayjs(revenu.dateReception).format(
     "DD MMMM YYYY",
   );
@@ -169,12 +175,6 @@ const RevenuDetailScreen: React.FC = () => {
   const nbBeneficiaires = benefUids.length;
   const currentCategoryData = categoriesRevenus.find((c) => c.id === revenu.categorie);
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "💵";
-
-  const displayAmountTotal = useMemo(() => {
-    if (!initialRevenu) return "0,00";
-    const amount = initialRevenu.montant;
-    return amount.toFixed(2).replace(".", ",");
-  }, [initialRevenu]);
 
   return (
     <ScrollView style={common.detailContainer}>
