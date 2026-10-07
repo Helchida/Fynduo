@@ -59,8 +59,6 @@ import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import {
   filterByFinancialPeriod,
-  getAvailablePayPeriods,
-  getCalendarPeriod,
 } from "utils/financialPeriods";
 
 const formatCurrency = (amount: number) => {
@@ -106,12 +104,12 @@ const EpargneScreen: React.FC = () => {
     useState<ITirelire | null>(null);
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
-  const { revenus, charges, loadData, financialPeriodMode, referencePayDates } = useComptes();
+  const { revenus, charges, loadData, financialPeriods } = useComptes();
   const isSoloMode = user.activeHouseholdId === user.id;
-  const payPeriodActive = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+  const payPeriodActive = isSoloMode;
   const payPeriods = useMemo(
-    () => getAvailablePayPeriods(referencePayDates),
-    [referencePayDates],
+    () => financialPeriods,
+    [financialPeriods],
   );
   const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(null);
 
@@ -121,9 +119,7 @@ const EpargneScreen: React.FC = () => {
     setSelectedPayPeriodId(payPeriods[payPeriods.length - 1]?.id ?? null);
   }, [payPeriodActive, payPeriods, selectedPayPeriodId]);
 
-  const selectedFinancialPeriod = payPeriodActive
-    ? payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null
-    : getCalendarPeriod(selectedDate);
+  const selectedFinancialPeriod = payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null;
   const selectedPayPeriodIndex = selectedFinancialPeriod
     ? payPeriods.findIndex((period) => period.id === selectedFinancialPeriod.id)
     : -1;
@@ -248,7 +244,7 @@ const EpargneScreen: React.FC = () => {
       if (!selectedFinancialPeriod) {
         return toast.warning("Aucune période", "Ajoutez une paie de référence avant de placer une épargne dans cette période.");
       }
-      await placeEpargne(user.id, tirelireId, montant, selectedFinancialPeriod.start);
+      await placeEpargne(user.id, tirelireId, montant, selectedFinancialPeriod.start, selectedFinancialPeriod.id);
       toast.success(
         "Épargne placée !",
         `${formatCurrency(montant)} ajoutés à ${tirelire?.description}`,
@@ -1127,6 +1123,7 @@ const EpargneScreen: React.FC = () => {
                     key={mouv.id}
                     style={[
                       common.dispatchItem,
+                      mouv.isHistorical && { opacity: 0.5 },
                       {
                         paddingVertical: 12,
                         borderBottomWidth: 0.5,
@@ -1149,6 +1146,7 @@ const EpargneScreen: React.FC = () => {
                         style={[styles.bodySm, { color: colors.textSecondary }]}
                       >
                         {mouv.montant > 0 ? "Versement" : "Retrait"}
+                        {mouv.isHistorical ? " · Historique" : ""}
                       </Text>
                     </View>
 

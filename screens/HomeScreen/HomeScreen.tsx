@@ -35,7 +35,7 @@ import HistogramCashflow from "components/fynduo/HistogramCashflow/HistogramCash
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import { useNotifications } from "hooks/useNotifications";
-import { filterByFinancialPeriod, getPayPeriods } from "utils/financialPeriods";
+import { filterByFinancialPeriod } from "utils/financialPeriods";
 
 dayjs.locale("fr");
 
@@ -129,8 +129,7 @@ const HomeScreen: React.FC = () => {
     currentMonthData,
     charges,
     revenus,
-    financialPeriodMode,
-    referencePayDates,
+    financialPeriods,
   } = useComptes();
 
   const { monthsData, canGoNext, canGoPrevious } = useMemo(() => {
@@ -139,9 +138,9 @@ const HomeScreen: React.FC = () => {
 
     const isSoloMode = user.activeHouseholdId === user.id;
 
-    const usePayPeriods = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+    const usePayPeriods = isSoloMode;
     if (usePayPeriods) {
-      const periods = getPayPeriods(referencePayDates)
+      const periods = financialPeriods
         .filter((period) => period.start <= dayjs().format("YYYY-MM-DD"))
         .sort((a, b) => b.start.localeCompare(a.start));
       const startIndex = Math.abs(monthOffset);
@@ -231,7 +230,7 @@ const HomeScreen: React.FC = () => {
       canGoPrevious: startIndex + 3 < sortedMonths.length,
       canGoNext: monthOffset < 0,
     };
-  }, [charges, revenus, user, monthOffset, financialPeriodMode, referencePayDates]);
+  }, [charges, revenus, user, monthOffset, financialPeriods]);
 
   const maxTotal = useMemo(() => {
     return Math.max(
@@ -426,7 +425,7 @@ const HomeScreen: React.FC = () => {
                     isStacked={isStackedView}
                   />
                 ))}
-                {isSolo && financialPeriodMode === "PAY_PERIOD" && monthsData.length === 0 && (
+                {isSolo && monthsData.length === 0 && (
                   <Text style={{ color: "#7f8c8d", textAlign: "center", paddingHorizontal: 12 }}>
                     Ajoutez un revenu marqué comme paie de référence pour créer votre première période.
                   </Text>

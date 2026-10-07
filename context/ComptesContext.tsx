@@ -19,12 +19,7 @@ import * as DB from "../services/supabase/db";
 import dayjs from "dayjs";
 import { IComptesContext } from "./types/ComptesContext.type";
 import { useChargesFixesConfigs } from "hooks/useChargesFixesConfigs";
-import {
-  FinancialPeriod,
-  FinancialPeriodMode,
-  getCalendarPeriod,
-  getCurrentFinancialPeriod,
-} from "utils/financialPeriods";
+import { FinancialPeriod } from "utils/financialPeriods";
 
 export const ComptesContext = createContext<IComptesContext | undefined>(
   undefined,
@@ -55,8 +50,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   const [charges, setCharges] = useState<ICharge[]>([]);
   const [isLoadingComptes, setIsLoadingComptes] = useState(false);
   const [historyMonths, setHistoryMonths] = useState<ICompteMensuel[]>([]);
-  const [financialPeriodMode, setFinancialPeriodModeState] =
-    useState<FinancialPeriodMode>("CALENDAR_MONTH");
+  const [financialPeriods, setFinancialPeriods] = useState<FinancialPeriod[]>([]);
 
   const calculs = useCalculs(currentMonthData, charges, currentUserUid);
   const { handleAutoAddFixedCharges } = useChargesFixesConfigs();
@@ -108,15 +102,10 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       const revenusData = await DB.getRevenus(activeHouseholdId);
       setRevenus(revenusData);
 
-      // Only the personal household may opt into pay periods. Keeping the
-      // shared-household mode local to calendar months protects regulation,
-      // rent and split-expense behaviour.
       if (activeHouseholdId === currentUserUid) {
-        setFinancialPeriodModeState(
-          await DB.getFinancialPeriodMode(activeHouseholdId),
-        );
+        setFinancialPeriods(await DB.getFinancialPeriods(currentUserUid));
       } else {
-        setFinancialPeriodModeState("CALENDAR_MONTH");
+        setFinancialPeriods([]);
       }
 
       if (activeHouseholdId === currentUserUid) {
@@ -145,26 +134,15 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [activeHouseholdId, currentUserUid, user?.households]);
 
-  const setFinancialPeriodMode = useCallback(
-    async (mode: FinancialPeriodMode) => {
-      if (!activeHouseholdId || activeHouseholdId !== currentUserUid) {
-        throw new Error("Les périodes de paie sont réservées au foyer solo.");
-      }
-      await DB.updateFinancialPeriodMode(activeHouseholdId, mode);
-      setFinancialPeriodModeState(mode);
-    },
-    [activeHouseholdId, currentUserUid],
-  );
-
   const referencePayDates = useMemo(
     () => revenus.filter((revenu) => revenu.isReferencePay).map((revenu) => revenu.dateReception),
     [revenus],
   );
 
   const currentFinancialPeriod: FinancialPeriod | null = useMemo(() => {
-    if (activeHouseholdId !== currentUserUid) return getCalendarPeriod();
-    return getCurrentFinancialPeriod(financialPeriodMode, referencePayDates);
-  }, [activeHouseholdId, currentUserUid, financialPeriodMode, referencePayDates]);
+    if (activeHouseholdId !== currentUserUid) return null;
+    return financialPeriods.find((period) => period.isOpen) ?? financialPeriods.at(-1) ?? null;
+  }, [activeHouseholdId, currentUserUid, financialPeriods]);
 
   const loadHistory = useCallback(async () => {
     if (!activeHouseholdId) return;
@@ -493,10 +471,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       addRevenu,
       updateRevenu,
       deleteRevenu,
-      financialPeriodMode,
-      setFinancialPeriodMode,
       currentFinancialPeriod,
       referencePayDates,
+      financialPeriods,
       targetMoisAnnee: TARGET_MOIS_ANNEE,
       ...calculs,
     }),
@@ -522,10 +499,9 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       addRevenu,
       updateRevenu,
       deleteRevenu,
-      financialPeriodMode,
-      setFinancialPeriodMode,
       currentFinancialPeriod,
       referencePayDates,
+      financialPeriods,
       calculs,
     ],
   );

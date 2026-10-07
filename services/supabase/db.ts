@@ -10,7 +10,6 @@ import {
   IChargeFixeTemplate,
   ICategorieRevenu,
   IRevenu,
-  FinancialPeriodMode,
   ITirelire,
   PropagationConflict,
   PropagationResolution,
@@ -24,7 +23,7 @@ import {
   similarity,
   FUZZY_THRESHOLD_CATEGORY,
 } from "utils/fuzzyMatch";
-import { FinancialPeriod, getCalendarPeriod } from "utils/financialPeriods";
+import { FinancialPeriod, formatFinancialPeriodLabel } from "utils/financialPeriods";
 import { toRevenuInsertPayload } from "./revenuPayload";
 
 // ============================================
@@ -1696,31 +1695,23 @@ export async function updateRevenu(
 /** The preference is read from the household because it is persistent and
  * shared by all sessions of the solo household. Shared households always use
  * calendar-month aggregation in the UI. */
-export async function getFinancialPeriodMode(
-  householdId: string,
-): Promise<FinancialPeriodMode> {
+export async function getFinancialPeriods(userId: string): Promise<FinancialPeriod[]> {
   const { data, error } = await supabase
-    .from("households")
-    .select("financial_period_mode")
-    .eq("id", householdId)
-    .single();
-
+    .from("financial_periods")
+    .select("id, start_date, end_date, is_historical, is_editable")
+    .eq("user_id", userId)
+    .eq("period_type", "PAY_PERIOD")
+    .order("start_date", { ascending: true });
   if (error) throw error;
-  return data?.financial_period_mode === "PAY_PERIOD"
-    ? "PAY_PERIOD"
-    : "CALENDAR_MONTH";
-}
-
-export async function updateFinancialPeriodMode(
-  householdId: string,
-  mode: FinancialPeriodMode,
-): Promise<void> {
-  const { error } = await supabase
-    .from("households")
-    .update({ financial_period_mode: mode })
-    .eq("id", householdId);
-
-  if (error) throw error;
+  return (data || []).map((period: any) => ({
+    id: period.id,
+    start: period.start_date,
+    end: period.end_date,
+    label: formatFinancialPeriodLabel(period.start_date, period.end_date),
+    isOpen: !period.end_date,
+    isHistorical: period.is_historical,
+    isEditable: period.is_editable,
+  }));
 }
 
 /**
@@ -1749,7 +1740,7 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
       .select(
         `
         *,
-        epargne_mouvements (*)
+        epargne_mouvements (*, financial_periods (is_historical))
       `,
       )
       .eq("user_id", userId)
@@ -1759,7 +1750,10 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
     if (error) throw error;
 
     const mapped = (data || []).map((row) => {
-      const mouvements = row.epargne_mouvements || [];
+      const mouvements = (row.epargne_mouvements || []).map((movement: any) => ({
+        ...movement,
+        isHistorical: Boolean(movement.financial_periods?.is_historical),
+      }));
       const sommeMouvements =
         row.epargne_mouvements?.reduce(
           (acc: number, m: any) => acc + Number(m.montant),
@@ -1837,6 +1831,7 @@ export async function placeEpargne(
   tirelireId: string,
   montant: number,
   movementDate: string,
+  financialPeriodId: string,
 ) {
   const movementId = generateId();
 
@@ -1846,6 +1841,7 @@ export async function placeEpargne(
     user_id: userId,
     montant: montant,
     date_mouvement: movementDate,
+    financial_period_id: financialPeriodId,
   });
 
   if (error) {
@@ -1858,7 +1854,7 @@ export async function getTotalMouvEpargneMois(
   userId: string,
   moisAnnee: string,
 ): Promise<number> {
-  return getTotalMouvEpargneForPeriod(userId, getCalendarPeriod(`${moisAnnee}-01`));
+  return 0;
 }
 
 export async function getTotalMouvEpargneForPeriod(
@@ -1888,7 +1884,7 @@ export async function getTotalPlaceEpargneMois(
   userId: string,
   moisAnnee: string,
 ): Promise<number> {
-  return getTotalPlaceEpargneForPeriod(userId, getCalendarPeriod(`${moisAnnee}-01`));
+  return 0;
 }
 
 export async function getTotalPlaceEpargneForPeriod(
