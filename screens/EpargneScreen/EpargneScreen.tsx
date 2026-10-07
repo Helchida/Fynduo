@@ -163,7 +163,10 @@ const EpargneScreen: React.FC = () => {
     });
 
     const monthRevenus = filterByFinancialPeriod(
-      revenus.filter((revenu) => revenu.categorie !== "cat_retrait_epargne"),
+      // A withdrawal is a real income row in this period. Keeping it in the
+      // deterministic revenue total makes the available savings capacity
+      // consistent before and after a reload.
+      revenus,
       (revenu) => revenu.dateReception,
       selectedFinancialPeriod,
     );
