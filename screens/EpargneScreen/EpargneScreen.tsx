@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -57,6 +57,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "styles/theme.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
+import { calculateSavingsCapacity } from "utils/savingsCapacity";
 import {
   filterByFinancialPeriod,
 } from "utils/financialPeriods";
@@ -143,6 +144,13 @@ const EpargneScreen: React.FC = () => {
     }
   }, [user?.id, selectedFinancialPeriod?.id, refresh]);
 
+  const refreshAfterSavingsMutation = useCallback(async () => {
+    // First refresh the shared source of truth (revenues, charges and periods),
+    // then reload the savings ledger totals for the selected persisted period.
+    await loadData();
+    await refresh();
+  }, [loadData, refresh]);
+
   const statsMois = useMemo(() => {
     const monthCharges = filterByFinancialPeriod(
       charges.filter((charge) => charge.nature !== "remboursement"),
@@ -198,8 +206,11 @@ const EpargneScreen: React.FC = () => {
   const epargneDisponible = useMemo(() => {
     if (loading) return 0;
 
-    const dispo = statsMois.solde - totalEpargnesMouvementCeMois;
-    return dispo;
+    return calculateSavingsCapacity(
+      statsMois.revenus,
+      statsMois.depenses,
+      totalEpargnesMouvementCeMois,
+    );
   }, [statsMois.solde, totalEpargnesMouvementCeMois, loading]);
 
   const totalCumuleTirelires = useMemo(() => {
@@ -404,11 +415,10 @@ const EpargneScreen: React.FC = () => {
         `${formatCurrency(montant)} ont été ajoutés à vos revenus de ce mois.`,
       );
 
-      await loadData();
+      await refreshAfterSavingsMutation();
 
       setIsBreakModalVisible(false);
       setMontantSaisi("");
-      refresh();
     } catch (e) {
       toast.error("Erreur", "Impossible de casser la tirelire.");
     }
@@ -452,11 +462,10 @@ const EpargneScreen: React.FC = () => {
         }
       }
 
-      await loadData();
+      await refreshAfterSavingsMutation();
 
       setIsBreakModalVisible(false);
       setMontantSaisi("");
-      refresh();
     } catch (e) {
       toast.error("Erreur", "Impossible de casser la tirelire.");
     }

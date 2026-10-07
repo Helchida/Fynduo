@@ -1867,9 +1867,9 @@ export async function getTotalMouvEpargneForPeriod(
     .from("epargne_mouvements")
     .select("montant")
     .eq("user_id", userId)
-    .filter("date_mouvement", "gte", period.start);
-
-  if (period.end) query = query.filter("date_mouvement", "lte", period.end);
+    // Period membership is persisted when the movement is written. Query the
+    // ledger relation rather than rebuilding membership from dates.
+    .eq("financial_period_id", period.id);
   const { data, error } = await query;
 
   if (error) {
@@ -1897,10 +1897,8 @@ export async function getTotalPlaceEpargneForPeriod(
     .from("epargne_mouvements")
     .select("montant")
     .eq("user_id", userId)
-    .filter("date_mouvement", "gte", period.start)
+    .eq("financial_period_id", period.id)
     .filter("montant", "gt", 0);
-
-  if (period.end) query = query.filter("date_mouvement", "lte", period.end);
   const { data, error } = await query;
 
   if (error) {
