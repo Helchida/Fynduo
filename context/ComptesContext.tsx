@@ -248,12 +248,16 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
           ...revenu,
         };
         setRevenus((prev) => [...prev, newRevenu]);
+        // A reference pay creates a persisted period in the same transaction.
+        // Reloading the context makes that new period available immediately to
+        // the home, savings and statistics screens.
+        await loadData();
       } catch (error) {
         console.error("Erreur addRevenu:", error);
         throw error;
       }
     },
-    [activeHouseholdId],
+    [activeHouseholdId, loadData],
   );
 
   const updateRevenu = useCallback(
@@ -289,13 +293,13 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!activeHouseholdId) return;
       try {
         await DB.deleteRevenu(activeHouseholdId, revenuId);
-        setRevenus((prev) => prev.filter((r) => r.id !== revenuId));
+        await loadData();
       } catch (error) {
         console.error("Erreur deleteRevenu:", error);
         throw error;
       }
     },
-    [activeHouseholdId],
+    [activeHouseholdId, loadData],
   );
 
   const addChargeVariable = useCallback(

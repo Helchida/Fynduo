@@ -1954,7 +1954,6 @@ export async function breakTirelire(
       }
     }
 
-    const moisActuel = dayjs().format("YYYY-MM");
     const dateDuJour = dayjs().format("YYYY-MM-DD");
 
     const { error: moveError } = await supabase
@@ -1964,7 +1963,10 @@ export async function breakTirelire(
         tirelire_id: tirelire.id,
         user_id: userId,
         montant: -montant,
-        date_mouvement: `${moisActuel}-01`,
+        // A withdrawal is an operation performed today, not on the first day
+        // of the calendar month. The database trigger attaches it to today's
+        // persisted pay period.
+        date_mouvement: dateDuJour,
       });
 
     if (moveError) throw moveError;
@@ -1980,7 +1982,7 @@ export async function breakTirelire(
       montant: montant,
       beneficiaire: userId,
       date_reception: dateDuJour,
-      mois_annee: moisActuel,
+      mois_annee: dayjs(dateDuJour).format("YYYY-MM"),
     });
 
     if (revError) throw revError;

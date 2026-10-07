@@ -143,9 +143,7 @@ const HomeScreen: React.FC = () => {
       const periods = financialPeriods
         .filter((period) => period.start <= dayjs().format("YYYY-MM-DD"))
         .sort((a, b) => b.start.localeCompare(a.start));
-      const startIndex = Math.abs(monthOffset);
-      const displayed = periods.slice(startIndex, startIndex + 3).reverse();
-      const monthsData = displayed.map((period) => {
+      const payPeriodData = periods.map((period) => {
         const periodCharges = filterByFinancialPeriod(
           charges.filter((charge) => charge.nature !== "remboursement"),
           (charge) => charge.dateStatistiques,
@@ -164,9 +162,47 @@ const HomeScreen: React.FC = () => {
         ).reduce((total, revenu) => total + (Number(revenu.montant) || 0), 0);
         return { month: period.label, year: "", total: totalDépenses, totalRevenus, fullDate: period.id };
       });
+
+      // The start month belongs to the first pay period. Months before it
+      // remain visible as a read-only display history, never as a savings mode.
+      const firstPayMonth = periods.length > 0
+        ? dayjs(periods[periods.length - 1].start).startOf("month")
+        : null;
+      const historicalMonthKeys = Array.from(new Set([
+        ...charges.filter((charge) => charge.nature !== "remboursement")
+          .map((charge) => dayjs(charge.dateStatistiques).format("YYYY-MM")),
+        ...revenus.map((revenu) => dayjs(revenu.dateReception).format("YYYY-MM")),
+      ]))
+        .filter((monthKey) => !firstPayMonth || dayjs(monthKey).isBefore(firstPayMonth, "month"))
+        .sort((a, b) => b.localeCompare(a));
+      const historicalMonthData = historicalMonthKeys.map((monthKey) => {
+        const monthCharges = charges.filter((charge) =>
+          charge.nature !== "remboursement" && dayjs(charge.dateStatistiques).format("YYYY-MM") === monthKey,
+        );
+        const total = monthCharges.reduce((sum, charge) => {
+          const amount = Number(charge.montantTotal) || 0;
+          return isSoloMode && charge.beneficiaires?.length > 0
+            ? sum + (charge.beneficiaires.includes(user.id) ? amount / charge.beneficiaires.length : 0)
+            : sum + amount;
+        }, 0);
+        const totalRevenus = revenus
+          .filter((revenu) => dayjs(revenu.dateReception).format("YYYY-MM") === monthKey)
+          .reduce((sum, revenu) => sum + (Number(revenu.montant) || 0), 0);
+        const monthDate = dayjs(monthKey);
+        return {
+          month: monthDate.format("MMM").charAt(0).toUpperCase() + monthDate.format("MMM").slice(1),
+          year: monthDate.format("YYYY"),
+          total,
+          totalRevenus,
+          fullDate: monthKey,
+        };
+      });
+      const timeline = [...payPeriodData, ...historicalMonthData];
+      const startIndex = Math.abs(monthOffset);
+      const monthsData = timeline.slice(startIndex, startIndex + 3).reverse();
       return {
         monthsData,
-        canGoPrevious: startIndex + 3 < periods.length,
+        canGoPrevious: startIndex + 3 < timeline.length,
         canGoNext: monthOffset < 0,
       };
     }
