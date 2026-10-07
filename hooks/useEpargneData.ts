@@ -1,5 +1,5 @@
 import { ITirelire } from "@/types";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   getTirelires,
   getTotalMouvEpargneForPeriod,
@@ -16,6 +16,7 @@ export const useEpargneData = (
   const [totalEpargnesMouvementCeMois, setTotalEpargnesMouvementCeMois] = useState(0);
   const [totalEpargnesPlaceCeMois, setTotalEpargnesPlaceCeMois] = useState(0);
   const [loading, setLoading] = useState(false);
+  const refreshSequence = useRef(0);
   const periodKey = period ? `${period.start}:${period.end ?? "open"}` : "none";
 
   const getCagnottes = useCallback((idTirelire: string) => {
@@ -25,6 +26,7 @@ export const useEpargneData = (
 
   const refresh = useCallback(async () => {
     if (!userId) return;
+    const requestId = ++refreshSequence.current;
     setLoading(true);
     try {
       const [list, total, totalPlace] = await Promise.all([
@@ -32,13 +34,16 @@ export const useEpargneData = (
         getTotalMouvEpargneForPeriod(userId, period),
         getTotalPlaceEpargneForPeriod(userId, period),
       ]);
+      // An older request can finish after a withdrawal mutation. Do not let it
+      // overwrite the more recent period totals with its stale snapshot.
+      if (requestId !== refreshSequence.current) return;
       setTirelires(list);
       setTotalEpargnesMouvementCeMois(total);
       setTotalEpargnesPlaceCeMois(totalPlace);
     } catch (err) {
       console.error("Erreur de chargement épargne:", err);
     } finally {
-      setLoading(false);
+      if (requestId === refreshSequence.current) setLoading(false);
     }
   }, [userId, periodKey]);
 

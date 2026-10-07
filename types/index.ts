@@ -44,7 +44,6 @@ export type CategoryType =
 export type ChargeScope = "solo" | "partage";
 export type ChargeType = "fixe" | "variable";
 export type ChargeNature = "depense" | "remboursement"
-export type FinancialPeriodMode = "CALENDAR_MONTH" | "PAY_PERIOD";
 export type PeriodiciteType =
   | "journalier"
   | "hebdomadaire"
@@ -234,6 +233,7 @@ export interface IMouvement {
   tirelire_id: string;
   montant: number;
   date_mouvement: string;
+  isHistorical?: boolean;
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";

@@ -31,11 +31,6 @@ const RevenuDetailScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp>();
   const { user } = useAuth();
   const toast = useToast();
-
-  if (!user) {
-    return <NoAuthenticatedUser />;
-  }
-
   const { revenuId } = route.params;
 
   const { revenus, isLoadingComptes, updateRevenu, deleteRevenu } =
@@ -47,6 +42,7 @@ const RevenuDetailScreen: React.FC = () => {
   const [revenu, setRevenu] = useState<IRevenu | undefined>(initialRevenu);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [editDescription, setEditDescription] = useState(
     revenu?.description || "",
@@ -101,25 +97,12 @@ const RevenuDetailScreen: React.FC = () => {
           : new Date(),
       );
       setEditIsReferencePay(initialRevenu.isReferencePay ?? false);
-    } else if (!isLoadingComptes) {
-      toast.success("Succès", "Revenu supprimé.");
-      navigation.goBack();
     }
   }, [
     initialRevenu,
-    isLoadingComptes,
-    navigation,
     categoriesRevenus,
     defaultCategory,
   ]);
-
-  if (isLoadingComptes || !revenu) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
 
   const handleUpdateRevenu = useCallback(async () => {
     if (!revenu) return;
@@ -165,6 +148,25 @@ const RevenuDetailScreen: React.FC = () => {
     editIsReferencePay,
   ]);
 
+  const displayAmountTotal = useMemo(() => {
+    if (!initialRevenu) return "0,00";
+    return initialRevenu.montant.toFixed(2).replace(".", ",");
+  }, [initialRevenu]);
+
+  // Every hook above must run before a conditional return: the deletion
+  // refetch temporarily removes this revenue from context.
+  if (!user) {
+    return <NoAuthenticatedUser />;
+  }
+
+  if (isLoadingComptes || !revenu) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   const dateReceptionFormatted = dayjs(revenu.dateReception).format(
     "DD MMMM YYYY",
   );
@@ -173,12 +175,6 @@ const RevenuDetailScreen: React.FC = () => {
   const nbBeneficiaires = benefUids.length;
   const currentCategoryData = categoriesRevenus.find((c) => c.id === revenu.categorie);
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "💵";
-
-  const displayAmountTotal = useMemo(() => {
-    if (!initialRevenu) return "0,00";
-    const amount = initialRevenu.montant;
-    return amount.toFixed(2).replace(".", ",");
-  }, [initialRevenu]);
 
   return (
     <ScrollView style={common.detailContainer}>
@@ -248,8 +244,19 @@ const RevenuDetailScreen: React.FC = () => {
             confirmText="Supprimer"
             isDestructive={true}
             onConfirm={async () => {
-              setIsDeleteModalVisible(false);
-              deleteRevenu(revenu.id);
+              if (isDeleting) return;
+
+              setIsDeleting(true);
+              try {
+                await deleteRevenu(revenu.id);
+                setIsDeleteModalVisible(false);
+                toast.success("Succès", "Revenu supprimé.");
+                navigation.goBack();
+              } catch (error) {
+                toast.error("Erreur", "Échec de la suppression.");
+              } finally {
+                setIsDeleting(false);
+              }
             }}
             onCancel={() => setIsDeleteModalVisible(false)}
           />

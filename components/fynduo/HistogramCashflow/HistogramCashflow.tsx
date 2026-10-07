@@ -12,6 +12,15 @@ const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
   isStacked,
 }) =>  {
 
+  const payPeriodSeparator = " → ";
+  const isPayPeriodLabel = month.includes(payPeriodSeparator);
+  const [firstLabelLine, secondLabelSuffix] = isPayPeriodLabel
+    ? month.split(payPeriodSeparator, 2)
+    : [month, year];
+  const secondLabelLine = isPayPeriodLabel
+    ? `→ ${secondLabelSuffix}`
+    : secondLabelSuffix;
+
   const MAX_BAR_HEIGHT = 90;
   const depenseHeight = maxTotal > 0 ? (total / maxTotal) * MAX_BAR_HEIGHT : 0;
   const revenuHeight =
@@ -148,8 +157,17 @@ const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
         </View>
       )}
 
-      <Text style={[styles.historyMonthLabel, { marginTop: 8 }]}>{month}</Text>
-      <Text style={styles.historyYearLabel}>{year}</Text>
+      <View
+        style={{
+          height: 34,
+          marginTop: 8,
+          justifyContent: "flex-start",
+          alignItems: "center",
+        }}
+      >
+        <Text style={styles.historyMonthLabel}>{firstLabelLine}</Text>
+        <Text style={styles.historyYearLabel}>{secondLabelLine}</Text>
+      </View>
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -57,10 +57,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "styles/theme.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
+import { calculateSavingsCapacity } from "utils/savingsCapacity";
 import {
   filterByFinancialPeriod,
-  getAvailablePayPeriods,
-  getCalendarPeriod,
 } from "utils/financialPeriods";
 
 const formatCurrency = (amount: number) => {
@@ -106,12 +105,12 @@ const EpargneScreen: React.FC = () => {
     useState<ITirelire | null>(null);
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
-  const { revenus, charges, loadData, financialPeriodMode, referencePayDates } = useComptes();
+  const { revenus, charges, loadData, financialPeriods } = useComptes();
   const isSoloMode = user.activeHouseholdId === user.id;
-  const payPeriodActive = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+  const payPeriodActive = isSoloMode;
   const payPeriods = useMemo(
-    () => getAvailablePayPeriods(referencePayDates),
-    [referencePayDates],
+    () => financialPeriods,
+    [financialPeriods],
   );
   const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(null);
 
@@ -121,9 +120,7 @@ const EpargneScreen: React.FC = () => {
     setSelectedPayPeriodId(payPeriods[payPeriods.length - 1]?.id ?? null);
   }, [payPeriodActive, payPeriods, selectedPayPeriodId]);
 
-  const selectedFinancialPeriod = payPeriodActive
-    ? payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null
-    : getCalendarPeriod(selectedDate);
+  const selectedFinancialPeriod = payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null;
   const selectedPayPeriodIndex = selectedFinancialPeriod
     ? payPeriods.findIndex((period) => period.id === selectedFinancialPeriod.id)
     : -1;
@@ -147,6 +144,13 @@ const EpargneScreen: React.FC = () => {
     }
   }, [user?.id, selectedFinancialPeriod?.id, refresh]);
 
+  const refreshAfterSavingsMutation = useCallback(async () => {
+    // First refresh the shared source of truth (revenues, charges and periods),
+    // then reload the savings ledger totals for the selected persisted period.
+    await loadData();
+    await refresh();
+  }, [loadData, refresh]);
+
   const statsMois = useMemo(() => {
     const monthCharges = filterByFinancialPeriod(
       charges.filter((charge) => charge.nature !== "remboursement"),
@@ -167,6 +171,9 @@ const EpargneScreen: React.FC = () => {
     });
 
     const monthRevenus = filterByFinancialPeriod(
+      // A tirelire withdrawal is recorded as a revenue row for traceability,
+      // but it is not new income. Its impact is already represented by the
+      // negative savings movement used in the capacity calculation.
       revenus.filter((revenu) => revenu.categorie !== "cat_retrait_epargne"),
       (revenu) => revenu.dateReception,
       selectedFinancialPeriod,
@@ -199,9 +206,17 @@ const EpargneScreen: React.FC = () => {
   const epargneDisponible = useMemo(() => {
     if (loading) return 0;
 
-    const dispo = statsMois.solde - totalEpargnesMouvementCeMois;
-    return dispo;
-  }, [statsMois.solde, totalEpargnesMouvementCeMois, loading]);
+    return calculateSavingsCapacity(
+      statsMois.revenus,
+      statsMois.depenses,
+      totalEpargnesMouvementCeMois,
+    );
+  }, [
+    statsMois.revenus,
+    statsMois.depenses,
+    totalEpargnesMouvementCeMois,
+    loading,
+  ]);
 
   const totalCumuleTirelires = useMemo(() => {
     return tirelires.reduce((sum, t) => sum + (t.montantActuel || 0), 0);
@@ -248,7 +263,7 @@ const EpargneScreen: React.FC = () => {
       if (!selectedFinancialPeriod) {
         return toast.warning("Aucune période", "Ajoutez une paie de référence avant de placer une épargne dans cette période.");
       }
-      await placeEpargne(user.id, tirelireId, montant, selectedFinancialPeriod.start);
+      await placeEpargne(user.id, tirelireId, montant, selectedFinancialPeriod.start, selectedFinancialPeriod.id);
       toast.success(
         "Épargne placée !",
         `${formatCurrency(montant)} ajoutés à ${tirelire?.description}`,
@@ -405,11 +420,10 @@ const EpargneScreen: React.FC = () => {
         `${formatCurrency(montant)} ont été ajoutés à vos revenus de ce mois.`,
       );
 
-      await loadData();
+      await refreshAfterSavingsMutation();
 
       setIsBreakModalVisible(false);
       setMontantSaisi("");
-      refresh();
     } catch (e) {
       toast.error("Erreur", "Impossible de casser la tirelire.");
     }
@@ -453,11 +467,10 @@ const EpargneScreen: React.FC = () => {
         }
       }
 
-      await loadData();
+      await refreshAfterSavingsMutation();
 
       setIsBreakModalVisible(false);
       setMontantSaisi("");
-      refresh();
     } catch (e) {
       toast.error("Erreur", "Impossible de casser la tirelire.");
     }
@@ -1127,6 +1140,7 @@ const EpargneScreen: React.FC = () => {
                     key={mouv.id}
                     style={[
                       common.dispatchItem,
+                      mouv.isHistorical && { opacity: 0.5 },
                       {
                         paddingVertical: 12,
                         borderBottomWidth: 0.5,
@@ -1149,6 +1163,7 @@ const EpargneScreen: React.FC = () => {
                         style={[styles.bodySm, { color: colors.textSecondary }]}
                       >
                         {mouv.montant > 0 ? "Versement" : "Retrait"}
+                        {mouv.isHistorical ? " · Historique" : ""}
                       </Text>
                     </View>
 

@@ -39,20 +39,21 @@ import { useFocusEffect } from "@react-navigation/native";
 import { common } from "styles/common.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
-import { getAvailablePayPeriods, getCalendarPeriod } from "utils/financialPeriods";
 import { FinancialTransactionsPdfExportModal } from "components/financial/FinancialTransactionsPdfExportModal";
 
 dayjs.locale("fr");
 
 type ViewMode = "dépenses" | "revenus" | "épargnes";
+type StatsGranularity = "MONTH" | "PAY_PERIOD";
 
 const StatsScreen: React.FC = () => {
-  const { charges, revenus, financialPeriodMode, currentFinancialPeriod, referencePayDates } = useComptes();
+  const { charges, revenus, currentFinancialPeriod, financialPeriods } = useComptes();
   const { categories, categoriesRevenus, getCategoryLabel, getCategoryRevenuLabel } = useCategories();
   const { user } = useAuth();
   const { householdUsers } = useHouseholdUsers();
 
   const [period, setPeriod] = useState<StatPeriod>("mois");
+  const [statsGranularity, setStatsGranularity] = useState<StatsGranularity>("MONTH");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     dayjs().format("YYYY-MM"),
   );
@@ -72,10 +73,10 @@ const StatsScreen: React.FC = () => {
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const isSoloMode = user?.activeHouseholdId === user?.id;
-  const payPeriodActive = isSoloMode && financialPeriodMode === "PAY_PERIOD";
+  const payPeriodActive = isSoloMode && statsGranularity === "PAY_PERIOD";
   const payPeriods = useMemo(
-    () => getAvailablePayPeriods(referencePayDates).sort((a, b) => b.start.localeCompare(a.start)),
-    [referencePayDates],
+    () => [...financialPeriods].sort((a, b) => b.start.localeCompare(a.start)),
+    [financialPeriods],
   );
   useEffect(() => {
     if (!payPeriodActive) return;
@@ -94,7 +95,7 @@ const StatsScreen: React.FC = () => {
 
   const { tirelires, refresh: refreshEpargne } = useEpargneData(
     user?.id,
-    selectedFinancialPeriod ?? getCalendarPeriod(`${selectedMonth}-01`),
+    selectedFinancialPeriod,
   );
 
   useFocusEffect(
@@ -297,11 +298,22 @@ const StatsScreen: React.FC = () => {
             <Text
               style={[styles.tabText, period === p && styles.activeTabText]}
             >
-              {p === "mois" ? (payPeriodActive ? "Période" : "Mois") : p === "annee" ? "Année" : "Total"}
+              {p === "mois" ? "Mois" : p === "annee" ? "Année" : "Total"}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      {isSoloMode && period === "mois" && (
+        <View style={[styles.tabContainer, { marginTop: 8 }]}>
+          <TouchableOpacity style={[styles.tab, statsGranularity === "MONTH" && styles.activeTab]} onPress={() => setStatsGranularity("MONTH")}>
+            <Text style={[styles.tabText, statsGranularity === "MONTH" && styles.activeTabText]}>Vue mensuelle</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.tab, statsGranularity === "PAY_PERIOD" && styles.activeTab]} onPress={() => setStatsGranularity("PAY_PERIOD")}>
+            <Text style={[styles.tabText, statsGranularity === "PAY_PERIOD" && styles.activeTabText]}>Période de paie</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {period !== "tout" && payPeriodActive && period === "mois" ? (
         <View style={styles.periodButton}>
