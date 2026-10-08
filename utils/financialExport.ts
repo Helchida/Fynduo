@@ -44,6 +44,9 @@ export const validateExportRange = (start?: Date, end?: Date) => {
   return null;
 };
 
+export const formatFinancialExportPeriod = (start: Date, end: Date) =>
+  `Du ${dayjs(start).format("DD/MM/YYYY")} au ${dayjs(end).format("DD/MM/YYYY")}`;
+
 export const buildFinancialExport = ({
   revenus,
   charges,
@@ -101,16 +104,10 @@ export const buildFinancialExport = ({
         const rawUserShare = currentUserId && distribution ? Number(distribution[currentUserId]) : NaN;
         const userShare = Number.isFinite(rawUserShare) ? rawUserShare : null;
         const userIsConcerned = !isShared || Boolean(
-          currentUserId && (
-            charge.beneficiaires?.includes(currentUserId) ||
-            charge.payeur === currentUserId ||
-            userShare !== null
-          ),
+          currentUserId && charge.beneficiaires?.includes(currentUserId),
         );
 
-        // A shared expense has a personal financial impact only when the
-        // exporter has an explicit value in its persisted distribution.
-        if (!userIsConcerned || (isShared && userShare === null)) return [];
+        if (!userIsConcerned) return [];
 
         return [{
           id: `expense:${charge.id}`,
@@ -118,10 +115,10 @@ export const buildFinancialExport = ({
           date: charge.dateStatistiques,
           description: charge.description,
           category: chargeCategoryLabel(charge.categorie),
-          amount: isShared ? userShare! : Number(charge.montantTotal) || 0,
+          amount: isShared ? userShare ?? 0 : Number(charge.montantTotal) || 0,
           isShared,
           totalAmount: isShared ? Number(charge.montantTotal) || 0 : undefined,
-          userShare: isShared ? userShare! : undefined,
+          userShare: isShared ? userShare ?? 0 : undefined,
           payerName: isShared ? payerName?.(charge.payeur) ?? charge.payeur : undefined,
         }];
       }),

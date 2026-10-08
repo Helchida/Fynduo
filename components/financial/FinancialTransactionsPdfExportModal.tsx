@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
-import dayjs from "dayjs";
 import { ICharge, IRevenu } from "@/types";
 import { UniversalDatePicker } from "components/ui/UniversalDatePicker/UniversalDatePicker";
 import { useToast } from "hooks/useToast";
-import { buildFinancialExport, validateExportRange } from "utils/financialExport";
+import { buildFinancialExport, formatFinancialExportPeriod, validateExportRange } from "utils/financialExport";
 import { downloadFinancialTransactionsPdf } from "utils/financialPdf";
 import { downloadFinancialTransactionsCsv } from "utils/financialCsv";
 
@@ -68,7 +67,7 @@ export const FinancialTransactionsPdfExportModal: React.FC<Props> = ({
         ...data,
         titlePeriod: rangeMode === "all"
           ? "Toutes les transactions"
-          : `${dayjs(start).format("DD/MM/YYYY")} → ${dayjs(end).format("DD/MM/YYYY")}`,
+          : formatFinancialExportPeriod(start, end),
       });
     } else {
       downloadFinancialTransactionsCsv(data.transactions);
