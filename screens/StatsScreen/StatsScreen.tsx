@@ -473,6 +473,8 @@ const StatsScreen: React.FC = () => {
         revenueCategoryLabel={getCategoryRevenuLabel}
         chargeCategoryLabel={getCategoryLabel}
         householdId={user?.activeHouseholdId ?? ""}
+        currentUserId={user?.id}
+        payerName={getDisplayName}
       />
     </ScrollView>
   );

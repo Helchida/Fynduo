@@ -1,4 +1,5 @@
 import { buildFinancialExport, formatEuro, validateExportRange } from "../utils/financialExport";
+import { buildFinancialTransactionsCsv } from "../utils/financialCsv";
 
 const revenue = (id: string, dateReception: string, montant: number, householdId = "home") => ({
   id, householdId, dateReception, montant, description: `Revenu ${id}`, categorie: "salary", beneficiaire: "user", moisAnnee: "2026-08", isReferencePay: false,
@@ -14,6 +15,8 @@ describe("financial PDF export data", () => {
     revenueCategoryLabel: () => "Salaire",
     chargeCategoryLabel: () => "Alimentation",
     householdId: "home",
+    currentUserId: "user",
+    payerName: (id: string) => id === "payer" ? "Morgan" : id,
   };
 
   it("exports all selected-household transactions grouped chronologically by month", () => {
@@ -37,5 +40,30 @@ describe("financial PDF export data", () => {
     expect(formatEuro(100, "-")).toBe("-100,00 €");
     expect(validateExportRange()).toBe("Les deux dates sont obligatoires.");
     expect(validateExportRange(new Date("2026-09-02"), new Date("2026-09-01"))?.includes("antérieure")).toBe(true);
+  });
+
+  it("uses the persisted distribution for shared expenses without double counting", () => {
+    const result = buildFinancialExport({
+      ...options,
+      charges: [
+        charge("personal", "2026-08-04", 50),
+        { ...charge("shared", "2026-08-05", 30), scope: "partage" as const, payeur: "payer", beneficiaires: ["user", "payer"], repartition: { user: 10, payer: 20 } },
+        { ...charge("not-involved", "2026-08-06", 40), scope: "partage" as const, payeur: "someone", beneficiaires: ["someone"], repartition: { someone: 40 } },
+      ],
+    });
+
+    expect(result.transactions.map((transaction) => transaction.amount)).toEqual([1500, 50, 10, 1600]);
+    expect(result.transactions.find((transaction) => transaction.id === "expense:shared")).toMatchObject({ isShared: true, totalAmount: 30, userShare: 10, payerName: "Morgan" });
+    expect(result.totals.expenses).toBe(60);
+  });
+
+  it("creates an Excel-friendly CSV from the normalized transactions", () => {
+    const result = buildFinancialExport({
+      ...options,
+      charges: [{ ...charge("shared", "2026-08-05", 30), scope: "partage" as const, payeur: "payer", beneficiaires: ["user", "payer"], repartition: { user: 15, payer: 15 } }],
+    });
+    const csv = buildFinancialTransactionsCsv(result.transactions);
+    expect(csv.startsWith("\uFEFFDate;Description;Catégorie;Type;Montant total;Montant personnel;Payeur;Partagée")).toBe(true);
+    expect(csv.includes("30,00;-15,00;Morgan;Oui")).toBe(true);
   });
 });
