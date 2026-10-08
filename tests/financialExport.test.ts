@@ -1,4 +1,5 @@
-import { buildFinancialExport, formatEuro, validateExportRange } from "../utils/financialExport";
+import { buildFinancialExport, formatEuro, formatFinancialExportPeriod, validateExportRange } from "../utils/financialExport";
+import { buildFinancialTransactionsCsv } from "../utils/financialCsv";
 
 const revenue = (id: string, dateReception: string, montant: number, householdId = "home") => ({
   id, householdId, dateReception, montant, description: `Revenu ${id}`, categorie: "salary", beneficiaire: "user", moisAnnee: "2026-08", isReferencePay: false,
@@ -14,6 +15,8 @@ describe("financial PDF export data", () => {
     revenueCategoryLabel: () => "Salaire",
     chargeCategoryLabel: () => "Alimentation",
     householdId: "home",
+    currentUserId: "user",
+    payerName: (id: string) => id === "payer" ? "Morgan" : id,
   };
 
   it("exports all selected-household transactions grouped chronologically by month", () => {
@@ -33,9 +36,87 @@ describe("financial PDF export data", () => {
   });
 
   it("formats signs and validates invalid ranges", () => {
-    expect(formatEuro(1500, "+")).toBe("+1 500,00 €");
+    expect(formatEuro(1500, "+")).toBe("+1 500,00 €");
     expect(formatEuro(100, "-")).toBe("-100,00 €");
     expect(validateExportRange()).toBe("Les deux dates sont obligatoires.");
     expect(validateExportRange(new Date("2026-09-02"), new Date("2026-09-01"))?.includes("antérieure")).toBe(true);
+    expect(formatFinancialExportPeriod(new Date("2026-08-01"), new Date("2026-09-30"))).toBe("Du 01/08/2026 au 30/09/2026");
+  });
+
+  it("includes a shared expense once when the exporter is a beneficiary and uses their persisted distribution", () => {
+    const result = buildFinancialExport({
+      ...options,
+      charges: [
+        charge("personal", "2026-08-04", 50),
+        { ...charge("shared", "2026-08-05", 30), scope: "partage" as const, payeur: "payer", beneficiaires: ["user", "payer"], repartition: { user: 10, payer: 20 } },
+        { ...charge("not-involved", "2026-08-06", 40), scope: "partage" as const, payeur: "someone", beneficiaires: ["someone"], repartition: { someone: 40 } },
+      ],
+    });
+
+    expect(result.transactions.map((transaction) => transaction.amount)).toEqual([1500, 50, 10, 1600]);
+    expect(result.transactions.find((transaction) => transaction.id === "expense:shared")).toMatchObject({ isShared: true, totalAmount: 30, userShare: 10, payerName: "Morgan" });
+    expect(result.totals.expenses).toBe(60);
+  });
+
+  it("excludes shared expenses for a non-beneficiary even if they are listed in the distribution", () => {
+    const result = buildFinancialExport({
+      ...options,
+      currentUserId: "bob",
+      charges: [{ ...charge("shared", "2026-08-05", 100), scope: "partage" as const, payeur: "payer", beneficiaires: ["user", "alice"], repartition: { user: 30, alice: 70, bob: 0 } }],
+    });
+
+    expect(result.transactions.map((transaction) => transaction.id)).toEqual(["income:r1", "income:r2"]);
+  });
+
+  it("uses each beneficiary's actual non-equal share", () => {
+    const sharedCharge = { ...charge("shared", "2026-08-05", 100), scope: "partage" as const, payeur: "payer", beneficiaires: ["morgan", "alice"], repartition: { morgan: 30, alice: 70 } };
+    const morgan = buildFinancialExport({ ...options, currentUserId: "morgan", charges: [sharedCharge] });
+    const alice = buildFinancialExport({ ...options, currentUserId: "alice", charges: [sharedCharge] });
+
+    expect(morgan.transactions.find((transaction) => transaction.id === "expense:shared")).toMatchObject({ totalAmount: 100, userShare: 30, amount: 30 });
+    expect(alice.transactions.find((transaction) => transaction.id === "expense:shared")).toMatchObject({ totalAmount: 100, userShare: 70, amount: 70 });
+  });
+
+  it("exports the provided shared charge for both beneficiaries, not a third user", () => {
+    const firstBeneficiary = "G76e7z1uM1MVaSQ85uebBK1gJzG3";
+    const secondBeneficiary = "pXOHqHmaMUPqS1DbOz5u3afC2EB2";
+    const sharedCharge = {
+      ...charge("alsyMUV3ZUGezsfhUaP0_j52iashclbbmf3d3wh6uzj", "2026-08-27T18:13:15.663Z", 30, "alsyMUV3ZUGezsfhUaP0"),
+      scope: "partage" as const,
+      payeur: secondBeneficiary,
+      beneficiaires: [firstBeneficiary, secondBeneficiary],
+      repartition: { [firstBeneficiary]: 15, [secondBeneficiary]: 15 },
+    };
+    const firstExport = buildFinancialExport({ ...options, currentUserId: firstBeneficiary, charges: [sharedCharge] });
+    const secondExport = buildFinancialExport({ ...options, currentUserId: secondBeneficiary, charges: [sharedCharge] });
+    const thirdExport = buildFinancialExport({ ...options, currentUserId: "not-a-beneficiary", charges: [sharedCharge] });
+
+    expect(firstExport.transactions.find((transaction) => transaction.id === `expense:${sharedCharge.id}`)).toMatchObject({ totalAmount: 30, userShare: 15, amount: 15 });
+    expect(secondExport.transactions.find((transaction) => transaction.id === `expense:${sharedCharge.id}`)).toMatchObject({ totalAmount: 30, userShare: 15, amount: 15 });
+    expect(thirdExport.transactions.map((transaction) => transaction.id)).toEqual(["income:r1", "income:r2"]);
+  });
+
+  it("exports a beneficiary's shared charge from another household with an equal fallback share", () => {
+    const sharedCharge = {
+      ...charge("shared-no-distribution", "2025-11-30", 28.15, "shared-household"),
+      scope: "partage" as const,
+      beneficiaires: ["user", "payer"],
+      repartition: null,
+    };
+    const result = buildFinancialExport({ ...options, charges: [sharedCharge] });
+    const exportedCharge = result.transactions.find((transaction) => transaction.id === "expense:shared-no-distribution");
+
+    expect(exportedCharge).toMatchObject({ isShared: true, totalAmount: 28.15, userShare: 14.075, amount: 14.075 });
+    expect(buildFinancialTransactionsCsv(result.transactions).includes("28,15;-14,08;user;Oui")).toBe(true);
+  });
+
+  it("creates an Excel-friendly CSV from the normalized transactions", () => {
+    const result = buildFinancialExport({
+      ...options,
+      charges: [{ ...charge("shared", "2026-08-05", 30), scope: "partage" as const, payeur: "payer", beneficiaires: ["user", "payer"], repartition: { user: 15, payer: 15 } }],
+    });
+    const csv = buildFinancialTransactionsCsv(result.transactions);
+    expect(csv.startsWith("\uFEFFDate;Description;Catégorie;Type;Montant total;Montant personnel;Payeur;Partagée")).toBe(true);
+    expect(csv.includes("30,00;-15,00;Morgan;Oui")).toBe(true);
   });
 });

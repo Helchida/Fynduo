@@ -62,9 +62,13 @@ export const downloadFinancialTransactionsPdf = ({
 
     pdf.setFont("helvetica", "normal");
     month.transactions.forEach((transaction) => {
+      const sharedDetails = transaction.isShared
+        ? `Dépense partagée — Total : ${formatEuro(transaction.totalAmount ?? 0)} — Payeur : ${transaction.payerName ?? "Inconnu"} — Ma part : ${formatEuro(transaction.userShare ?? transaction.amount, "-")}`
+        : null;
       const rowHeight = Math.max(
         pdf.splitTextToSize(transaction.description || "—", 74).length * 4.5,
         pdf.splitTextToSize(transaction.category || "—", 50).length * 4.5,
+        sharedDetails ? pdf.splitTextToSize(sharedDetails, 130).length * 4.5 + 5 : 0,
         5,
       );
       ensureSpace(rowHeight + 2);
@@ -79,6 +83,12 @@ export const downloadFinancialTransactionsPdf = ({
         y,
         { align: "right" },
       );
+      if (sharedDetails) {
+        pdf.setFontSize(7);
+        pdf.setTextColor(82, 92, 102);
+        pdf.text(pdf.splitTextToSize(sharedDetails, 130), MARGIN + 25, y + 4.5);
+        pdf.setTextColor(0, 0, 0);
+      }
       y += rowHeight + 2;
     });
 

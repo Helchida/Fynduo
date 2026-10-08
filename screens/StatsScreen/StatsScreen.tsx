@@ -169,9 +169,9 @@ const StatsScreen: React.FC = () => {
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       <View style={styles.headerRow}>
-        <Text style={styles.header}>Statistiques</Text>
+        <Text style={styles.headerTitle}>Statistiques</Text>
 
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={styles.headerControls}>
           <TouchableOpacity
             style={styles.trigger}
             onPress={() => setIsPdfExportVisible(true)}
@@ -473,6 +473,8 @@ const StatsScreen: React.FC = () => {
         revenueCategoryLabel={getCategoryRevenuLabel}
         chargeCategoryLabel={getCategoryLabel}
         householdId={user?.activeHouseholdId ?? ""}
+        currentUserId={user?.id}
+        payerName={getDisplayName}
       />
     </ScrollView>
   );

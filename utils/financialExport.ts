@@ -8,7 +8,12 @@ export type FinancialExportTransaction = {
   date: string;
   description: string;
   category: string;
+  /** Positive absolute value used for the user's financial totals. */
   amount: number;
+  isShared?: boolean;
+  totalAmount?: number;
+  userShare?: number;
+  payerName?: string;
 };
 
 export type FinancialExportMonth = {
@@ -39,12 +44,17 @@ export const validateExportRange = (start?: Date, end?: Date) => {
   return null;
 };
 
+export const formatFinancialExportPeriod = (start: Date, end: Date) =>
+  `Du ${dayjs(start).format("DD/MM/YYYY")} au ${dayjs(end).format("DD/MM/YYYY")}`;
+
 export const buildFinancialExport = ({
   revenus,
   charges,
   revenueCategoryLabel,
   chargeCategoryLabel,
   householdId,
+  currentUserId,
+  payerName,
   start,
   end,
 }: {
@@ -53,6 +63,8 @@ export const buildFinancialExport = ({
   revenueCategoryLabel: (id: string) => string;
   chargeCategoryLabel: (id: string) => string;
   householdId?: string;
+  currentUserId?: string;
+  payerName?: (id: string) => string;
   start?: Date;
   end?: Date;
 }) => {
@@ -61,6 +73,18 @@ export const buildFinancialExport = ({
   const isInRange = (date: string) => {
     const day = dayjs(date);
     return (!startDay || !day.isBefore(startDay)) && (!endDay || !day.isAfter(endDay));
+  };
+
+  const parseDistribution = (distribution: ICharge["repartition"]) => {
+    if (!distribution) return null;
+    if (typeof distribution === "string") {
+      try {
+        return JSON.parse(distribution) as Record<string, number>;
+      } catch {
+        return null;
+      }
+    }
+    return distribution;
   };
 
   const transactions: FinancialExportTransaction[] = [
@@ -73,15 +97,47 @@ export const buildFinancialExport = ({
       amount: Number(revenu.montant) || 0,
     })),
     ...charges
-      .filter((charge) => (!householdId || charge.householdId === householdId) && charge.nature === "depense" && isInRange(charge.dateStatistiques))
-      .map((charge) => ({
-        id: `expense:${charge.id}`,
-        kind: "expense" as const,
-        date: charge.dateStatistiques,
-        description: charge.description,
-        category: chargeCategoryLabel(charge.categorie),
-        amount: Number(charge.montantTotal) || 0,
-      })),
+      .filter((charge) => {
+        if (charge.nature !== "depense" || !isInRange(charge.dateStatistiques)) return false;
+        if (!householdId || charge.householdId === householdId) return true;
+
+        // In personal-household mode, ComptesContext also loads shared charges
+        // from the user's households. Keep only the ones where they are a
+        // beneficiary; a shared household id is not a user id.
+        return charge.scope === "partage" && Boolean(
+          currentUserId && charge.beneficiaires?.includes(currentUserId),
+        );
+      })
+      .flatMap((charge) => {
+        const isShared = charge.scope === "partage";
+        const distribution = parseDistribution(charge.repartition);
+        const rawUserShare = currentUserId && distribution ? Number(distribution[currentUserId]) : NaN;
+        const userShare = !isShared
+          ? null
+          : distribution
+            ? Number.isFinite(rawUserShare) ? rawUserShare : 0
+            : charge.beneficiaires.length > 0
+              ? (Number(charge.montantTotal) || 0) / charge.beneficiaires.length
+              : 0;
+        const userIsConcerned = !isShared || Boolean(
+          currentUserId && charge.beneficiaires?.includes(currentUserId),
+        );
+
+        if (!userIsConcerned) return [];
+
+        return [{
+          id: `expense:${charge.id}`,
+          kind: "expense" as const,
+          date: charge.dateStatistiques,
+          description: charge.description,
+          category: chargeCategoryLabel(charge.categorie),
+          amount: isShared ? userShare ?? 0 : Number(charge.montantTotal) || 0,
+          isShared,
+          totalAmount: isShared ? Number(charge.montantTotal) || 0 : undefined,
+          userShare: isShared ? userShare ?? 0 : undefined,
+          payerName: isShared ? payerName?.(charge.payeur) ?? charge.payeur : undefined,
+        }];
+      }),
   ].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
 
   const months = new Map<string, FinancialExportMonth>();
