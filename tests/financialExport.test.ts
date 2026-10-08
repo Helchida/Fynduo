@@ -77,6 +77,39 @@ describe("financial PDF export data", () => {
     expect(alice.transactions.find((transaction) => transaction.id === "expense:shared")).toMatchObject({ totalAmount: 100, userShare: 70, amount: 70 });
   });
 
+  it("exports the provided shared charge for both beneficiaries, not a third user", () => {
+    const firstBeneficiary = "G76e7z1uM1MVaSQ85uebBK1gJzG3";
+    const secondBeneficiary = "pXOHqHmaMUPqS1DbOz5u3afC2EB2";
+    const sharedCharge = {
+      ...charge("alsyMUV3ZUGezsfhUaP0_j52iashclbbmf3d3wh6uzj", "2026-08-27T18:13:15.663Z", 30, "alsyMUV3ZUGezsfhUaP0"),
+      scope: "partage" as const,
+      payeur: secondBeneficiary,
+      beneficiaires: [firstBeneficiary, secondBeneficiary],
+      repartition: { [firstBeneficiary]: 15, [secondBeneficiary]: 15 },
+    };
+    const firstExport = buildFinancialExport({ ...options, currentUserId: firstBeneficiary, charges: [sharedCharge] });
+    const secondExport = buildFinancialExport({ ...options, currentUserId: secondBeneficiary, charges: [sharedCharge] });
+    const thirdExport = buildFinancialExport({ ...options, currentUserId: "not-a-beneficiary", charges: [sharedCharge] });
+
+    expect(firstExport.transactions.find((transaction) => transaction.id === `expense:${sharedCharge.id}`)).toMatchObject({ totalAmount: 30, userShare: 15, amount: 15 });
+    expect(secondExport.transactions.find((transaction) => transaction.id === `expense:${sharedCharge.id}`)).toMatchObject({ totalAmount: 30, userShare: 15, amount: 15 });
+    expect(thirdExport.transactions.map((transaction) => transaction.id)).toEqual(["income:r1", "income:r2"]);
+  });
+
+  it("exports a beneficiary's shared charge from another household with an equal fallback share", () => {
+    const sharedCharge = {
+      ...charge("shared-no-distribution", "2025-11-30", 28.15, "shared-household"),
+      scope: "partage" as const,
+      beneficiaires: ["user", "payer"],
+      repartition: null,
+    };
+    const result = buildFinancialExport({ ...options, charges: [sharedCharge] });
+    const exportedCharge = result.transactions.find((transaction) => transaction.id === "expense:shared-no-distribution");
+
+    expect(exportedCharge).toMatchObject({ isShared: true, totalAmount: 28.15, userShare: 14.075, amount: 14.075 });
+    expect(buildFinancialTransactionsCsv(result.transactions).includes("28,15;-14,08;user;Oui")).toBe(true);
+  });
+
   it("creates an Excel-friendly CSV from the normalized transactions", () => {
     const result = buildFinancialExport({
       ...options,

@@ -97,12 +97,28 @@ export const buildFinancialExport = ({
       amount: Number(revenu.montant) || 0,
     })),
     ...charges
-      .filter((charge) => (!householdId || charge.householdId === householdId) && charge.nature === "depense" && isInRange(charge.dateStatistiques))
+      .filter((charge) => {
+        if (charge.nature !== "depense" || !isInRange(charge.dateStatistiques)) return false;
+        if (!householdId || charge.householdId === householdId) return true;
+
+        // In personal-household mode, ComptesContext also loads shared charges
+        // from the user's households. Keep only the ones where they are a
+        // beneficiary; a shared household id is not a user id.
+        return charge.scope === "partage" && Boolean(
+          currentUserId && charge.beneficiaires?.includes(currentUserId),
+        );
+      })
       .flatMap((charge) => {
         const isShared = charge.scope === "partage";
         const distribution = parseDistribution(charge.repartition);
         const rawUserShare = currentUserId && distribution ? Number(distribution[currentUserId]) : NaN;
-        const userShare = Number.isFinite(rawUserShare) ? rawUserShare : null;
+        const userShare = !isShared
+          ? null
+          : distribution
+            ? Number.isFinite(rawUserShare) ? rawUserShare : 0
+            : charge.beneficiaires.length > 0
+              ? (Number(charge.montantTotal) || 0) / charge.beneficiaires.length
+              : 0;
         const userIsConcerned = !isShared || Boolean(
           currentUserId && charge.beneficiaires?.includes(currentUserId),
         );
