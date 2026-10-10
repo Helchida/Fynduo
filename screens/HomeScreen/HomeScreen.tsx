@@ -485,8 +485,7 @@ const HomeScreen: React.FC = () => {
             </View>
           </View>
 
-          {isSolo ||
-          (householdsDetails[user.activeHouseholdId]?.count ?? 0) <= 1 ? (
+          {isSolo ? (
             <View style={styles.actionsContainer}>
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#27a1d1ff" }]}
@@ -511,6 +510,12 @@ const HomeScreen: React.FC = () => {
                 onPress={() => navigation.navigate("Epargne")}
               >
                 <Text style={styles.actionText}>Épargne</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#0f766e" }]}
+                onPress={() => navigation.navigate("Budgets")}
+              >
+                <Text style={styles.actionText}>Budgets</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}

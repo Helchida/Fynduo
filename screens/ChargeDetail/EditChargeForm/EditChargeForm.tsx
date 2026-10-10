@@ -64,12 +64,13 @@ export const EditChargeForm = ({
     return <NoAuthenticatedUser />;
   }
   const currentCategory = categories.find((c) => c.id === editCategorie);
+  const amount = parseFloat(editMontant.replace(",", "."));
   const isInvalid =
     isSubmitting ||
     editBeneficiairesUid.length === 0 ||
     !editDescription.trim() ||
-    isNaN(parseFloat(editMontant)) ||
-    parseFloat(editMontant) <= 0 ||
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
     !!editRepartitionError;
 
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
@@ -104,7 +105,7 @@ export const EditChargeForm = ({
             <TextInput
               style={[common.editInputActive]}
               value={editMontant}
-              onChangeText={(text) => setEditMontant(text.replace(",", "."))}
+              onChangeText={setEditMontant}
               keyboardType="decimal-pad"
               {...({ inputMode: "decimal" } as any)}
               placeholder="0,00"

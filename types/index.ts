@@ -190,6 +190,37 @@ export interface ICategorie extends FirestoreDocument {
   sourceId?: string;
 }
 
+export interface IBudget extends FirestoreDocument {
+  householdId: string;
+  name: string;
+  /** Stored and exchanged in euros, like the other financial data. */
+  initialAmount: number;
+  categoryIds: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BudgetTotals {
+  initialAmount: number;
+  spentAmount: number;
+  remainingAmount: number;
+}
+
+export interface IBudgetPeriodSnapshot {
+  id: string;
+  budgetId: string;
+  householdId: string;
+  periodKey: string;
+  periodStart: string | null;
+  periodEnd: string | null;
+  name: string;
+  initialAmount: number;
+  spentAmount: number | null;
+  remainingAmount: number | null;
+  categoryIds: string[];
+  closedAt: string | null;
+}
+
 export interface PropagationConflict {
   soloHouseholdId: string;
   memberDisplayName: string;
@@ -247,6 +278,7 @@ export type RootStackParamList = {
   Revenus: undefined;
   Regulation: undefined;
   Epargne: undefined;
+  Budgets: undefined;
   SummaryRegulation: undefined;
   Login: undefined;
   Register: undefined;

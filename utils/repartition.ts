@@ -3,6 +3,39 @@ export interface RepartitionResult {
   error: string | null;
 }
 
+/**
+ * Keeps a custom split expressed in euros proportional when its total changes.
+ * Values are rounded to cents and the last value receives any rounding residue,
+ * so a fully locked split remains valid for the new total.
+ */
+export function scaleLockedRepartition(
+  locked: Record<string, number>,
+  previousTotal: number,
+  nextTotal: number,
+  locksCoverEntireSplit = false,
+): Record<string, number> {
+  const entries = Object.entries(locked);
+
+  if (!entries.length || previousTotal <= 0 || nextTotal <= 0) {
+    return locked;
+  }
+
+  const nextTotalCents = Math.round(nextTotal * 100);
+  const scale = nextTotal / previousTotal;
+  let assignedCents = 0;
+
+  return Object.fromEntries(
+    entries.map(([uid, amount], index) => {
+      const isLastLockedAmount = index === entries.length - 1;
+      const cents = locksCoverEntireSplit && isLastLockedAmount
+        ? nextTotalCents - assignedCents
+        : Math.round(amount * scale * 100);
+      assignedCents += cents;
+      return [uid, cents / 100];
+    }),
+  );
+}
+
 export function calculateRepartition(
   beneficiaireIds: string[],
   montantTotal: number,

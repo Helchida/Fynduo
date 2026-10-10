@@ -26,7 +26,10 @@ import { useCategories } from "hooks/useCategories";
 import { ConfirmModal } from "components/ui/ConfirmModal/ConfirmModal";
 import { useToast } from "hooks/useToast";
 import BadgeCharge from "components/fynduo/BadgeCharge/BadgeCharge";
-import { calculateRepartition } from "../../utils/repartition";
+import {
+  calculateRepartition,
+  scaleLockedRepartition,
+} from "../../utils/repartition";
 dayjs.locale("fr");
 
 type ChargeDetailRouteProp = RootStackRouteProp<"ChargeDetail">;
@@ -258,6 +261,34 @@ const ChargeDetailScreen: React.FC = () => {
     setEditLockedMontants((prev) => ({ ...prev, [uid]: montant }));
   }, []);
 
+  const handleEditTotalAmountChange = useCallback(
+    (value: string) => {
+      const normalizedValue = value.replace(",", ".");
+      const previousAmount = parseFloat(editMontant.replace(",", "."));
+      const nextAmount = parseFloat(normalizedValue);
+
+      if (
+        editSplitMode === "part" &&
+        Number.isFinite(previousAmount) &&
+        previousAmount > 0 &&
+        Number.isFinite(nextAmount) &&
+        nextAmount > 0
+      ) {
+        setEditLockedMontants((previous) =>
+          scaleLockedRepartition(
+            previous,
+            previousAmount,
+            nextAmount,
+            Object.keys(previous).length === editBeneficiairesUid.length,
+          ),
+        );
+      }
+
+      setEditMontant(normalizedValue);
+    },
+    [editMontant, editSplitMode, editBeneficiairesUid.length],
+  );
+
   const handleChangeEditTaux = useCallback(
     (uid: string, taux: number) => {
       setEditLockedMontants((prev) => ({
@@ -351,7 +382,7 @@ const ChargeDetailScreen: React.FC = () => {
           editDescription={editDescription}
           setEditDescription={setEditDescription}
           editMontant={editMontant}
-          setEditMontant={setEditMontant}
+          setEditMontant={handleEditTotalAmountChange}
           editPayeurUid={editPayeurUid}
           setIsPayeurModalVisible={setIsPayeurModalVisible}
           isPayeurModalVisible={isPayeurModalVisible}

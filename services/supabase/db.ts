@@ -11,6 +11,8 @@ import {
   ICategorieRevenu,
   IRevenu,
   ITirelire,
+  IBudget,
+  IBudgetPeriodSnapshot,
   PropagationConflict,
   PropagationResolution,
 } from "../../types";
@@ -638,6 +640,93 @@ export async function getAllCharges(householdId: string): Promise<ICharge[]> {
   }));
 }
 
+// ============================================
+// BUDGETS
+// ============================================
+
+type BudgetFunctionResponse = {
+  budgets?: Array<{
+    id: string;
+    household_id: string;
+    name: string;
+    initial_amount: number | string;
+    created_at?: string;
+    updated_at?: string;
+    budget_categories?: Array<{ category_id: string }>;
+  }>;
+  snapshots?: Array<{
+    id: string; budget_id: string; household_id: string; period_key: string;
+    period_start: string | null; period_end: string | null; name: string;
+    initial_amount: number | string; spent_amount: number | string | null;
+    remaining_amount: number | string | null; category_ids: string[];
+    closed_at: string | null;
+  }>;
+  error?: string;
+};
+
+async function invokeBudgets(body: Record<string, unknown>): Promise<BudgetFunctionResponse> {
+  const firebaseToken = await auth.currentUser?.getIdToken();
+  if (!firebaseToken) throw new Error("Utilisateur non authentifié");
+  const { data, error } = await supabase.functions.invoke("budgets", {
+    headers: { Authorization: `Bearer ${firebaseToken}` },
+    body,
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data ?? {};
+}
+
+export async function getBudgets(householdId: string): Promise<IBudget[]> {
+  const data = await invokeBudgets({ action: "list", householdId });
+  return (data.budgets ?? []).map((budget) => ({
+    id: budget.id,
+    householdId: budget.household_id,
+    name: budget.name,
+    initialAmount: Number(budget.initial_amount),
+    categoryIds: (budget.budget_categories ?? []).map((category) => category.category_id),
+    createdAt: budget.created_at,
+    updatedAt: budget.updated_at,
+  }));
+}
+
+export async function saveBudget(
+  householdId: string,
+  budget: Omit<IBudget, "householdId">,
+  periodKey: string,
+): Promise<void> {
+  await invokeBudgets({
+    action: "save",
+    householdId,
+    budgetId: budget.id,
+    name: budget.name,
+    initialAmount: budget.initialAmount,
+    categoryIds: budget.categoryIds,
+    periodKey,
+  });
+}
+
+export async function deleteBudget(householdId: string, budgetId: string, periodKey: string): Promise<void> {
+  await invokeBudgets({ action: "delete", householdId, budgetId, periodKey });
+}
+
+export async function getBudgetPeriodSnapshots(householdId: string): Promise<IBudgetPeriodSnapshot[]> {
+  const data = await invokeBudgets({ action: "history", householdId });
+  return (data.snapshots ?? []).map((snapshot) => ({
+    id: snapshot.id,
+    budgetId: snapshot.budget_id,
+    householdId: snapshot.household_id,
+    periodKey: snapshot.period_key,
+    periodStart: snapshot.period_start,
+    periodEnd: snapshot.period_end,
+    name: snapshot.name,
+    initialAmount: Number(snapshot.initial_amount),
+    spentAmount: snapshot.spent_amount === null ? null : Number(snapshot.spent_amount),
+    remainingAmount: snapshot.remaining_amount === null ? null : Number(snapshot.remaining_amount),
+    categoryIds: snapshot.category_ids ?? [],
+    closedAt: snapshot.closed_at,
+  }));
+}
+
 /**
  * Récupère les charges où l'utilisateur est bénéficiaire (multi-foyers)
  */
@@ -756,7 +845,6 @@ export async function updateCharge(
   updateData: Partial<Omit<ICharge, "id" | "householdId" | "moisAnnee">>,
 ) {
   try {
-    const uniqueId = makeUniqueId(householdId, chargeId);
     const supabaseUpdates: any = {};
 
     if (updateData.categorie !== undefined)
@@ -778,12 +866,15 @@ export async function updateCharge(
     if (updateData.repartition !== undefined)
       supabaseUpdates.repartition = updateData.repartition;
 
-    const { error } = await supabase
-      .from("charges")
-      .update(supabaseUpdates)
-      .eq("id", uniqueId);
-
+    if (!Object.keys(supabaseUpdates).length) return;
+    const firebaseToken = await auth.currentUser?.getIdToken();
+    if (!firebaseToken) throw new Error("Utilisateur non authentifié");
+    const { data, error } = await supabase.functions.invoke("update-charge", {
+      headers: { Authorization: `Bearer ${firebaseToken}` },
+      body: { id: chargeId, householdId, updates: supabaseUpdates },
+    });
     if (error) throw error;
+    if (data?.error) throw new Error(data.error);
   } catch (error) {
     console.error("Erreur updateCharge:", error);
     throw error;
