@@ -19,6 +19,11 @@ comment on column public.charges.is_non_transferable is
 -- The Firebase-authenticated charge creation RPC is the only insert path.
 -- Keep its existing validation, notification and idempotency behaviour while
 -- persisting the additional boolean explicitly.
+drop function if exists public.create_charge_with_notifications(
+  text, text, text, text, text, text, numeric, text, text[], timestamptz,
+  text, text, text, jsonb
+);
+
 create or replace function public.create_charge_with_notifications(
   p_charge_id text,
   p_household_id text,
