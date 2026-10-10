@@ -11,6 +11,7 @@ import {
   ICategorieRevenu,
   IRevenu,
   ITirelire,
+  IBudget,
   PropagationConflict,
   PropagationResolution,
 } from "../../types";
@@ -636,6 +637,68 @@ export async function getAllCharges(householdId: string): Promise<ICharge[]> {
     nature: row.nature,
     repartition: row.repartition || null,
   }));
+}
+
+// ============================================
+// BUDGETS
+// ============================================
+
+type BudgetFunctionResponse = {
+  budgets?: Array<{
+    id: string;
+    household_id: string;
+    name: string;
+    initial_amount_cents: number;
+    created_at?: string;
+    updated_at?: string;
+    budget_categories?: Array<{ category_id: string }>;
+  }>;
+  error?: string;
+};
+
+async function invokeBudgets(body: Record<string, unknown>): Promise<BudgetFunctionResponse> {
+  const firebaseToken = await auth.currentUser?.getIdToken();
+  if (!firebaseToken) throw new Error("Utilisateur non authentifié");
+  const { data, error } = await supabase.functions.invoke("budgets", {
+    headers: { Authorization: `Bearer ${firebaseToken}` },
+    body,
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data ?? {};
+}
+
+export async function getBudgets(householdId: string): Promise<IBudget[]> {
+  const data = await invokeBudgets({ action: "list", householdId });
+  return (data.budgets ?? []).map((budget) => ({
+    id: budget.id,
+    householdId: budget.household_id,
+    name: budget.name,
+    initialAmountCents: budget.initial_amount_cents,
+    categoryIds: (budget.budget_categories ?? []).map((category) => category.category_id),
+    createdAt: budget.created_at,
+    updatedAt: budget.updated_at,
+  }));
+}
+
+export async function saveBudget(
+  householdId: string,
+  budget: Omit<IBudget, "householdId">,
+  periodKey: string,
+): Promise<void> {
+  await invokeBudgets({
+    action: "save",
+    householdId,
+    budgetId: budget.id,
+    name: budget.name,
+    initialAmountCents: budget.initialAmountCents,
+    categoryIds: budget.categoryIds,
+    periodKey,
+  });
+}
+
+export async function deleteBudget(householdId: string, budgetId: string): Promise<void> {
+  await invokeBudgets({ action: "delete", householdId, budgetId });
 }
 
 /**

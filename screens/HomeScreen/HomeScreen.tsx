@@ -513,6 +513,12 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.actionText}>Épargne</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#7c3aed" }]}
+                onPress={() => navigation.navigate("Budgets")}
+              >
+                <Text style={styles.actionText}>Budgets</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[styles.actionButton, { borderLeftColor: "#9b59b6" }]}
                 onPress={() => navigation.navigate("Stats")}
               >
@@ -549,6 +555,13 @@ const HomeScreen: React.FC = () => {
                 onPress={() => navigation.navigate("Charges")}
               >
                 <Text style={styles.actionText}>Dépenses</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, { borderLeftColor: "#7c3aed" }]}
+                onPress={() => navigation.navigate("Budgets")}
+              >
+                <Text style={styles.actionText}>Budgets</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

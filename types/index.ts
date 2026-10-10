@@ -190,6 +190,22 @@ export interface ICategorie extends FirestoreDocument {
   sourceId?: string;
 }
 
+export interface IBudget extends FirestoreDocument {
+  householdId: string;
+  name: string;
+  /** Stored and calculated in cents to avoid floating point errors. */
+  initialAmountCents: number;
+  categoryIds: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BudgetTotals {
+  initialAmountCents: number;
+  spentAmountCents: number;
+  remainingAmountCents: number;
+}
+
 export interface PropagationConflict {
   soloHouseholdId: string;
   memberDisplayName: string;
@@ -247,6 +263,7 @@ export type RootStackParamList = {
   Revenus: undefined;
   Regulation: undefined;
   Epargne: undefined;
+  Budgets: undefined;
   SummaryRegulation: undefined;
   Login: undefined;
   Register: undefined;

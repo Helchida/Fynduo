@@ -27,6 +27,7 @@ import ChargeDetailScreen from "screens/ChargeDetail/ChargeDetailScreen";
 import RevenuDetailScreen from "screens/RevenuDetail/RevenuDetailScreen";
 import TirelireScreen from "screens/EpargneScreen/TirelireScreen/TirelireScreen";
 import NotificationsScreen from "screens/NotificationsScreen/NotificationsScreen";
+import BudgetsScreen from "screens/BudgetsScreen/BudgetsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -140,6 +141,7 @@ const AppStack = () => (
       component={EpargneScreen}
       options={{ title: "Epargne" }}
     />
+    <Stack.Screen name="Budgets" component={BudgetsScreen} options={{ title: "Budgets" }} />
     <Stack.Screen
       name="Tirelire"
       component={TirelireScreen}
