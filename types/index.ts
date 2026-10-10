@@ -193,17 +193,32 @@ export interface ICategorie extends FirestoreDocument {
 export interface IBudget extends FirestoreDocument {
   householdId: string;
   name: string;
-  /** Stored and calculated in cents to avoid floating point errors. */
-  initialAmountCents: number;
+  /** Stored and exchanged in euros, like the other financial data. */
+  initialAmount: number;
   categoryIds: string[];
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface BudgetTotals {
-  initialAmountCents: number;
-  spentAmountCents: number;
-  remainingAmountCents: number;
+  initialAmount: number;
+  spentAmount: number;
+  remainingAmount: number;
+}
+
+export interface IBudgetPeriodSnapshot {
+  id: string;
+  budgetId: string;
+  householdId: string;
+  periodKey: string;
+  periodStart: string | null;
+  periodEnd: string | null;
+  name: string;
+  initialAmount: number;
+  spentAmount: number | null;
+  remainingAmount: number | null;
+  categoryIds: string[];
+  closedAt: string | null;
 }
 
 export interface PropagationConflict {

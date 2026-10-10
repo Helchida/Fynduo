@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.create-charge]
 verify_jwt = false
 
+[functions.update-charge]
+verify_jwt = false
+
 [functions.budgets]
 verify_jwt = false
 
