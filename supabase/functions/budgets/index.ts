@@ -39,6 +39,9 @@ Deno.serve(async (request) => {
     return json({ error: "invalid_action" }, 400);
   } catch (error) {
     console.error("budget_request_failed", error);
+    if (error instanceof Error && error.message === "unauthorized") {
+      return json({ error: "unauthorized" }, 401);
+    }
     return json({ error: "unable_to_manage_budgets" }, 500);
   }
 });
