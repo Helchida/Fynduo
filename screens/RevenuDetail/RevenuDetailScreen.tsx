@@ -63,6 +63,9 @@ const RevenuDetailScreen: React.FC = () => {
   const [editIsReferencePay, setEditIsReferencePay] = useState(
     revenu?.isReferencePay ?? false,
   );
+  const [editIsNonTransferable, setEditIsNonTransferable] = useState(
+    revenu?.isNonTransferable ?? false,
+  );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
   const showDateReceptionPicker = () => setDateReceptionPickerVisibility(true);
@@ -97,6 +100,7 @@ const RevenuDetailScreen: React.FC = () => {
           : new Date(),
       );
       setEditIsReferencePay(initialRevenu.isReferencePay ?? false);
+      setEditIsNonTransferable(initialRevenu.isNonTransferable ?? false);
     }
   }, [
     initialRevenu,
@@ -127,6 +131,7 @@ const RevenuDetailScreen: React.FC = () => {
       ...updatedDataBase,
       ...{ categorie: editCategorie },
       isReferencePay: editIsReferencePay,
+      isNonTransferable: editIsNonTransferable,
     } as Partial<IRevenu>;
 
     try {
@@ -146,6 +151,7 @@ const RevenuDetailScreen: React.FC = () => {
     updateRevenu,
     editCategorie,
     editIsReferencePay,
+    editIsNonTransferable,
   ]);
 
   const displayAmountTotal = useMemo(() => {
@@ -199,6 +205,8 @@ const RevenuDetailScreen: React.FC = () => {
           categoriesRevenus={categoriesRevenus}
           isReferencePay={editIsReferencePay}
           setIsReferencePay={setEditIsReferencePay}
+          isNonTransferable={editIsNonTransferable}
+          setIsNonTransferable={setEditIsNonTransferable}
           isSoloHousehold={user.activeHouseholdId === user.id}
         />
       ) : (

@@ -42,6 +42,7 @@ Deno.serve(async (request) => {
       p_scope: body.scope,
       p_nature: body.nature,
       p_repartition: body.repartition ?? null,
+      p_is_non_transferable: body.isNonTransferable === true,
     });
     if (error) throw error;
 

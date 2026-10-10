@@ -9,6 +9,7 @@ describe("revenue creation payload", () => {
     dateReception: "2026-10-27T00:00:00.000Z",
     moisAnnee: "2026-10",
     isReferencePay: true,
+    isNonTransferable: false,
   };
 
   it("includes a checked reference-pay value in the first INSERT", () => {
@@ -21,5 +22,12 @@ describe("revenue creation payload", () => {
       ...revenue,
       isReferencePay: false,
     })).toMatchObject({ is_reference_pay: false });
+  });
+
+  it("persists the non-transferable funds flag on creation", () => {
+    expect(toRevenuInsertPayload("household-1", "household-1_revenue-3", {
+      ...revenue,
+      isNonTransferable: true,
+    })).toMatchObject({ is_non_transferable: true });
   });
 });

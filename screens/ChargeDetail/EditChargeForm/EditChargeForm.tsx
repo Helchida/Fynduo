@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Switch } from "react-native";
 import { XCircle, ChevronsUpDown } from "lucide-react-native";
 import { PayeurPickerModal } from "./PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "./BeneficiariesSelector/BeneficiariesSelector";
@@ -58,6 +58,8 @@ export const EditChargeForm = ({
   handleChangeEditTaux,
   handleResetEditRepartition,
   editRepartitionError,
+  isNonTransferable,
+  setIsNonTransferable,
 }: ExtendedEditChargeFormProps) => {
   const { user } = useAuth();
   if (!user) {
@@ -165,6 +167,13 @@ export const EditChargeForm = ({
           styles={styles}
           containerStyle={{ flex: 1, marginLeft: 0 }}
         />
+      </View>
+      <View style={[common.formContainer, common.payorCard, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={common.editLabel}>Payée avec des fonds non transférables</Text>
+          <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Cette dépense reste dans vos statistiques et budgets, mais ne réduit pas votre capacité d’épargne bancaire.</Text>
+        </View>
+        <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
       </View>
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}

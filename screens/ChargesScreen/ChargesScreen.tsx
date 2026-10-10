@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Switch,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -77,6 +78,7 @@ const ChargesScreen: React.FC = () => {
   const [beneficiairesUid, setBeneficiairesUid] = useState<string[]>([]);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
+  const [isNonTransferable, setIsNonTransferable] = useState(false);
   const [selectedCategorie, setSelectedCategorie] = useState(
     defaultCategory?.id || "Autre",
   );
@@ -297,6 +299,7 @@ const ChargesScreen: React.FC = () => {
         beneficiairesUid.length > 1 && !isSoloHousehold ? "partage" : "solo",
       nature: "depense",
       repartition: repartitionCalculee,
+      isNonTransferable,
     };
 
     try {
@@ -305,6 +308,7 @@ const ChargesScreen: React.FC = () => {
       setMontant("");
       setLockedMontants({});
       setSplitMode("egal");
+      setIsNonTransferable(false);
       setSelectedDateStatistiques(new Date());
       setSelectedCategorie(defaultCategory?.label || "Autre");
       setCategoryAutoSuggested(false);
@@ -337,6 +341,7 @@ const ChargesScreen: React.FC = () => {
     repartitionError,
     isSoloHousehold,
     defaultCategory,
+    isNonTransferable,
   ]);
 
   const handleOpenRemboursement = useCallback(
@@ -373,6 +378,7 @@ const ChargesScreen: React.FC = () => {
       type: "variable",
       scope: "partage",
       nature: "remboursement",
+      isNonTransferable: false,
     };
 
     try {
@@ -627,6 +633,13 @@ const ChargesScreen: React.FC = () => {
                 />
               </>
             )}
+            <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={common.selectorLabel}>Payée avec des fonds non transférables</Text>
+                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Cette dépense reste dans les statistiques et budgets, mais ne réduit pas la capacité d’épargne bancaire.</Text>
+              </View>
+              <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+            </View>
             <TouchableOpacity
               style={[
                 common.saveButton,

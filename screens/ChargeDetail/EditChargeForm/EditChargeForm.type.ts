@@ -35,4 +35,6 @@ export interface EditChargeFormProps {
   handleChangeEditTaux: (uid: string, taux: number) => void;
   handleResetEditRepartition: () => void;
   editRepartitionError: string | null;
+  isNonTransferable: boolean;
+  setIsNonTransferable: (value: boolean) => void;
 }

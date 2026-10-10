@@ -28,6 +28,15 @@ describe("financial PDF export data", () => {
     expect(result.totals).toEqual({ incomes: 3100, expenses: 500, balance: 2600 });
   });
 
+  it("keeps non-transferable funds in global financial exports", () => {
+    const result = buildFinancialExport({
+      ...options,
+      revenus: [{ ...revenue("meal", "2026-08-03", 150), isNonTransferable: true }],
+      charges: [{ ...charge("meal", "2026-08-04", 50), isNonTransferable: true }],
+    });
+    expect(result.totals).toEqual({ incomes: 150, expenses: 50, balance: 100 });
+  });
+
   it("uses inclusive date boundaries and omits empty months", () => {
     const result = buildFinancialExport({ ...options, start: new Date("2026-08-01T12:00:00"), end: new Date("2026-09-30T12:00:00") });
     expect(result.transactions.length).toBe(4);

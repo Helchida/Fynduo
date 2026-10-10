@@ -467,6 +467,7 @@ function mapChargeFixeConfig(row: any): IChargeFixeTemplate {
     dateFin: row.date_fin ?? null,
     echeancier: row.echeancier ?? null,
     jourNommeConfig: row.jour_nomme_config ?? null,
+    isNonTransferable: row.is_non_transferable ?? false,
   };
 }
 
@@ -511,6 +512,7 @@ export async function addChargeFixeConfig(
     date_fin: charge.dateFin,
     echeancier: charge.echeancier,
     jour_nomme_config: charge.jourNommeConfig,
+    is_non_transferable: charge.isNonTransferable ?? false,
   });
 
   if (error) throw error;
@@ -549,6 +551,8 @@ export async function updateChargeFixeConfig(
     supabaseUpdates.echeancier = updates.echeancier;
   if (updates.jourNommeConfig !== undefined)
     supabaseUpdates.jour_nomme_config = updates.jourNommeConfig;
+  if (updates.isNonTransferable !== undefined)
+    supabaseUpdates.is_non_transferable = updates.isNonTransferable;
 
   const { data, error } = await supabase
     .from("charges_fixes")
@@ -609,6 +613,7 @@ export async function getChargesByType<T extends ICharge>(
     scope: row.scope,
     nature: row.nature,
     repartition: row.repartition || null,
+    isNonTransferable: row.is_non_transferable ?? false,
   })) as T[];
 }
 
@@ -637,6 +642,7 @@ export async function getAllCharges(householdId: string): Promise<ICharge[]> {
     scope: row.scope,
     nature: row.nature,
     repartition: row.repartition || null,
+    isNonTransferable: row.is_non_transferable ?? false,
   }));
 }
 
@@ -759,6 +765,7 @@ export async function getSoloChargesByType<T extends ICharge>(
     scope: row.scope,
     nature: row.nature,
     repartition: row.repartition || null,
+    isNonTransferable: row.is_non_transferable ?? false,
   })) as T[];
 
   // Trier par date
@@ -789,6 +796,7 @@ export async function addCharge(
       beneficiaires: charge.beneficiaires || [], dateStatistiques: (charge as any).dateStatistiques,
       moisAnnee: (charge as any).moisAnnee, scope: charge.scope,
       nature: (charge as any).nature || "depense", repartition: charge.repartition ?? null,
+      isNonTransferable: charge.isNonTransferable ?? false,
     },
   });
   if (error) throw error;
@@ -865,6 +873,8 @@ export async function updateCharge(
       supabaseUpdates.scope = (updateData as any).scope;
     if (updateData.repartition !== undefined)
       supabaseUpdates.repartition = updateData.repartition;
+    if (updateData.isNonTransferable !== undefined)
+      supabaseUpdates.is_non_transferable = updateData.isNonTransferable;
 
     if (!Object.keys(supabaseUpdates).length) return;
     const firebaseToken = await auth.currentUser?.getIdToken();
@@ -1714,6 +1724,7 @@ export async function getRevenus(
       dateReception: row.date_reception,
       moisAnnee: row.mois_annee,
       isReferencePay: row.is_reference_pay ?? false,
+      isNonTransferable: row.is_non_transferable ?? false,
     }));
   } catch (error) {
     console.error("Erreur getRevenus:", error);
@@ -1770,6 +1781,8 @@ export async function updateRevenu(
       supabaseUpdates.mois_annee = updates.moisAnnee;
     if (updates.isReferencePay !== undefined)
       supabaseUpdates.is_reference_pay = updates.isReferencePay;
+    if (updates.isNonTransferable !== undefined)
+      supabaseUpdates.is_non_transferable = updates.isNonTransferable;
 
     const { error } = await supabase
       .from("revenus")

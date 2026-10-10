@@ -9,6 +9,7 @@ const json = (body: unknown, status = 200) =>
 const editableFields = new Set([
   "categorie", "description", "montant_total", "payeur", "beneficiaires",
   "date_statistiques", "mois_annee", "scope", "repartition",
+  "is_non_transferable",
 ]);
 
 Deno.serve(async (request) => {
