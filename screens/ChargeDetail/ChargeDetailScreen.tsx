@@ -92,6 +92,9 @@ const ChargeDetailScreen: React.FC = () => {
     charge?.categorie || 'cat_autre',
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+  const [editIsNonTransferable, setEditIsNonTransferable] = useState(
+    charge?.isNonTransferable ?? false,
+  );
   const [editSplitMode, setEditSplitMode] = useState<"egal" | "part">(
     parseRepartition(charge?.repartition) ? "part" : "egal",
   );
@@ -138,6 +141,7 @@ const ChargeDetailScreen: React.FC = () => {
       setEditMontant(initialCharge.montantTotal.toFixed(2).replace(".", ","));
       setEditPayeurUid(initialCharge.payeur);
       setEditBeneficiairesUid(initialCharge.beneficiaires);
+      setEditIsNonTransferable(initialCharge.isNonTransferable ?? false);
 
       const initialRepartition = parseRepartition(initialCharge.repartition);
       setEditSplitMode(initialRepartition ? "part" : "egal");
@@ -209,6 +213,7 @@ const ChargeDetailScreen: React.FC = () => {
       scope: chargeScope,
       categorie: editCategorie,
       repartition: finalRepartition, 
+      isNonTransferable: editIsNonTransferable,
     };
 
     try {
@@ -233,6 +238,7 @@ const ChargeDetailScreen: React.FC = () => {
     editSplitMode,        
     editRepartition,      
     editRepartitionError, 
+    editIsNonTransferable,
   ]);
 
   const handleToggleEditBeneficiaire = (userId: string) => {
@@ -413,6 +419,8 @@ const ChargeDetailScreen: React.FC = () => {
           handleChangeEditTaux={handleChangeEditTaux}
           handleResetEditRepartition={handleResetEditRepartition}
           editRepartitionError={editRepartitionError}
+          isNonTransferable={editIsNonTransferable}
+          setIsNonTransferable={setEditIsNonTransferable}
         />
       ) : (
         <>

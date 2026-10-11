@@ -75,6 +75,7 @@ export interface ICharge extends FirestoreDocument {
   nature: ChargeNature;
   categorie: ICategorie["id"];
   repartition?: Record<string, number> | null;
+  isNonTransferable?: boolean;
 }
 
 export interface IChargeFixeTemplate extends FirestoreDocument {
@@ -85,6 +86,7 @@ export interface IChargeFixeTemplate extends FirestoreDocument {
   payeur: string;
   beneficiaires: string[];
   scope: ChargeScope;
+  isNonTransferable?: boolean;
   
   periodiciteType: PeriodiciteType;
   periodiciteIntervalle: number; 
@@ -131,6 +133,7 @@ export interface IRevenu extends FirestoreDocument {
   moisAnnee: string;
   /** Explicit opt-in: only these revenues delimit pay periods. */
   isReferencePay: boolean;
+  isNonTransferable?: boolean;
 }
 
 // 3. Données du mois (Loyer et APL + Régularisation)

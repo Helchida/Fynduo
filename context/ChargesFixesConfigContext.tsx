@@ -124,6 +124,7 @@ export const ChargesFixesConfigProvider: React.FC<{
             type: "fixe",
             scope: beneficiaryUids.length > 1 ? "partage" : "solo",
             nature: "depense",
+            isNonTransferable: config.isNonTransferable ?? false,
             householdId: activeHouseholdId,
           };
 

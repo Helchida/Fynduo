@@ -20,5 +20,7 @@ export interface EditRevenuFormProps {
   categoriesRevenus: ICategorieRevenu[];
   isReferencePay: boolean;
   setIsReferencePay: (value: boolean) => void;
+  isNonTransferable: boolean;
+  setIsNonTransferable: (value: boolean) => void;
   isSoloHousehold: boolean;
 }

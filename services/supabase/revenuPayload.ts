@@ -10,6 +10,7 @@ export interface RevenuInsertPayload {
   date_reception: string;
   mois_annee: string;
   is_reference_pay: boolean;
+  is_non_transferable: boolean;
 }
 
 /** Maps the creation form's revenue model to the single Supabase INSERT payload. */
@@ -27,4 +28,5 @@ export const toRevenuInsertPayload = (
   date_reception: revenu.dateReception,
   mois_annee: revenu.moisAnnee,
   is_reference_pay: revenu.isReferencePay,
+  is_non_transferable: revenu.isNonTransferable ?? false,
 });

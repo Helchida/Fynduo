@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
   ScrollView,
+  Switch,
 } from "react-native";
 import { styles } from "../../../styles/screens/ChargesFixesScreen/ChargeFixeItem/ChargeFixeItem.style";
 import { common } from "../../../styles/common.style";
@@ -60,6 +61,9 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const [editPeriodicite, setEditPeriodicite] = useState<PeriodiciteValue>(
     extractPeriodiciteValue(charge),
   );
+  const [editIsNonTransferable, setEditIsNonTransferable] = useState(
+    charge.isNonTransferable ?? false,
+  );
 
   const toast = useToast();
   const { categories } = useCategories();
@@ -72,6 +76,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
     setEditCategorieId(charge.categorie);
     setEditPayeurId(charge.payeur);
     setEditPeriodicite(extractPeriodiciteValue(charge));
+    setEditIsNonTransferable(charge.isNonTransferable ?? false);
     setIsEditModalVisible(true);
   }, [charge]);
 
@@ -110,6 +115,9 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       if (!isSoloMode && editPayeurId !== charge.payeur) {
         updates.payeur = editPayeurId;
       }
+      if (editIsNonTransferable !== (charge.isNonTransferable ?? false)) {
+        updates.isNonTransferable = editIsNonTransferable;
+      }
 
       const originalPeriodicite = extractPeriodiciteValue(charge);
       if (JSON.stringify(editPeriodicite) !== JSON.stringify(originalPeriodicite)) {
@@ -139,6 +147,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
     charge,
     onUpdate,
     isSoloMode,
+    editIsNonTransferable,
     toast,
   ]);
 
@@ -275,6 +284,13 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                   </TouchableOpacity>
                 </>
               )}
+              <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }]}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={common.inputLabel}>Payée avec des fonds non transférables</Text>
+                  <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Les prochaines occurrences n’affecteront pas l’épargne bancaire.</Text>
+                </View>
+                <Switch value={editIsNonTransferable} onValueChange={setEditIsNonTransferable} disabled={isSaving} />
+              </View>
 
               <PeriodiciteFormSection
                 value={editPeriodicite}

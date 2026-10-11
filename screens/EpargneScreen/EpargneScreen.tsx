@@ -57,7 +57,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "styles/theme.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
-import { calculateSavingsCapacity } from "utils/savingsCapacity";
+import { calculateSavingsCapacity, getBankTransferableTotals } from "utils/savingsCapacity";
 import {
   filterByFinancialPeriod,
 } from "utils/financialPeriods";
@@ -158,18 +158,6 @@ const EpargneScreen: React.FC = () => {
       selectedFinancialPeriod,
     );
 
-    let totalDepenses = 0;
-    monthCharges.forEach((c) => {
-      const montant = Number(c.montantTotal) || 0;
-      if (isSoloMode && c.beneficiaires?.length > 0) {
-        if (c.beneficiaires.includes(user.id)) {
-          totalDepenses += montant / c.beneficiaires.length;
-        }
-      } else {
-        totalDepenses += montant;
-      }
-    });
-
     const monthRevenus = filterByFinancialPeriod(
       // A tirelire withdrawal is recorded as a revenue row for traceability,
       // but it is not new income. Its impact is already represented by the
@@ -185,10 +173,12 @@ const EpargneScreen: React.FC = () => {
       selectedFinancialPeriod,
     );
 
-    let totalRevenus = 0;
-    monthRevenus.forEach((r) => {
-      totalRevenus += Number(r.montant) || 0;
-    });
+    const transferableTotals = getBankTransferableTotals(
+      monthRevenus,
+      monthCharges,
+      user.id,
+      isSoloMode,
+    );
 
     let totalRetraits = 0;
     monthRetraitEpargne.forEach((r) => {
@@ -196,9 +186,9 @@ const EpargneScreen: React.FC = () => {
     });
 
     return {
-      revenus: totalRevenus,
-      depenses: totalDepenses,
-      solde: totalRevenus - totalDepenses,
+      revenus: transferableTotals.revenus,
+      depenses: transferableTotals.depenses,
+      solde: transferableTotals.revenus - transferableTotals.depenses,
       retraits: totalRetraits,
     };
   }, [charges, revenus, user, selectedFinancialPeriod]);

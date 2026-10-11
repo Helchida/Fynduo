@@ -7,6 +7,7 @@ import {
   TextInput,
   Modal,
   ScrollView,
+  Switch,
 } from "react-native";
 import { useComptes } from "../../hooks/useComptes";
 import { useAuth } from "../../hooks/useAuth";
@@ -66,6 +67,7 @@ const ChargesFixesScreen: React.FC = () => {
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
+  const [isNonTransferable, setIsNonTransferable] = useState(false);
 
   const [periodiciteValue, setPeriodiciteValue] = useState<PeriodiciteValue>(
     DEFAULT_PERIODICITE_VALUE,
@@ -88,6 +90,7 @@ const ChargesFixesScreen: React.FC = () => {
     setPayeur(user?.id ?? null);
     setSelectedCategorie(defaultCategory?.id || "Autre");
     setPeriodiciteValue(DEFAULT_PERIODICITE_VALUE);
+    setIsNonTransferable(false);
   }, [user, defaultCategory]);
 
   const handleChargeUpdate = useCallback(
@@ -149,6 +152,7 @@ const ChargesFixesScreen: React.FC = () => {
       dateFin: periodiciteValue.dateFin,
       echeancier: periodiciteValue.echeancier,
       jourNommeConfig: periodiciteValue.jourNommeConfig,
+      isNonTransferable,
     };
 
     try {
@@ -188,6 +192,7 @@ const ChargesFixesScreen: React.FC = () => {
     toast,
     selectedCategorie,
     resetForm,
+    isNonTransferable,
   ]);
 
   if (isLoadingComptes) {
@@ -311,6 +316,13 @@ const ChargesFixesScreen: React.FC = () => {
                 disabled={isSubmitting}
                 montantDefault={parseFloat(montant.replace(",", ".")) || 0}
               />
+            </View>
+            <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={common.selectorLabel}>Payée avec des fonds non transférables</Text>
+                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Les occurrences créées resteront dans les budgets et statistiques, sans réduire l’épargne bancaire.</Text>
+              </View>
+              <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
             </View>
 
             <TouchableOpacity

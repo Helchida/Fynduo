@@ -74,6 +74,7 @@ const RevenusScreen: React.FC = () => {
     new Date(),
   );
   const [isReferencePay, setIsReferencePay] = useState(false);
+  const [isNonTransferable, setIsNonTransferable] = useState(false);
 
   const [isDateReceptionPickerVisible, setDateReceptionPickerVisibility] =
     useState(false);
@@ -213,6 +214,7 @@ const RevenusScreen: React.FC = () => {
       categorie: selectedCategorie,
       beneficiaire: user.id,
       isReferencePay: isSoloHousehold && isReferencePay,
+      isNonTransferable,
     };
 
     try {
@@ -223,6 +225,7 @@ const RevenusScreen: React.FC = () => {
       setSelectedCategorie(defaultCategoryRevenu?.label || "Autre");
       setCategoryAutoSuggested(false);
       setIsReferencePay(false);
+      setIsNonTransferable(false);
       setShowForm(false);
       toast.success("Succès", "Revenu enregistré.");
     } catch (error) {
@@ -241,6 +244,7 @@ const RevenusScreen: React.FC = () => {
     user.id,
     isReferencePay,
     isSoloHousehold,
+    isNonTransferable,
     defaultCategoryRevenu,
     toast,
   ]);
@@ -403,6 +407,13 @@ const RevenusScreen: React.FC = () => {
                 <Switch value={isReferencePay} onValueChange={setIsReferencePay} disabled={isSubmitting} />
               </View>
             )}
+            <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={common.selectorLabel}>Fonds non transférables</Text>
+                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Utilisables via un moyen de paiement spécifique, ils ne peuvent pas être transférés vers votre compte bancaire.</Text>
+              </View>
+              <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+            </View>
 
             <TouchableOpacity
               style={[

@@ -5,7 +5,7 @@ const period = { id: "2026-10", start: "2026-10-01", end: "2026-10-31", label: "
 const charge = (amount: number, category = "courses", date = "2026-10-10"): ICharge => ({
   id: `${amount}-${date}`, householdId: "home", description: "Dépense", montantTotal: amount,
   payeur: "user", beneficiaires: ["user"], dateStatistiques: date, moisAnnee: "2026-10",
-  type: "variable", scope: "solo", nature: "depense", categorie: category,
+  type: "variable", scope: "solo", nature: "depense", categorie: category, isNonTransferable: false,
 });
 
 describe("budget calculations", () => {
@@ -19,6 +19,10 @@ describe("budget calculations", () => {
 
   it("allows an exceeded budget", () => {
     expect(getBudgetTotals(150, ["courses"], [charge(35), charge(42), charge(80)], period).remainingAmount).toBe(-7);
+  });
+
+  it("counts expenses paid with non-transferable funds", () => {
+    expect(getBudgetTotals(100, ["courses"], [{ ...charge(35), isNonTransferable: true }], period).spentAmount).toBe(35);
   });
 
   it("includes all selected categories and excludes other periods and refunds", () => {

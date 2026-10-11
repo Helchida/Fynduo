@@ -30,6 +30,8 @@ export const EditRevenuForm = ({
   categoriesRevenus,
   isReferencePay,
   setIsReferencePay,
+  isNonTransferable,
+  setIsNonTransferable,
   isSoloHousehold,
 }: EditRevenuFormProps) => {
   const { user } = useAuth();
@@ -124,6 +126,13 @@ export const EditRevenuForm = ({
           <Switch value={isReferencePay} onValueChange={setIsReferencePay} disabled={isSubmitting} />
         </View>
       )}
+      <View style={[common.formContainer, common.payorCard, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={common.editLabel}>Fonds non transférables</Text>
+          <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Utilisables via un moyen de paiement spécifique, ils ne peuvent pas être transférés vers votre compte bancaire.</Text>
+        </View>
+        <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+      </View>
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}
         onClose={() => setIsCategoryModalVisible(false)}
