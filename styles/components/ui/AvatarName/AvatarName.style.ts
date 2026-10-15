@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing } from "../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   avatarPlaceholder: {
     width: 40,
     height: 40,

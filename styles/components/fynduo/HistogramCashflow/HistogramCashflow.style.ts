@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   historyColumn: {
     alignItems: "center",
     width: "33%",

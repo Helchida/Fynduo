@@ -152,7 +152,10 @@ const HomeScreen: React.FC = () => {
         const totalDépenses = periodCharges.reduce((total, charge) => {
           const montant = Number(charge.montantTotal) || 0;
           return isSoloMode && charge.beneficiaires?.length > 0
-            ? total + (charge.beneficiaires.includes(user.id) ? montant / charge.beneficiaires.length : 0)
+            ? total +
+                (charge.beneficiaires.includes(user.id)
+                  ? montant / charge.beneficiaires.length
+                  : 0)
             : total + montant;
         }, 0);
         const totalRevenus = filterByFinancialPeriod(
@@ -160,37 +163,62 @@ const HomeScreen: React.FC = () => {
           (revenu) => revenu.dateReception,
           period,
         ).reduce((total, revenu) => total + (Number(revenu.montant) || 0), 0);
-        return { month: period.label, year: "", total: totalDépenses, totalRevenus, fullDate: period.id };
+        return {
+          month: period.label,
+          year: "",
+          total: totalDépenses,
+          totalRevenus,
+          fullDate: period.id,
+        };
       });
 
       // The start month belongs to the first pay period. Months before it
       // remain visible as a read-only display history, never as a savings mode.
-      const firstPayMonth = periods.length > 0
-        ? dayjs(periods[periods.length - 1].start).startOf("month")
-        : null;
-      const historicalMonthKeys = Array.from(new Set([
-        ...charges.filter((charge) => charge.nature !== "remboursement")
-          .map((charge) => dayjs(charge.dateStatistiques).format("YYYY-MM")),
-        ...revenus.map((revenu) => dayjs(revenu.dateReception).format("YYYY-MM")),
-      ]))
-        .filter((monthKey) => !firstPayMonth || dayjs(monthKey).isBefore(firstPayMonth, "month"))
+      const firstPayMonth =
+        periods.length > 0
+          ? dayjs(periods[periods.length - 1].start).startOf("month")
+          : null;
+      const historicalMonthKeys = Array.from(
+        new Set([
+          ...charges
+            .filter((charge) => charge.nature !== "remboursement")
+            .map((charge) => dayjs(charge.dateStatistiques).format("YYYY-MM")),
+          ...revenus.map((revenu) =>
+            dayjs(revenu.dateReception).format("YYYY-MM"),
+          ),
+        ]),
+      )
+        .filter(
+          (monthKey) =>
+            !firstPayMonth || dayjs(monthKey).isBefore(firstPayMonth, "month"),
+        )
         .sort((a, b) => b.localeCompare(a));
       const historicalMonthData = historicalMonthKeys.map((monthKey) => {
-        const monthCharges = charges.filter((charge) =>
-          charge.nature !== "remboursement" && dayjs(charge.dateStatistiques).format("YYYY-MM") === monthKey,
+        const monthCharges = charges.filter(
+          (charge) =>
+            charge.nature !== "remboursement" &&
+            dayjs(charge.dateStatistiques).format("YYYY-MM") === monthKey,
         );
         const total = monthCharges.reduce((sum, charge) => {
           const amount = Number(charge.montantTotal) || 0;
           return isSoloMode && charge.beneficiaires?.length > 0
-            ? sum + (charge.beneficiaires.includes(user.id) ? amount / charge.beneficiaires.length : 0)
+            ? sum +
+                (charge.beneficiaires.includes(user.id)
+                  ? amount / charge.beneficiaires.length
+                  : 0)
             : sum + amount;
         }, 0);
         const totalRevenus = revenus
-          .filter((revenu) => dayjs(revenu.dateReception).format("YYYY-MM") === monthKey)
+          .filter(
+            (revenu) =>
+              dayjs(revenu.dateReception).format("YYYY-MM") === monthKey,
+          )
           .reduce((sum, revenu) => sum + (Number(revenu.montant) || 0), 0);
         const monthDate = dayjs(monthKey);
         return {
-          month: monthDate.format("MMM").charAt(0).toUpperCase() + monthDate.format("MMM").slice(1),
+          month:
+            monthDate.format("MMM").charAt(0).toUpperCase() +
+            monthDate.format("MMM").slice(1),
           year: monthDate.format("YYYY"),
           total,
           totalRevenus,
@@ -333,11 +361,40 @@ const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: "row", gap: 10 }}>
-            <TouchableOpacity style={styles.userIconButton} onPress={() => navigation.navigate("Notifications")}>
+            <TouchableOpacity
+              style={styles.userIconButton}
+              onPress={() => navigation.navigate("Notifications")}
+            >
               <Bell color="#2c3e50" size={22} />
-              {unreadNotificationCount > 0 && <View style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#e74c3c", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "white", fontSize: 11, fontWeight: "800" }}>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</Text></View>}
+              {unreadNotificationCount > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -4,
+                    right: -4,
+                    minWidth: 18,
+                    height: 18,
+                    paddingHorizontal: 4,
+                    borderRadius: 9,
+                    backgroundColor: "#e74c3c",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text
+                    style={{ color: "white", fontSize: 11, fontWeight: "800" }}
+                  >
+                    {unreadNotificationCount > 99
+                      ? "99+"
+                      : unreadNotificationCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.userIconButton} onPress={() => setMenuVisible(true)}>
+            <TouchableOpacity
+              style={styles.userIconButton}
+              onPress={() => setMenuVisible(true)}
+            >
               <User color="#2c3e50" size={22} />
             </TouchableOpacity>
           </View>
@@ -462,8 +519,15 @@ const HomeScreen: React.FC = () => {
                   />
                 ))}
                 {isSolo && monthsData.length === 0 && (
-                  <Text style={{ color: "#7f8c8d", textAlign: "center", paddingHorizontal: 12 }}>
-                    Ajoutez un revenu marqué comme paie de référence pour créer votre première période.
+                  <Text
+                    style={{
+                      color: "#7f8c8d",
+                      textAlign: "center",
+                      paddingHorizontal: 12,
+                    }}
+                  >
+                    Ajoutez un revenu marqué comme paie de référence pour créer
+                    votre première période.
                   </Text>
                 )}
               </View>

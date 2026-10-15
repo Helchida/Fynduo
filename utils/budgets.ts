@@ -12,7 +12,9 @@ export const parseEuroAmount = (value: string): number | null => {
 };
 
 export const formatEuro = (value: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(roundEuro(value));
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
+    roundEuro(value),
+  );
 
 export const getBudgetTotals = (
   initialAmount: number,
@@ -27,11 +29,18 @@ export const getBudgetTotals = (
       charge.nature === "remboursement" ||
       !categorySet.has(charge.categorie) ||
       !isDateInFinancialPeriod(charge.dateStatistiques, financialPeriod)
-    ) return total;
+    )
+      return total;
     const amount = Number(charge.montantTotal) || 0;
     if (options.isSoloMode && charge.beneficiaires?.length) {
-      if (!options.currentUserId || !charge.beneficiaires.includes(options.currentUserId)) return total;
-      const share = charge.repartition?.[options.currentUserId] ?? amount / charge.beneficiaires.length;
+      if (
+        !options.currentUserId ||
+        !charge.beneficiaires.includes(options.currentUserId)
+      )
+        return total;
+      const share =
+        charge.repartition?.[options.currentUserId] ??
+        amount / charge.beneficiaires.length;
       return total + share;
     }
     return total + amount;

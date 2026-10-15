@@ -25,9 +25,9 @@ export const ChargesFixesConfigProvider: React.FC<{
   const { user, householdUsers, isLoading } = useAuth();
   const activeHouseholdId = user?.activeHouseholdId;
   const isSoloMode = user?.id === activeHouseholdId;
-  const [chargesFixesConfigs, setChargesFixesConfigs] = useState<IChargeFixeTemplate[]>(
-    [],
-  );
+  const [chargesFixesConfigs, setChargesFixesConfigs] = useState<
+    IChargeFixeTemplate[]
+  >([]);
   const [isLoadingComptes, setIsLoadingComptes] = useState(false);
 
   const processingCharges = useRef<Set<string>>(new Set());
@@ -145,12 +145,10 @@ export const ChargesFixesConfigProvider: React.FC<{
       await DB.updateChargeFixeConfig(activeHouseholdId, chargeId, updates);
 
       setChargesFixesConfigs((prev) =>
-        prev.map((c) =>
-          c.id === chargeId ? { ...c, ...updates } : c
-        )
+        prev.map((c) => (c.id === chargeId ? { ...c, ...updates } : c)),
       );
     },
-    [activeHouseholdId]
+    [activeHouseholdId],
   );
 
   const addChargeFixeConfig = useCallback(

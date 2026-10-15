@@ -17,7 +17,6 @@ function levenshtein(a: string, b: string): number {
   return dp[m][n];
 }
 
-
 export function normalizeLabel(label: string): string {
   return label
     .trim()
@@ -25,7 +24,6 @@ export function normalizeLabel(label: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 }
-
 
 export function similarity(a: string, b: string): number {
   const na = normalizeLabel(a);
@@ -42,10 +40,11 @@ export function similarity(a: string, b: string): number {
 }
 
 export const FUZZY_THRESHOLD_CATEGORY = 0.65;
-export const FUZZY_THRESHOLD_DESCRIPTION = 0.90;
+export const FUZZY_THRESHOLD_DESCRIPTION = 0.9;
 
-
-export function findSimilarCategories<T extends { label: string; isDefault?: boolean }>(
+export function findSimilarCategories<
+  T extends { label: string; isDefault?: boolean },
+>(
   input: string,
   categories: T[],
   threshold = FUZZY_THRESHOLD_CATEGORY,
@@ -55,6 +54,10 @@ export function findSimilarCategories<T extends { label: string; isDefault?: boo
   return categories
     .filter((cat) => !cat.isDefault)
     .map((cat) => ({ ...cat, score: similarity(input, cat.label) }))
-    .filter((cat) => cat.score >= threshold && normalizeLabel(cat.label) !== normalizeLabel(input))
+    .filter(
+      (cat) =>
+        cat.score >= threshold &&
+        normalizeLabel(cat.label) !== normalizeLabel(input),
+    )
     .sort((a, b) => b.score - a.score);
 }

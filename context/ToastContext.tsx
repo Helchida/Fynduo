@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  useState,
-  useCallback,
-  ReactNode,
-} from "react";
+import React, { createContext, useState, useCallback, ReactNode } from "react";
 import { View } from "react-native";
 import { ToastContextProps } from "./types/ToastContext.type";
 import { Toast, ToastType } from "@/types";
@@ -11,7 +6,7 @@ import { styles } from "./styles/ToastContext.style";
 import { ToastItem } from "../components/ui/ToastItem/ToastItem";
 
 export const ToastContext = createContext<ToastContextProps | undefined>(
-  undefined
+  undefined,
 );
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({
@@ -24,7 +19,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({
       type: ToastType,
       title: string,
       message?: string,
-      duration: number = 4000
+      duration: number = 4000,
     ) => {
       const id = Date.now().toString();
       const newToast: Toast = { id, type, title, message, duration };
@@ -35,35 +30,35 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({
         setToasts((prev) => prev.filter((t) => t.id !== id));
       }, duration);
     },
-    []
+    [],
   );
 
   const success = useCallback(
     (title: string, message?: string) => {
       showToast("success", title, message);
     },
-    [showToast]
+    [showToast],
   );
 
   const error = useCallback(
     (title: string, message?: string) => {
       showToast("error", title, message);
     },
-    [showToast]
+    [showToast],
   );
 
   const info = useCallback(
     (title: string, message?: string) => {
       showToast("info", title, message);
     },
-    [showToast]
+    [showToast],
   );
 
   const warning = useCallback(
     (title: string, message?: string) => {
       showToast("warning", title, message);
     },
-    [showToast]
+    [showToast],
   );
 
   const removeToast = (id: string) => {

@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing } from "../../../../theme.style";
 
 export const styles = StyleSheet.create({
-
   beneficiaryRow: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -2,7 +2,6 @@ import { Platform, StyleSheet } from "react-native";
 import { colors, spacing, radius } from "../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Toast ─────────────────────────────────────
   toast: {
     flexDirection: "row",
@@ -17,7 +16,8 @@ export const styles = StyleSheet.create({
     maxWidth: 500,
     ...Platform.select({
       web: {
-        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
+        boxShadow:
+          "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
       },
       default: {
         shadowColor: "#000",
@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
   },
 
   // ── Contenu ───────────────────────────────────
-  toastIcon:    { marginRight: spacing.md, marginTop: spacing.xxs },
+  toastIcon: { marginRight: spacing.md, marginTop: spacing.xxs },
   toastContent: { flex: 1 },
   toastTitle: {
     fontSize: 15,

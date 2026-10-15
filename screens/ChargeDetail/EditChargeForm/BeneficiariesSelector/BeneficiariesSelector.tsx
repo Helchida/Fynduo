@@ -95,17 +95,18 @@ export const BeneficiariesSelector = ({
           activeOpacity={0.7}
         >
           <RotateCcw size={12} color="#27ae60" />
-          <Text style={styles.resetButtonText}>Réinitialiser la répartition</Text>
+          <Text style={styles.resetButtonText}>
+            Réinitialiser la répartition
+          </Text>
         </TouchableOpacity>
       )}
-
-      
 
       {users.map((u) => {
         const isSelected = selectedUids.includes(u.id);
         const isLocked = lockedUids.includes(u.id);
         const montant = isSelected ? (repartition[u.id] ?? 0) : 0;
-        const taux = isSelected && amountNum > 0 ? (montant / amountNum) * 100 : 0;
+        const taux =
+          isSelected && amountNum > 0 ? (montant / amountNum) * 100 : 0;
 
         const tauxKey = `${u.id}-taux`;
         const montantKey = `${u.id}-montant`;

@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius, typography } from "../../theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Layout ────────────────────────────────────
   detailContainer: {
     flex: 1,

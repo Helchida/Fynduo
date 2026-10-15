@@ -17,8 +17,8 @@ const ChargesFixesSection: React.FC<ChargesFixesSectionProps> = ({
   return (
     <View style={common.cardFlat}>
       <View style={common.row}>
-          <Settings size={20} color={"#747275"} style={{ marginBottom: 14 }} />
-      <Text style={common.cardFlatTitle}>{" "}Charges Fixes</Text>
+        <Settings size={20} color={"#747275"} style={{ marginBottom: 14 }} />
+        <Text style={common.cardFlatTitle}> Charges Fixes</Text>
       </View>
 
       {householdUsers.map((u) => (

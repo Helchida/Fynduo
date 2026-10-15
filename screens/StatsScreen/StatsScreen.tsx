@@ -1,4 +1,10 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
@@ -47,20 +53,29 @@ type ViewMode = "dépenses" | "revenus" | "épargnes";
 type StatsGranularity = "MONTH" | "PAY_PERIOD";
 
 const StatsScreen: React.FC = () => {
-  const { charges, revenus, currentFinancialPeriod, financialPeriods } = useComptes();
-  const { categories, categoriesRevenus, getCategoryLabel, getCategoryRevenuLabel } = useCategories();
+  const { charges, revenus, currentFinancialPeriod, financialPeriods } =
+    useComptes();
+  const {
+    categories,
+    categoriesRevenus,
+    getCategoryLabel,
+    getCategoryRevenuLabel,
+  } = useCategories();
   const { user } = useAuth();
   const { householdUsers } = useHouseholdUsers();
 
   const [period, setPeriod] = useState<StatPeriod>("mois");
-  const [statsGranularity, setStatsGranularity] = useState<StatsGranularity>("MONTH");
+  const [statsGranularity, setStatsGranularity] =
+    useState<StatsGranularity>("MONTH");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     dayjs().format("YYYY-MM"),
   );
   const [selectedYear, setSelectedYear] = useState<string>(
     dayjs().format("YYYY"),
   );
-  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(null);
+  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(
+    null,
+  );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("dépenses");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -80,14 +95,32 @@ const StatsScreen: React.FC = () => {
   );
   useEffect(() => {
     if (!payPeriodActive) return;
-    if (selectedPayPeriodId && payPeriods.some((financialPeriod) => financialPeriod.id === selectedPayPeriodId)) return;
-    setSelectedPayPeriodId(currentFinancialPeriod?.id ?? payPeriods[0]?.id ?? null);
-  }, [payPeriodActive, selectedPayPeriodId, currentFinancialPeriod, payPeriods]);
-  const selectedFinancialPeriod = payPeriodActive && period === "mois"
-    ? payPeriods.find((financialPeriod) => financialPeriod.id === selectedPayPeriodId) ?? currentFinancialPeriod
-    : null;
+    if (
+      selectedPayPeriodId &&
+      payPeriods.some(
+        (financialPeriod) => financialPeriod.id === selectedPayPeriodId,
+      )
+    )
+      return;
+    setSelectedPayPeriodId(
+      currentFinancialPeriod?.id ?? payPeriods[0]?.id ?? null,
+    );
+  }, [
+    payPeriodActive,
+    selectedPayPeriodId,
+    currentFinancialPeriod,
+    payPeriods,
+  ]);
+  const selectedFinancialPeriod =
+    payPeriodActive && period === "mois"
+      ? (payPeriods.find(
+          (financialPeriod) => financialPeriod.id === selectedPayPeriodId,
+        ) ?? currentFinancialPeriod)
+      : null;
   const selectedPayPeriodIndex = selectedFinancialPeriod
-    ? payPeriods.findIndex((financialPeriod) => financialPeriod.id === selectedFinancialPeriod.id)
+    ? payPeriods.findIndex(
+        (financialPeriod) => financialPeriod.id === selectedFinancialPeriod.id,
+      )
     : -1;
   const effectiveViewMode: ViewMode = isSoloMode ? viewMode : "dépenses";
 
@@ -182,107 +215,107 @@ const StatsScreen: React.FC = () => {
           </TouchableOpacity>
           {isSoloMode && (
             <View>
-            <TouchableOpacity
-              ref={triggerRef}
-              style={styles.trigger}
-              onPress={() => {
-                triggerRef.current?.measureInWindow((x, y, width, height) => {
-                  setDropdownPosition({
-                    top: y + height + 6,
-                    right: 20,
+              <TouchableOpacity
+                ref={triggerRef}
+                style={styles.trigger}
+                onPress={() => {
+                  triggerRef.current?.measureInWindow((x, y, width, height) => {
+                    setDropdownPosition({
+                      top: y + height + 6,
+                      right: 20,
+                    });
+                    setIsDropdownOpen(true);
                   });
-                  setIsDropdownOpen(true);
-                });
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={common.row}>
-                {viewMode === "dépenses" ? (
-                  <BanknoteArrowDown size={16} color={"#25cc0f"} />
-                ) : viewMode === "revenus" ? (
-                  <BanknoteArrowUp size={16} color={"#0f77cc"} />
-                ) : (
-                  <Landmark size={16} color={"#870fcc"} />
-                )}
-
-                <Text style={styles.triggerText}>
-                  {viewMode === "dépenses"
-                    ? " Dépenses"
-                    : viewMode === "revenus"
-                      ? " Revenus"
-                      : " Épargne"}
-                </Text>
-              </View>
-
-              {isDropdownOpen ? (
-                <ChevronUp color="#2c3e50" size={16} />
-              ) : (
-                <ChevronDown color="#2c3e50" size={16} />
-              )}
-            </TouchableOpacity>
-
-            <Modal
-              visible={isDropdownOpen}
-              transparent
-              animationType="none"
-              onRequestClose={() => setIsDropdownOpen(false)}
-            >
-              <Pressable
-                style={styles.modalBackdrop}
-                onPress={() => setIsDropdownOpen(false)}
+                }}
+                activeOpacity={0.7}
               >
-                <View
-                  style={[
-                    styles.menu,
-                    {
-                      top: dropdownPosition.top,
-                      right: dropdownPosition.right,
-                    },
-                  ]}
-                >
-                  {(["dépenses", "revenus", "épargnes"] as ViewMode[]).map(
-                    (mode) => (
-                      <TouchableOpacity
-                        key={mode}
-                        style={[
-                          styles.menuItem,
-                          viewMode === mode && styles.menuItemActive,
-                        ]}
-                        onPress={() => {
-                          setViewMode(mode);
-                          setIsDropdownOpen(false);
-                        }}
-                      >
-                        <View style={common.row}>
-                          {mode === "dépenses" ? (
-                            <BanknoteArrowDown size={16} color={"#25cc0f"} />
-                          ) : mode === "revenus" ? (
-                            <BanknoteArrowUp size={16} color={"#0f77cc"} />
-                          ) : (
-                            <Landmark size={16} color={"#870fcc"} />
-                          )}
-                          <Text
-                            style={[
-                              styles.menuItemText,
-                              viewMode === mode && styles.menuItemTextActive,
-                            ]}
-                          >
-                            {mode === "dépenses"
-                              ? " Dépenses"
-                              : mode === "revenus"
-                                ? " Revenus"
-                                : " Épargne"}
-                          </Text>
-                        </View>
-                        {viewMode === mode && (
-                          <Text style={styles.checkmark}>✓</Text>
-                        )}
-                      </TouchableOpacity>
-                    ),
+                <View style={common.row}>
+                  {viewMode === "dépenses" ? (
+                    <BanknoteArrowDown size={16} color={"#25cc0f"} />
+                  ) : viewMode === "revenus" ? (
+                    <BanknoteArrowUp size={16} color={"#0f77cc"} />
+                  ) : (
+                    <Landmark size={16} color={"#870fcc"} />
                   )}
+
+                  <Text style={styles.triggerText}>
+                    {viewMode === "dépenses"
+                      ? " Dépenses"
+                      : viewMode === "revenus"
+                        ? " Revenus"
+                        : " Épargne"}
+                  </Text>
                 </View>
-              </Pressable>
-            </Modal>
+
+                {isDropdownOpen ? (
+                  <ChevronUp color="#2c3e50" size={16} />
+                ) : (
+                  <ChevronDown color="#2c3e50" size={16} />
+                )}
+              </TouchableOpacity>
+
+              <Modal
+                visible={isDropdownOpen}
+                transparent
+                animationType="none"
+                onRequestClose={() => setIsDropdownOpen(false)}
+              >
+                <Pressable
+                  style={styles.modalBackdrop}
+                  onPress={() => setIsDropdownOpen(false)}
+                >
+                  <View
+                    style={[
+                      styles.menu,
+                      {
+                        top: dropdownPosition.top,
+                        right: dropdownPosition.right,
+                      },
+                    ]}
+                  >
+                    {(["dépenses", "revenus", "épargnes"] as ViewMode[]).map(
+                      (mode) => (
+                        <TouchableOpacity
+                          key={mode}
+                          style={[
+                            styles.menuItem,
+                            viewMode === mode && styles.menuItemActive,
+                          ]}
+                          onPress={() => {
+                            setViewMode(mode);
+                            setIsDropdownOpen(false);
+                          }}
+                        >
+                          <View style={common.row}>
+                            {mode === "dépenses" ? (
+                              <BanknoteArrowDown size={16} color={"#25cc0f"} />
+                            ) : mode === "revenus" ? (
+                              <BanknoteArrowUp size={16} color={"#0f77cc"} />
+                            ) : (
+                              <Landmark size={16} color={"#870fcc"} />
+                            )}
+                            <Text
+                              style={[
+                                styles.menuItemText,
+                                viewMode === mode && styles.menuItemTextActive,
+                              ]}
+                            >
+                              {mode === "dépenses"
+                                ? " Dépenses"
+                                : mode === "revenus"
+                                  ? " Revenus"
+                                  : " Épargne"}
+                            </Text>
+                          </View>
+                          {viewMode === mode && (
+                            <Text style={styles.checkmark}>✓</Text>
+                          )}
+                        </TouchableOpacity>
+                      ),
+                    )}
+                  </View>
+                </Pressable>
+              </Modal>
             </View>
           )}
         </View>
@@ -306,11 +339,37 @@ const StatsScreen: React.FC = () => {
 
       {isSoloMode && period === "mois" && (
         <View style={[styles.tabContainer, { marginTop: 8 }]}>
-          <TouchableOpacity style={[styles.tab, statsGranularity === "MONTH" && styles.activeTab]} onPress={() => setStatsGranularity("MONTH")}>
-            <Text style={[styles.tabText, statsGranularity === "MONTH" && styles.activeTabText]}>Vue mensuelle</Text>
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              statsGranularity === "MONTH" && styles.activeTab,
+            ]}
+            onPress={() => setStatsGranularity("MONTH")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                statsGranularity === "MONTH" && styles.activeTabText,
+              ]}
+            >
+              Vue mensuelle
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.tab, statsGranularity === "PAY_PERIOD" && styles.activeTab]} onPress={() => setStatsGranularity("PAY_PERIOD")}>
-            <Text style={[styles.tabText, statsGranularity === "PAY_PERIOD" && styles.activeTabText]}>Période de paie</Text>
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              statsGranularity === "PAY_PERIOD" && styles.activeTab,
+            ]}
+            onPress={() => setStatsGranularity("PAY_PERIOD")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                statsGranularity === "PAY_PERIOD" && styles.activeTabText,
+              ]}
+            >
+              Période de paie
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -318,32 +377,47 @@ const StatsScreen: React.FC = () => {
       {period !== "tout" && payPeriodActive && period === "mois" ? (
         <View style={styles.periodButton}>
           <TouchableOpacity
-            disabled={selectedPayPeriodIndex < 0 || selectedPayPeriodIndex >= payPeriods.length - 1}
-            onPress={() => setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex + 1]?.id ?? null)}
+            disabled={
+              selectedPayPeriodIndex < 0 ||
+              selectedPayPeriodIndex >= payPeriods.length - 1
+            }
+            onPress={() =>
+              setSelectedPayPeriodId(
+                payPeriods[selectedPayPeriodIndex + 1]?.id ?? null,
+              )
+            }
           >
             <ChevronLeft color="#2c3e50" size={24} />
           </TouchableOpacity>
-          <Text style={[styles.periodButtonText, { flex: 1, textAlign: "center" }]}>
+          <Text
+            style={[styles.periodButtonText, { flex: 1, textAlign: "center" }]}
+          >
             {selectedFinancialPeriod?.label ?? "Aucune période de paie"}
           </Text>
           <TouchableOpacity
             disabled={selectedPayPeriodIndex <= 0}
-            onPress={() => setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex - 1]?.id ?? null)}
+            onPress={() =>
+              setSelectedPayPeriodId(
+                payPeriods[selectedPayPeriodIndex - 1]?.id ?? null,
+              )
+            }
           >
             <ChevronRight color="#2c3e50" size={24} />
           </TouchableOpacity>
         </View>
-      ) : period !== "tout" && (
-        <TouchableOpacity
-          style={styles.periodButton}
-          onPress={handleOpenPeriodPicker}
-        >
-          <Text style={styles.periodButtonText}>
-            {period === "mois" ? formatMonth(selectedMonth) : selectedYear}
-          </Text>
+      ) : (
+        period !== "tout" && (
+          <TouchableOpacity
+            style={styles.periodButton}
+            onPress={handleOpenPeriodPicker}
+          >
+            <Text style={styles.periodButtonText}>
+              {period === "mois" ? formatMonth(selectedMonth) : selectedYear}
+            </Text>
 
-          <ChevronDown color="#2c3e50" size={28} />
-        </TouchableOpacity>
+            <ChevronDown color="#2c3e50" size={28} />
+          </TouchableOpacity>
+        )
       )}
 
       {effectiveViewMode === "dépenses" && (

@@ -13,21 +13,26 @@ describe("revenue creation payload", () => {
   };
 
   it("includes a checked reference-pay value in the first INSERT", () => {
-    expect(toRevenuInsertPayload("household-1", "household-1_revenue-1", revenue))
-      .toMatchObject({ is_reference_pay: true });
+    expect(
+      toRevenuInsertPayload("household-1", "household-1_revenue-1", revenue),
+    ).toMatchObject({ is_reference_pay: true });
   });
 
   it("keeps an unchecked revenue out of reference-pay boundaries", () => {
-    expect(toRevenuInsertPayload("household-1", "household-1_revenue-2", {
-      ...revenue,
-      isReferencePay: false,
-    })).toMatchObject({ is_reference_pay: false });
+    expect(
+      toRevenuInsertPayload("household-1", "household-1_revenue-2", {
+        ...revenue,
+        isReferencePay: false,
+      }),
+    ).toMatchObject({ is_reference_pay: false });
   });
 
   it("persists the non-transferable funds flag on creation", () => {
-    expect(toRevenuInsertPayload("household-1", "household-1_revenue-3", {
-      ...revenue,
-      isNonTransferable: true,
-    })).toMatchObject({ is_non_transferable: true });
+    expect(
+      toRevenuInsertPayload("household-1", "household-1_revenue-3", {
+        ...revenue,
+        isNonTransferable: true,
+      }),
+    ).toMatchObject({ is_non_transferable: true });
   });
 });

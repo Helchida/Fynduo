@@ -12,4 +12,3 @@ export const InfoButton: React.FC<InfoButtonProps> = ({ onPress }) => (
     <Info size={22} color="#2c3e50" />
   </TouchableOpacity>
 );
-

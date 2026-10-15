@@ -1,11 +1,16 @@
 import { StyleSheet, Dimensions } from "react-native";
-import { colors, spacing, radius, shadows, typography } from "../../theme.style";
+import {
+  colors,
+  spacing,
+  radius,
+  shadows,
+  typography,
+} from "../../theme.style";
 import { common } from "../../common.style";
 
 const { width } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
-
   // ── Layouts ───────────────────────────────────
   mainView: {
     flex: 1,
@@ -35,7 +40,7 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.textPrimary,
     letterSpacing: -0.5,
-    marginRight: spacing.xs
+    marginRight: spacing.xs,
   },
   userIconButton: {
     width: 44,

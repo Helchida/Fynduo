@@ -633,12 +633,30 @@ const ChargesScreen: React.FC = () => {
                 />
               </>
             )}
-            <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+            <View
+              style={[
+                common.selectorButton,
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                },
+              ]}
+            >
               <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={common.selectorLabel}>Payée avec des fonds non transférables</Text>
-                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Cette dépense reste dans les statistiques et budgets, mais ne réduit pas la capacité d’épargne bancaire.</Text>
+                <Text style={common.selectorLabel}>
+                  Payée avec des fonds non transférables
+                </Text>
+                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+                  Cette dépense reste dans les statistiques et budgets, mais ne
+                  réduit pas la capacité d’épargne bancaire.
+                </Text>
               </View>
-              <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+              <Switch
+                value={isNonTransferable}
+                onValueChange={setIsNonTransferable}
+                disabled={isSubmitting}
+              />
             </View>
             <TouchableOpacity
               style={[

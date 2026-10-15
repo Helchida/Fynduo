@@ -39,8 +39,12 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
   period,
 }) => {
   // ── États séparés pour chaque PieChart ───────────────────────
-  const [focusedDepotSlice, setFocusedDepotSlice] = useState<number | null>(null);
-  const [focusedRetraitSlice, setFocusedRetraitSlice] = useState<number | null>(null);
+  const [focusedDepotSlice, setFocusedDepotSlice] = useState<number | null>(
+    null,
+  );
+  const [focusedRetraitSlice, setFocusedRetraitSlice] = useState<number | null>(
+    null,
+  );
   const scaleAnimDepot = useState(new Animated.Value(1))[0];
   const scaleAnimRetrait = useState(new Animated.Value(1))[0];
 
@@ -57,7 +61,10 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
     .sort((a, b) => b.totalRetire - a.totalRetire);
 
   const totalPieDepots = statsAvecDepots.reduce((s, i) => s + i.totalDepose, 0);
-  const totalPieRetraits = statsAvecRetraits.reduce((s, i) => s + i.totalRetire, 0);
+  const totalPieRetraits = statsAvecRetraits.reduce(
+    (s, i) => s + i.totalRetire,
+    0,
+  );
 
   // ── PieData Dépôts ────────────────────────────────────────────
   const pieDataDepots =
@@ -87,20 +94,32 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
   const handleDepotSlicePress = (index: number) => {
     if (focusedDepotSlice === index) {
       setFocusedDepotSlice(null);
-      Animated.spring(scaleAnimDepot, { toValue: 1, useNativeDriver: true }).start();
+      Animated.spring(scaleAnimDepot, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
     } else {
       setFocusedDepotSlice(index);
-      Animated.spring(scaleAnimDepot, { toValue: 1.15, useNativeDriver: true }).start();
+      Animated.spring(scaleAnimDepot, {
+        toValue: 1.15,
+        useNativeDriver: true,
+      }).start();
     }
   };
 
   const handleRetraitSlicePress = (index: number) => {
     if (focusedRetraitSlice === index) {
       setFocusedRetraitSlice(null);
-      Animated.spring(scaleAnimRetrait, { toValue: 1, useNativeDriver: true }).start();
+      Animated.spring(scaleAnimRetrait, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
     } else {
       setFocusedRetraitSlice(index);
-      Animated.spring(scaleAnimRetrait, { toValue: 1.15, useNativeDriver: true }).start();
+      Animated.spring(scaleAnimRetrait, {
+        toValue: 1.15,
+        useNativeDriver: true,
+      }).start();
     }
   };
 
@@ -121,7 +140,10 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
           <View style={styles.titleWrapper}>
             <Text style={styles.chartTitle}>Dépots</Text>
             <View
-              style={[styles.chartTitleUnderline, { backgroundColor: "#2ecc71" }]}
+              style={[
+                styles.chartTitleUnderline,
+                { backgroundColor: "#2ecc71" },
+              ]}
             />
           </View>
           {isCollapsed ? (
@@ -135,9 +157,13 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
           <>
             <View style={common.chartWrapper}>
               {!hasAnyDepot ? (
-                <Text style={common.emptyText}>Aucun dépôt sur cette période.</Text>
+                <Text style={common.emptyText}>
+                  Aucun dépôt sur cette période.
+                </Text>
               ) : (
-                <Animated.View style={{ transform: [{ scale: scaleAnimDepot }] }}>
+                <Animated.View
+                  style={{ transform: [{ scale: scaleAnimDepot }] }}
+                >
                   <PieChart
                     donut
                     radius={width * 0.35}
@@ -152,13 +178,27 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                         const item = statsAvecDepots[focusedDepotSlice];
                         const percent =
                           totalPieDepots > 0
-                            ? ((item.totalDepose / totalPieDepots) * 100).toFixed(1)
+                            ? (
+                                (item.totalDepose / totalPieDepots) *
+                                100
+                              ).toFixed(1)
                             : 0;
                         return (
-                          <View style={{ alignItems: "center", justifyContent: "center" }}>
-                            <Text style={{ fontSize: 24, marginBottom: 4 }}>🏦</Text>
-                            <Text style={common.focusedCategory}>{item.description}</Text>
-                            <Text style={styles.focusedPercentage}>{percent}%</Text>
+                          <View
+                            style={{
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Text style={{ fontSize: 24, marginBottom: 4 }}>
+                              🏦
+                            </Text>
+                            <Text style={common.focusedCategory}>
+                              {item.description}
+                            </Text>
+                            <Text style={styles.focusedPercentage}>
+                              {percent}%
+                            </Text>
                             <Text style={common.focusedAmount}>
                               +{item.totalDepose.toFixed(2)}€
                             </Text>
@@ -166,7 +206,12 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                         );
                       }
                       return (
-                        <View style={{ alignItems: "center", justifyContent: "center" }}>
+                        <View
+                          style={{
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
                           <Text style={common.totalAmount}>
                             {totalDepose.toFixed(2)}€
                           </Text>
@@ -200,13 +245,18 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                       }
                     >
                       <View
-                        style={[common.iconBox, { backgroundColor: `${color}15` }]}
+                        style={[
+                          common.iconBox,
+                          { backgroundColor: `${color}15` },
+                        ]}
                       >
                         <Text style={{ fontSize: 18 }}>🏦</Text>
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={common.catName}>{item.description}</Text>
-                        <Text style={common.catPercent}>{percent}% des dépôts</Text>
+                        <Text style={common.catPercent}>
+                          {percent}% des dépôts
+                        </Text>
                       </View>
                       <View style={{ alignItems: "flex-end" }}>
                         <Text style={[common.catValue, styles.deposeValue]}>
@@ -284,7 +334,10 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
           <View style={styles.titleWrapper}>
             <Text style={styles.chartTitle}>Retraits</Text>
             <View
-              style={[styles.chartTitleUnderline, { backgroundColor: "#e74c3c" }]}
+              style={[
+                styles.chartTitleUnderline,
+                { backgroundColor: "#e74c3c" },
+              ]}
             />
           </View>
           {isCollapsed ? (
@@ -298,9 +351,13 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
           <>
             <View style={common.chartWrapper}>
               {!hasAnyRetrait ? (
-                <Text style={common.emptyText}>Aucun retrait sur cette période.</Text>
+                <Text style={common.emptyText}>
+                  Aucun retrait sur cette période.
+                </Text>
               ) : (
-                <Animated.View style={{ transform: [{ scale: scaleAnimRetrait }] }}>
+                <Animated.View
+                  style={{ transform: [{ scale: scaleAnimRetrait }] }}
+                >
                   <PieChart
                     donut
                     radius={width * 0.35}
@@ -315,14 +372,29 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                         const item = statsAvecRetraits[focusedRetraitSlice];
                         const percent =
                           totalPieRetraits > 0
-                            ? ((item.totalRetire / totalPieRetraits) * 100).toFixed(1)
+                            ? (
+                                (item.totalRetire / totalPieRetraits) *
+                                100
+                              ).toFixed(1)
                             : 0;
                         return (
-                          <View style={{ alignItems: "center", justifyContent: "center" }}>
-                            <Text style={{ fontSize: 24, marginBottom: 4 }}>🏦</Text>
-                            <Text style={common.focusedCategory}>{item.description}</Text>
+                          <View
+                            style={{
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Text style={{ fontSize: 24, marginBottom: 4 }}>
+                              🏦
+                            </Text>
+                            <Text style={common.focusedCategory}>
+                              {item.description}
+                            </Text>
                             <Text
-                              style={[styles.focusedPercentage, styles.retireValue]}
+                              style={[
+                                styles.focusedPercentage,
+                                styles.retireValue,
+                              ]}
                             >
                               {percent}%
                             </Text>
@@ -333,7 +405,12 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                         );
                       }
                       return (
-                        <View style={{ alignItems: "center", justifyContent: "center" }}>
+                        <View
+                          style={{
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
                           <Text style={common.totalAmount}>
                             {totalRetire.toFixed(2)}€
                           </Text>
@@ -367,13 +444,18 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                       }
                     >
                       <View
-                        style={[common.iconBox, { backgroundColor: `${color}15` }]}
+                        style={[
+                          common.iconBox,
+                          { backgroundColor: `${color}15` },
+                        ]}
                       >
                         <Text style={{ fontSize: 18 }}>🏦</Text>
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={common.catName}>{item.description}</Text>
-                        <Text style={common.catPercent}>{percent}% des retraits</Text>
+                        <Text style={common.catPercent}>
+                          {percent}% des retraits
+                        </Text>
                       </View>
                       <View style={{ alignItems: "flex-end" }}>
                         <Text style={[common.catValue, styles.retireValue]}>

@@ -49,9 +49,10 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
 
       const chargeMoisAnnee = dayjs(c.dateStatistiques).format("YYYY-MM");
 
-      if (period === "mois") return financialPeriod
-        ? isDateInFinancialPeriod(c.dateStatistiques, financialPeriod)
-        : chargeMoisAnnee === referenceDate;
+      if (period === "mois")
+        return financialPeriod
+          ? isDateInFinancialPeriod(c.dateStatistiques, financialPeriod)
+          : chargeMoisAnnee === referenceDate;
       if (period === "annee") return chargeMoisAnnee.startsWith(referenceDate);
       return true;
     });

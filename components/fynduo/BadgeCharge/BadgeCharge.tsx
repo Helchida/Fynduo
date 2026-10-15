@@ -9,47 +9,41 @@ const BadgeCharge: React.FC<BadgeChargeProps> = ({
 }) => {
   const isFromSharedHousehold = chargeScope === "partage";
   const isFixedCharge = chargeType === "fixe";
-  const isRemboursementCharge = chargeNature === "remboursement"
+  const isRemboursementCharge = chargeNature === "remboursement";
 
   return (
     <View style={styles.container}>
-      {isRemboursementCharge ? 
-      <View
-          style={[
-            styles.badge,
-            styles.remboursementBadge,
-          ]}
-        >
-          <Text
-            style={[
-              styles.badgeText,
-              styles.remboursementBadgeText,
-            ]}
-          >
+      {isRemboursementCharge ? (
+        <View style={[styles.badge, styles.remboursementBadge]}>
+          <Text style={[styles.badgeText, styles.remboursementBadgeText]}>
             {"Remboursement"}
           </Text>
         </View>
-      : 
-      <><View
-          style={[
-            styles.badge,
-            isFixedCharge ? styles.fixedBadge : styles.variableBadge,
-          ]}
-        >
-          <Text
+      ) : (
+        <>
+          <View
             style={[
-              styles.badgeText,
-              isFixedCharge ? styles.fixedBadgeText : styles.variableBadgeText,
+              styles.badge,
+              isFixedCharge ? styles.fixedBadge : styles.variableBadge,
             ]}
           >
-            {isFixedCharge ? "Fixe" : "Variable"}
-          </Text>
-        </View><View
-          style={[
-            styles.badge,
-            isFromSharedHousehold ? styles.sharedBadge : styles.soloBadge,
-          ]}
-        >
+            <Text
+              style={[
+                styles.badgeText,
+                isFixedCharge
+                  ? styles.fixedBadgeText
+                  : styles.variableBadgeText,
+              ]}
+            >
+              {isFixedCharge ? "Fixe" : "Variable"}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.badge,
+              isFromSharedHousehold ? styles.sharedBadge : styles.soloBadge,
+            ]}
+          >
             <Text
               style={[
                 styles.badgeText,
@@ -60,9 +54,9 @@ const BadgeCharge: React.FC<BadgeChargeProps> = ({
             >
               {isFromSharedHousehold ? "Partagé" : "Solo"}
             </Text>
-          </View></>
-      }
-      
+          </View>
+        </>
+      )}
     </View>
   );
 };

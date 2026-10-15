@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-  ICharge,
-  ICompteMensuel,
-  IResultatsCalcul,
-} from "../types";
+import { ICharge, ICompteMensuel, IResultatsCalcul } from "../types";
 
 const initialResults: IResultatsCalcul = {
   detteLoyer: 0,

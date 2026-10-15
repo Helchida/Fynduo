@@ -49,15 +49,15 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const isSoloMode = user.id === user.activeHouseholdId;
   const isEcheancier = charge.periodiciteType === "echeancier";
 
-  const [isEditModalVisible,   setIsEditModalVisible]   = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [isPayeurModalVisible, setIsPayeurModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [editAmount,      setEditAmount]      = useState(charge.montantTotal.toString());
+  const [editAmount, setEditAmount] = useState(charge.montantTotal.toString());
   const [editCategorieId, setEditCategorieId] = useState(charge.categorie);
-  const [editPayeurId,    setEditPayeurId]    = useState(charge.payeur);
+  const [editPayeurId, setEditPayeurId] = useState(charge.payeur);
   const [editPeriodicite, setEditPeriodicite] = useState<PeriodiciteValue>(
     extractPeriodiciteValue(charge),
   );
@@ -69,7 +69,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   const { categories } = useCategories();
 
   const currentCategoryData = categories.find((c) => c.id === charge.categorie);
-  const editCategoryData    = categories.find((c) => c.id === editCategorieId);
+  const editCategoryData = categories.find((c) => c.id === editCategorieId);
 
   const openEditModal = useCallback(() => {
     setEditAmount(charge.montantTotal.toString());
@@ -81,7 +81,8 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
   }, [charge]);
 
   const handleSaveAll = useCallback(async () => {
-    const currentIsEcheancier = editPeriodicite.periodiciteType === "echeancier";
+    const currentIsEcheancier =
+      editPeriodicite.periodiciteType === "echeancier";
 
     let newAmount = 0;
     if (!currentIsEcheancier) {
@@ -120,7 +121,9 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
       }
 
       const originalPeriodicite = extractPeriodiciteValue(charge);
-      if (JSON.stringify(editPeriodicite) !== JSON.stringify(originalPeriodicite)) {
+      if (
+        JSON.stringify(editPeriodicite) !== JSON.stringify(originalPeriodicite)
+      ) {
         updates.periodiciteType = editPeriodicite.periodiciteType;
         updates.periodiciteIntervalle = editPeriodicite.periodiciteIntervalle;
         updates.datePremierPrelevement = editPeriodicite.datePremierPrelevement;
@@ -163,9 +166,7 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
           <Text style={{ fontSize: 16, fontWeight: "700", color: "#27ae60" }}>
             {total.toFixed(2)} €
           </Text>
-          <Text style={{ fontSize: 12, color: "#888" }}>
-            ({count} éch.)
-          </Text>
+          <Text style={{ fontSize: 12, color: "#888" }}>({count} éch.)</Text>
         </View>
       );
     }
@@ -178,7 +179,6 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
 
   return (
     <View style={styles.chargeItem}>
-
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Text style={{ fontSize: 22, marginRight: 10 }}>
           {currentCategoryData?.icon ?? "📦"}
@@ -199,11 +199,22 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
         </View>
       </View>
 
-      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 10 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: 8,
+          gap: 10,
+        }}
+      >
         {renderMontant()}
         <Text style={{ color: "#ccc", fontSize: 16 }}>•</Text>
-        <Text style={{ fontSize: 13, color: "#888", flex: 1 }} numberOfLines={1}>
-          {getPeriodiciteDetailLabel(charge)} · {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
+        <Text
+          style={{ fontSize: 13, color: "#888", flex: 1 }}
+          numberOfLines={1}
+        >
+          {getPeriodiciteDetailLabel(charge)} ·{" "}
+          {getDisplayNameUserInHousehold(charge.payeur, householdUsers)}
         </Text>
       </View>
 
@@ -220,13 +231,28 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
               keyboardShouldPersistTaps="handled"
             >
               {/* Titre */}
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 6 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  marginBottom: 6,
+                }}
+              >
                 <Pencil size={20} color="#3498db" />
                 <Text style={[common.modalTitle, { marginBottom: 0 }]}>
                   Modifier la charge
                 </Text>
               </View>
-              <Text style={{ textAlign: "center", color: "#888", fontSize: 14, marginBottom: 24 }}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: "#888",
+                  fontSize: 14,
+                  marginBottom: 24,
+                }}
+              >
                 {charge.description}
               </Text>
 
@@ -253,9 +279,23 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                 onPress={() => setIsCategoryModalVisible(true)}
                 disabled={isSaving}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <Text style={{ fontSize: 18 }}>{editCategoryData?.icon ?? "📦"}</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>
+                      {editCategoryData?.icon ?? "📦"}
+                    </Text>
                     <Text style={{ fontSize: 15, color: "#333" }}>
                       {editCategoryData?.label ?? editCategorieId}
                     </Text>
@@ -272,11 +312,26 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                     onPress={() => setIsPayeurModalVisible(true)}
                     disabled={isSaving}
                   >
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
                         <User size={16} color="#666" />
                         <Text style={{ fontSize: 15, color: "#333" }}>
-                          {getDisplayNameUserInHousehold(editPayeurId, householdUsers)}
+                          {getDisplayNameUserInHousehold(
+                            editPayeurId,
+                            householdUsers,
+                          )}
                         </Text>
                       </View>
                       <ChevronsUpDown size={14} color="#8E8E93" />
@@ -284,12 +339,31 @@ const ChargeFixeItem: React.FC<ChargeFixeItemProps> = ({
                   </TouchableOpacity>
                 </>
               )}
-              <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }]}>
+              <View
+                style={[
+                  common.selectorButton,
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 20,
+                  },
+                ]}
+              >
                 <View style={{ flex: 1, paddingRight: 10 }}>
-                  <Text style={common.inputLabel}>Payée avec des fonds non transférables</Text>
-                  <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Les prochaines occurrences n’affecteront pas l’épargne bancaire.</Text>
+                  <Text style={common.inputLabel}>
+                    Payée avec des fonds non transférables
+                  </Text>
+                  <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+                    Les prochaines occurrences n’affecteront pas l’épargne
+                    bancaire.
+                  </Text>
                 </View>
-                <Switch value={editIsNonTransferable} onValueChange={setEditIsNonTransferable} disabled={isSaving} />
+                <Switch
+                  value={editIsNonTransferable}
+                  onValueChange={setEditIsNonTransferable}
+                  disabled={isSaving}
+                />
               </View>
 
               <PeriodiciteFormSection

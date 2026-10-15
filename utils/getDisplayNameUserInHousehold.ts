@@ -2,7 +2,7 @@ import { IUser } from "@/types";
 
 export const getDisplayNameUserInHousehold = (
   userId: string | null,
-  householdUsers: IUser[]
+  householdUsers: IUser[],
 ): string => {
   if (!userId) {
     return "Sélectionner le payeur";

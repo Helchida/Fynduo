@@ -26,8 +26,8 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
     householdUsers,
   );
 
-  const currentCategoryData = categories.find((cat) =>
-    cat.id === charge.categorie
+  const currentCategoryData = categories.find(
+    (cat) => cat.id === charge.categorie,
   );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
@@ -50,11 +50,20 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
       if (repartitionMap && repartitionMap[user.id] !== undefined) {
         return repartitionMap[user.id].toFixed(2);
       }
-      return (charge.montantTotal / (charge.beneficiaires?.length || 1)).toFixed(2);
+      return (
+        charge.montantTotal / (charge.beneficiaires?.length || 1)
+      ).toFixed(2);
     }
-    
+
     return charge.montantTotal.toFixed(2);
-  }, [isActiveHouseholdSolo, isFromSharedHousehold, charge.montantTotal, charge.beneficiaires, repartitionMap, user.id]);
+  }, [
+    isActiveHouseholdSolo,
+    isFromSharedHousehold,
+    charge.montantTotal,
+    charge.beneficiaires,
+    repartitionMap,
+    user.id,
+  ]);
 
   return (
     <TouchableOpacity
@@ -74,7 +83,11 @@ const ChargeItem: React.FC<ChargeItemProps> = ({
       </View>
 
       <View style={common.cashFlowMontantContainer}>
-        <BadgeCharge chargeScope={charge.scope} chargeType={charge.type} chargeNature={charge.nature}/>
+        <BadgeCharge
+          chargeScope={charge.scope}
+          chargeType={charge.type}
+          chargeNature={charge.nature}
+        />
         <Text style={common.cashFlowMontant}>{montantAffiche} €</Text>
       </View>
     </TouchableOpacity>

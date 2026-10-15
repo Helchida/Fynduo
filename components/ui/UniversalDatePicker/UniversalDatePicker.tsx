@@ -20,11 +20,7 @@ export const UniversalDatePicker = ({
     return (
       <>
         <TouchableOpacity
-          style={[
-            common.formContainer,
-            common.payorCard,
-            containerStyle,
-          ]}
+          style={[common.formContainer, common.payorCard, containerStyle]}
           onPress={onOpen}
         >
           <Text style={common.editLabel}>{label}</Text>
@@ -52,11 +48,7 @@ export const UniversalDatePicker = ({
   return (
     <>
       <TouchableOpacity
-        style={[
-          common.formContainer,
-          common.payorCard,
-          containerStyle,
-        ]}
+        style={[common.formContainer, common.payorCard, containerStyle]}
         onPress={onOpen}
       >
         <Text style={common.editLabel}>{label}</Text>

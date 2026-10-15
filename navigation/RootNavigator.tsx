@@ -69,7 +69,11 @@ const AppStack = () => (
       component={UserSettingsScreen}
       options={{ title: "Paramètres" }}
     />
-    <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Notifications" }} />
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{ title: "Notifications" }}
+    />
     <Stack.Screen
       name="Households"
       component={HouseholdsScreen}
@@ -141,7 +145,11 @@ const AppStack = () => (
       component={EpargneScreen}
       options={{ title: "Epargne" }}
     />
-    <Stack.Screen name="Budgets" component={BudgetsScreen} options={{ title: "Budgets" }} />
+    <Stack.Screen
+      name="Budgets"
+      component={BudgetsScreen}
+      options={{ title: "Budgets" }}
+    />
     <Stack.Screen
       name="Tirelire"
       component={TirelireScreen}

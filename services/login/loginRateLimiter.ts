@@ -60,7 +60,7 @@ class LoginRateLimiter {
 
     if (attempts.blockedUntil && now < attempts.blockedUntil) {
       const remainingTime = Math.ceil(
-        (attempts.blockedUntil - now) / 1000 / 60
+        (attempts.blockedUntil - now) / 1000 / 60,
       );
       return {
         allowed: false,
@@ -91,7 +91,7 @@ class LoginRateLimiter {
         allowed: false,
         blockedUntil: new Date(blockedUntil),
         message: `Trop de tentatives échouées. Réessayez dans ${Math.ceil(
-          BLOCK_DURATION / 1000 / 60
+          BLOCK_DURATION / 1000 / 60,
         )} minutes.`,
       };
     }

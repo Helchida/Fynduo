@@ -16,7 +16,14 @@ import "dayjs/locale/fr";
 import { useAuth } from "../../hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { BadgeEuro, House, ScrollText, Settings, Target, TriangleAlert } from "lucide-react-native";
+import {
+  BadgeEuro,
+  House,
+  ScrollText,
+  Settings,
+  Target,
+  TriangleAlert,
+} from "lucide-react-native";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 dayjs.locale("fr");

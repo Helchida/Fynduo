@@ -25,7 +25,10 @@ import {
   similarity,
   FUZZY_THRESHOLD_CATEGORY,
 } from "utils/fuzzyMatch";
-import { FinancialPeriod, formatFinancialPeriodLabel } from "utils/financialPeriods";
+import {
+  FinancialPeriod,
+  formatFinancialPeriodLabel,
+} from "utils/financialPeriods";
 import { toRevenuInsertPayload } from "./revenuPayload";
 
 // ============================================
@@ -150,15 +153,12 @@ export async function resetUserData(): Promise<void> {
       throw new Error("Utilisateur non authentifié");
     }
 
-    const { data, error } = await supabase.functions.invoke(
-      "reset-user-data",
-      {
-        body: {},
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const { data, error } = await supabase.functions.invoke("reset-user-data", {
+      body: {},
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     if (error) {
       throw error;
@@ -168,10 +168,7 @@ export async function resetUserData(): Promise<void> {
       throw new Error("La réinitialisation a échoué");
     }
   } catch (error) {
-    console.error(
-      "Erreur lors de la réinitialisation des données:",
-      error,
-    );
+    console.error("Erreur lors de la réinitialisation des données:", error);
     throw error;
   }
 }
@@ -661,16 +658,25 @@ type BudgetFunctionResponse = {
     budget_categories?: Array<{ category_id: string }>;
   }>;
   snapshots?: Array<{
-    id: string; budget_id: string; household_id: string; period_key: string;
-    period_start: string | null; period_end: string | null; name: string;
-    initial_amount: number | string; spent_amount: number | string | null;
-    remaining_amount: number | string | null; category_ids: string[];
+    id: string;
+    budget_id: string;
+    household_id: string;
+    period_key: string;
+    period_start: string | null;
+    period_end: string | null;
+    name: string;
+    initial_amount: number | string;
+    spent_amount: number | string | null;
+    remaining_amount: number | string | null;
+    category_ids: string[];
     closed_at: string | null;
   }>;
   error?: string;
 };
 
-async function invokeBudgets(body: Record<string, unknown>): Promise<BudgetFunctionResponse> {
+async function invokeBudgets(
+  body: Record<string, unknown>,
+): Promise<BudgetFunctionResponse> {
   const firebaseToken = await auth.currentUser?.getIdToken();
   if (!firebaseToken) throw new Error("Utilisateur non authentifié");
   const { data, error } = await supabase.functions.invoke("budgets", {
@@ -689,7 +695,9 @@ export async function getBudgets(householdId: string): Promise<IBudget[]> {
     householdId: budget.household_id,
     name: budget.name,
     initialAmount: Number(budget.initial_amount),
-    categoryIds: (budget.budget_categories ?? []).map((category) => category.category_id),
+    categoryIds: (budget.budget_categories ?? []).map(
+      (category) => category.category_id,
+    ),
     createdAt: budget.created_at,
     updatedAt: budget.updated_at,
   }));
@@ -711,11 +719,17 @@ export async function saveBudget(
   });
 }
 
-export async function deleteBudget(householdId: string, budgetId: string, periodKey: string): Promise<void> {
+export async function deleteBudget(
+  householdId: string,
+  budgetId: string,
+  periodKey: string,
+): Promise<void> {
   await invokeBudgets({ action: "delete", householdId, budgetId, periodKey });
 }
 
-export async function getBudgetPeriodSnapshots(householdId: string): Promise<IBudgetPeriodSnapshot[]> {
+export async function getBudgetPeriodSnapshots(
+  householdId: string,
+): Promise<IBudgetPeriodSnapshot[]> {
   const data = await invokeBudgets({ action: "history", householdId });
   return (data.snapshots ?? []).map((snapshot) => ({
     id: snapshot.id,
@@ -726,8 +740,12 @@ export async function getBudgetPeriodSnapshots(householdId: string): Promise<IBu
     periodEnd: snapshot.period_end,
     name: snapshot.name,
     initialAmount: Number(snapshot.initial_amount),
-    spentAmount: snapshot.spent_amount === null ? null : Number(snapshot.spent_amount),
-    remainingAmount: snapshot.remaining_amount === null ? null : Number(snapshot.remaining_amount),
+    spentAmount:
+      snapshot.spent_amount === null ? null : Number(snapshot.spent_amount),
+    remainingAmount:
+      snapshot.remaining_amount === null
+        ? null
+        : Number(snapshot.remaining_amount),
     categoryIds: snapshot.category_ids ?? [],
     closedAt: snapshot.closed_at,
   }));
@@ -791,11 +809,19 @@ export async function addCharge(
   const { error } = await supabase.functions.invoke("create-charge", {
     headers: { Authorization: `Bearer ${firebaseToken}` },
     body: {
-      id: docId, householdId, type: charge.type || "variable", categorie: charge.categorie || "",
-      description: charge.description, montantTotal: charge.montantTotal, payeur: charge.payeur,
-      beneficiaires: charge.beneficiaires || [], dateStatistiques: (charge as any).dateStatistiques,
-      moisAnnee: (charge as any).moisAnnee, scope: charge.scope,
-      nature: (charge as any).nature || "depense", repartition: charge.repartition ?? null,
+      id: docId,
+      householdId,
+      type: charge.type || "variable",
+      categorie: charge.categorie || "",
+      description: charge.description,
+      montantTotal: charge.montantTotal,
+      payeur: charge.payeur,
+      beneficiaires: charge.beneficiaires || [],
+      dateStatistiques: (charge as any).dateStatistiques,
+      moisAnnee: (charge as any).moisAnnee,
+      scope: charge.scope,
+      nature: (charge as any).nature || "depense",
+      repartition: charge.repartition ?? null,
       isNonTransferable: charge.isNonTransferable ?? false,
     },
   });
@@ -938,7 +964,7 @@ export async function addChargeVariableRegularisation(
       categorie: "cat_remboursement",
       type: "variable",
       scope: "solo",
-      nature: "remboursement"
+      nature: "remboursement",
     });
   }
 
@@ -1799,7 +1825,9 @@ export async function updateRevenu(
 /** The preference is read from the household because it is persistent and
  * shared by all sessions of the solo household. Shared households always use
  * calendar-month aggregation in the UI. */
-export async function getFinancialPeriods(userId: string): Promise<FinancialPeriod[]> {
+export async function getFinancialPeriods(
+  userId: string,
+): Promise<FinancialPeriod[]> {
   const { data, error } = await supabase
     .from("financial_periods")
     .select("id, start_date, end_date, is_historical, is_editable")
@@ -1854,10 +1882,12 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
     if (error) throw error;
 
     const mapped = (data || []).map((row) => {
-      const mouvements = (row.epargne_mouvements || []).map((movement: any) => ({
-        ...movement,
-        isHistorical: Boolean(movement.financial_periods?.is_historical),
-      }));
+      const mouvements = (row.epargne_mouvements || []).map(
+        (movement: any) => ({
+          ...movement,
+          isHistorical: Boolean(movement.financial_periods?.is_historical),
+        }),
+      );
       const sommeMouvements =
         row.epargne_mouvements?.reduce(
           (acc: number, m: any) => acc + Number(m.montant),

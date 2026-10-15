@@ -19,16 +19,18 @@ export const useMultiUserBalance = (
       let repartitionMap: Record<string, number> = {};
 
       if (charge.repartition) {
-        repartitionMap = typeof charge.repartition === "string" 
-          ? JSON.parse(charge.repartition) 
-          : charge.repartition;
+        repartitionMap =
+          typeof charge.repartition === "string"
+            ? JSON.parse(charge.repartition)
+            : charge.repartition;
       } else {
         const nbBeneficiaires = charge.beneficiaires?.length || 0;
         if (nbBeneficiaires === 0) {
-          if (balances[charge.payeur] !== undefined) balances[charge.payeur] -= montant;
+          if (balances[charge.payeur] !== undefined)
+            balances[charge.payeur] -= montant;
           return;
         }
-        
+
         const partIndividuelle = montant / nbBeneficiaires;
         charge.beneficiaires.forEach((uid) => {
           repartitionMap[uid] = partIndividuelle;

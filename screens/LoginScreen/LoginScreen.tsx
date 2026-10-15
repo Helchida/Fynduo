@@ -24,7 +24,7 @@ const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(
-    null
+    null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [localLoading, setLocalLoading] = useState(false);
@@ -78,7 +78,7 @@ const LoginScreen: React.FC = () => {
   const handleForgotPassword = async () => {
     if (!email) {
       setErrorMessage(
-        "Veuillez entrer votre email pour réinitialiser le mot de passe."
+        "Veuillez entrer votre email pour réinitialiser le mot de passe.",
       );
       return;
     }
@@ -90,14 +90,14 @@ const LoginScreen: React.FC = () => {
     try {
       await sendPasswordReset!(email);
       setSuccessMessage(
-        "Email de réinitialisation envoyé ! Vérifiez votre boîte de réception."
+        "Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.",
       );
     } catch (error: any) {
       if (error.code === "auth/user-not-found") {
         setErrorMessage("Aucun utilisateur trouvé avec cet email.");
       } else {
         setErrorMessage(
-          "Erreur lors de l'envoi de l'email. Réessayez plus tard."
+          "Erreur lors de l'envoi de l'email. Réessayez plus tard.",
         );
       }
     } finally {

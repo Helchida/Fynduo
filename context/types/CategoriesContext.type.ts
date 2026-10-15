@@ -1,4 +1,9 @@
-import { ICategorie, ICategorieRevenu, PropagationConflict, PropagationResolution } from "@/types";
+import {
+  ICategorie,
+  ICategorieRevenu,
+  PropagationConflict,
+  PropagationResolution,
+} from "@/types";
 
 export interface ICategoriesContext {
   categories: ICategorie[];
@@ -13,10 +18,17 @@ export interface ICategoriesContext {
   editCategory: (id: string, data: Partial<ICategorie>) => Promise<void>;
   removeCategory: (id: string) => Promise<void>;
   createCategoryRevenu: (label: string, icon: string) => Promise<void>;
-  editCategoryRevenu: (id: string, data: Partial<ICategorieRevenu>) => Promise<void>;
+  editCategoryRevenu: (
+    id: string,
+    data: Partial<ICategorieRevenu>,
+  ) => Promise<void>;
   removeCategoryRevenu: (id: string) => Promise<void>;
-  getSimilarCategories: (input: string) => Array<ICategorie & { score: number }>;
-  getSimilarCategoriesRevenus: (input: string) => Array<ICategorieRevenu & { score: number }>;
+  getSimilarCategories: (
+    input: string,
+  ) => Array<ICategorie & { score: number }>;
+  getSimilarCategoriesRevenus: (
+    input: string,
+  ) => Array<ICategorieRevenu & { score: number }>;
   checkCategoryConflicts: (label: string) => Promise<PropagationConflict[]>;
   createCategoryWithResolutions: (
     label: string,

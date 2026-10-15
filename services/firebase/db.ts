@@ -360,18 +360,14 @@ export async function getChargesByType(
 /**
  * Récupère toutes les charges d'un foyer
  */
-export async function getAllCharges(
-  householdId: string,
-): Promise<ICharge[]> {
+export async function getAllCharges(householdId: string): Promise<ICharge[]> {
   const chargesCollection = getCollectionRef(
     householdId,
     SUB_COLLECTIONS.CHARGES,
   );
   const snapshot = await getDocs(chargesCollection);
 
-  return snapshot.docs.map((doc) =>
-    mapDocToType<ICharge>(doc),
-  );
+  return snapshot.docs.map((doc) => mapDocToType<ICharge>(doc));
 }
 
 /**

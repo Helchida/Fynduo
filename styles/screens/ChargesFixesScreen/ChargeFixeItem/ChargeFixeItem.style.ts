@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius, shadows } from "../../../theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Item ──────────────────────────────────────
   chargeItem: {
     padding: spacing.md + 3,

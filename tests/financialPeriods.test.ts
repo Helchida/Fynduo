@@ -21,7 +21,9 @@ describe("persisted savings pay periods", () => {
   });
 
   it("keeps an open period readable without inventing an end date", () => {
-    expect(formatFinancialPeriodLabel("2026-10-12", null).endsWith("→ en cours")).toBe(true);
+    expect(
+      formatFinancialPeriodLabel("2026-10-12", null).endsWith("→ en cours"),
+    ).toBe(true);
   });
 
   it("does not attach data when no pay period has been configured", () => {

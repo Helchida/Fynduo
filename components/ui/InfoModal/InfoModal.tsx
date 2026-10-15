@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { Modal, View, Text, TouchableOpacity } from "react-native";
 import { styles } from "../../../styles/components/ui/InfoModal/InfoModal.style";
 
 interface InfoModalProps {
@@ -36,4 +31,3 @@ export const InfoModal: React.FC<InfoModalProps> = ({
     </View>
   </Modal>
 );
-

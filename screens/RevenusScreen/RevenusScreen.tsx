@@ -397,22 +397,54 @@ const RevenusScreen: React.FC = () => {
             </View>
 
             {isSoloHousehold && (
-              <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+              <View
+                style={[
+                  common.selectorButton,
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
                 <View style={{ flex: 1, paddingRight: 10 }}>
                   <Text style={common.selectorLabel}>Paie de référence</Text>
                   <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
-                    Délimite les périodes financières. Les autres revenus ne créent jamais de période.
+                    Délimite les périodes financières. Les autres revenus ne
+                    créent jamais de période.
                   </Text>
                 </View>
-                <Switch value={isReferencePay} onValueChange={setIsReferencePay} disabled={isSubmitting} />
+                <Switch
+                  value={isReferencePay}
+                  onValueChange={setIsReferencePay}
+                  disabled={isSubmitting}
+                />
               </View>
             )}
-            <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+            <View
+              style={[
+                common.selectorButton,
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                },
+              ]}
+            >
               <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={common.selectorLabel}>Fonds non transférables</Text>
-                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Utilisables via un moyen de paiement spécifique, ils ne peuvent pas être transférés vers votre compte bancaire.</Text>
+                <Text style={common.selectorLabel}>
+                  Fonds non transférables
+                </Text>
+                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+                  Utilisables via un moyen de paiement spécifique, ils ne
+                  peuvent pas être transférés vers votre compte bancaire.
+                </Text>
               </View>
-              <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+              <Switch
+                value={isNonTransferable}
+                onValueChange={setIsNonTransferable}
+                disabled={isSubmitting}
+              />
             </View>
 
             <TouchableOpacity

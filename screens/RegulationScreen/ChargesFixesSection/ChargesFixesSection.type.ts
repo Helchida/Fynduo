@@ -6,7 +6,7 @@ export interface ChargesFixesSectionProps {
   getDisplayName: (uid: string) => string;
   handleAddCharge: (targetUid: string) => void;
   updateChargeForm: (
-    targetUid: string
+    targetUid: string,
   ) => (id: string, field: "nom" | "montantForm", value: string) => void;
   handleDeleteCharge: (id: string, targetUid: string) => void;
 }

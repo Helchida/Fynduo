@@ -5,7 +5,7 @@ export interface ToastContextProps {
     type: ToastType,
     title: string,
     message?: string,
-    duration?: number
+    duration?: number,
   ) => void;
   success: (title: string, message?: string) => void;
   error: (title: string, message?: string) => void;

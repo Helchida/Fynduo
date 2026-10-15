@@ -62,9 +62,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (canAccess) {
         try {
           const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', firebaseUser.uid)
+            .from("users")
+            .select("*")
+            .eq("id", firebaseUser.uid)
             .single();
 
           if (userError || !userData) {
@@ -102,24 +102,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           userChannel = supabase
             .channel(`user:${firebaseUser.uid}`)
             .on(
-              'postgres_changes',
+              "postgres_changes",
               {
-                event: '*',
-                schema: 'public',
-                table: 'users',
+                event: "*",
+                schema: "public",
+                table: "users",
                 filter: `id=eq.${firebaseUser.uid}`,
               },
               async (payload) => {
                 const newData = payload.new as any;
                 if (newData) {
-                  setUser((prev) => prev ? {
-                    ...prev,
-                    displayName: newData.display_name,
-                    activeHouseholdId: newData.active_household_id,
-                    households: newData.households,
-                  } : null);
+                  setUser((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          displayName: newData.display_name,
+                          activeHouseholdId: newData.active_household_id,
+                          households: newData.households,
+                        }
+                      : null,
+                  );
                 }
-              }
+              },
             )
             .subscribe();
 
@@ -132,17 +136,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             householdChannel = supabase
               .channel(`household:${activeId}`)
               .on(
-                'postgres_changes',
+                "postgres_changes",
                 {
-                  event: '*',
-                  schema: 'public',
-                  table: 'households',
+                  event: "*",
+                  schema: "public",
+                  table: "households",
                   filter: `id=eq.${activeId}`,
                 },
                 async () => {
                   const updatedMembers = await DB.getHouseholdUsers(activeId);
                   setHouseholdUsers(updatedMembers);
-                }
+                },
               )
               .subscribe();
           }

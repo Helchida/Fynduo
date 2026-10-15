@@ -1,12 +1,10 @@
 import { useMemo } from "react";
-import {
-  StatPeriod,
-  IRevenu,
-  ICategorieRevenu,
-  StatCategorie,
-} from "@/types";
+import { StatPeriod, IRevenu, ICategorieRevenu, StatCategorie } from "@/types";
 import dayjs from "dayjs";
-import { FinancialPeriod, isDateInFinancialPeriod } from "utils/financialPeriods";
+import {
+  FinancialPeriod,
+  isDateInFinancialPeriod,
+} from "utils/financialPeriods";
 
 export const useRevenusStats = (
   revenus: IRevenu[],
@@ -20,12 +18,12 @@ export const useRevenusStats = (
     const filtered = revenus.filter((r) => {
       if (period === "tout") return true;
 
-      const revenuMoisAnnee =
-        dayjs(r.dateReception).format("YYYY-MM");
+      const revenuMoisAnnee = dayjs(r.dateReception).format("YYYY-MM");
 
-      if (period === "mois") return financialPeriod
-        ? isDateInFinancialPeriod(r.dateReception, financialPeriod)
-        : revenuMoisAnnee === referenceDate;
+      if (period === "mois")
+        return financialPeriod
+          ? isDateInFinancialPeriod(r.dateReception, financialPeriod)
+          : revenuMoisAnnee === referenceDate;
       if (period === "annee") {
         return revenuMoisAnnee.startsWith(referenceDate);
       }
@@ -38,7 +36,6 @@ export const useRevenusStats = (
         const montantTotal = Number(revenu.montant) || 0;
 
         let montantFinal = montantTotal;
-
 
         acc[catId] = (acc[catId] || 0) + montantFinal;
         return acc;
@@ -56,11 +53,16 @@ export const useRevenusStats = (
           icon: catInfo?.icon || "💵",
         };
       })
-      .filter(
-        (item) => item.montant > 0,
-      )
+      .filter((item) => item.montant > 0)
       .sort((a, b) => b.montant - a.montant);
-  }, [revenus, categoriesRevenus, period, referenceDate, currentUserUid, financialPeriod]);
+  }, [
+    revenus,
+    categoriesRevenus,
+    period,
+    referenceDate,
+    currentUserUid,
+    financialPeriod,
+  ]);
 
   const totalRevenus = useMemo(
     () => statsRevenusParCategorie.reduce((sum, i) => sum + i.montant, 0),

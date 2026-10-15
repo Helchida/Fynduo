@@ -34,7 +34,7 @@ const RegisterScreen: React.FC = () => {
     if (password !== confirmPassword) {
       toast.warning(
         "Erreur de saisie",
-        "Les mots de passe ne correspondent pas."
+        "Les mots de passe ne correspondent pas.",
       );
       return;
     }
@@ -44,7 +44,7 @@ const RegisterScreen: React.FC = () => {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
@@ -54,14 +54,14 @@ const RegisterScreen: React.FC = () => {
         email: user.email || email,
         displayName: email.split("@")[0],
         activeHouseholdId: user.uid,
-        households: [user.uid]
+        households: [user.uid],
       });
 
       if (!isDevMode) {
         await sendEmailVerification(user);
         toast.success(
           "Compte créé",
-          "Veuillez vérifier votre boîte mail pour la vérification."
+          "Veuillez vérifier votre boîte mail pour la vérification.",
         );
         navigation.navigate("EmailVerification");
       } else {
