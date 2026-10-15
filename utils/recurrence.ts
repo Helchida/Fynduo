@@ -6,33 +6,62 @@ import { IChargeFixeTemplate } from "../types";
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 
-const DAY_NAMES = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+const DAY_NAMES = [
+  "dimanche",
+  "lundi",
+  "mardi",
+  "mercredi",
+  "jeudi",
+  "vendredi",
+  "samedi",
+];
 const POSITION_LABELS: Record<number, string> = {
-  1: "premier", 2: "deuxième", 3: "troisième", 4: "quatrième", [-1]: "dernier",
+  1: "premier",
+  2: "deuxième",
+  3: "troisième",
+  4: "quatrième",
+  [-1]: "dernier",
 };
 
 export function getPeriodiciteLabel(config: IChargeFixeTemplate): string {
   const { periodiciteType, periodiciteIntervalle: n, jourNommeConfig } = config;
 
   switch (periodiciteType) {
-    case "journalier":    return n === 1 ? "Tous les jours" : `Tous les ${n} jours`;
-    case "hebdomadaire":  return n === 1 ? "Toutes les semaines" : `Toutes les ${n} semaines`;
-    case "mensuel":       return n === 1 ? "Tous les mois" : `Tous les ${n} mois`;
-    case "annuel":        return n === 1 ? "Tous les ans" : `Tous les ${n} ans`;
-    case "echeancier":    return "Échéancier personnalisé";
+    case "journalier":
+      return n === 1 ? "Tous les jours" : `Tous les ${n} jours`;
+    case "hebdomadaire":
+      return n === 1 ? "Toutes les semaines" : `Toutes les ${n} semaines`;
+    case "mensuel":
+      return n === 1 ? "Tous les mois" : `Tous les ${n} mois`;
+    case "annuel":
+      return n === 1 ? "Tous les ans" : `Tous les ${n} ans`;
+    case "echeancier":
+      return "Échéancier personnalisé";
     case "jour_nomme": {
       if (!jourNommeConfig) return "Jour nommé";
-      const pos = POSITION_LABELS[jourNommeConfig.position] ?? jourNommeConfig.position;
+      const pos =
+        POSITION_LABELS[jourNommeConfig.position] ?? jourNommeConfig.position;
       const day = DAY_NAMES[jourNommeConfig.dayOfWeek];
       return `Le ${pos} ${day} du mois`;
     }
-    default: return periodiciteType;
+    default:
+      return periodiciteType;
   }
 }
 
 const MONTH_NAMES = [
-  "janvier","février","mars","avril","mai","juin",
-  "juillet","août","septembre","octobre","novembre","décembre",
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
 ];
 
 export function getPeriodiciteDetailLabel(config: IChargeFixeTemplate): string {
@@ -70,7 +99,8 @@ export function getPeriodiciteDetailLabel(config: IChargeFixeTemplate): string {
 
     case "jour_nomme": {
       if (!jourNommeConfig) return "Jour nommé";
-      const pos = POSITION_LABELS[jourNommeConfig.position] ?? jourNommeConfig.position;
+      const pos =
+        POSITION_LABELS[jourNommeConfig.position] ?? jourNommeConfig.position;
       const day = DAY_NAMES[jourNommeConfig.dayOfWeek];
       return `Le ${pos} ${day} du mois`;
     }
@@ -87,9 +117,14 @@ export function getPeriodiciteDetailLabel(config: IChargeFixeTemplate): string {
   }
 }
 
-export function getNthWeekdayOfMonth(year: number, month: number, dayOfWeek: number, position: number): Dayjs {
+export function getNthWeekdayOfMonth(
+  year: number,
+  month: number,
+  dayOfWeek: number,
+  position: number,
+): Dayjs {
   const firstDay = dayjs(new Date(year, month, 1));
-  const lastDay  = dayjs(new Date(year, month + 1, 0));
+  const lastDay = dayjs(new Date(year, month + 1, 0));
 
   if (position === -1) {
     let d = lastDay;
@@ -114,7 +149,14 @@ export function getAllScheduledDates(
   from: Dayjs,
   to: Dayjs,
 ): Dayjs[] {
-  const { periodiciteType, periodiciteIntervalle: n, datePremierPrelevement, dateFin, echeancier, jourNommeConfig } = config;
+  const {
+    periodiciteType,
+    periodiciteIntervalle: n,
+    datePremierPrelevement,
+    dateFin,
+    echeancier,
+    jourNommeConfig,
+  } = config;
 
   const effectiveTo = dateFin
     ? dayjs(dateFin).startOf("day").isBefore(to, "day")
@@ -219,10 +261,15 @@ export function getAllScheduledDates(
       let month = from.startOf("month");
       while (!month.isAfter(effectiveTo, "month")) {
         const target = getNthWeekdayOfMonth(
-          month.year(), month.month(),
-          jourNommeConfig.dayOfWeek, jourNommeConfig.position,
+          month.year(),
+          month.month(),
+          jourNommeConfig.dayOfWeek,
+          jourNommeConfig.position,
         );
-        if (!target.isBefore(from, "day") && !target.isAfter(effectiveTo, "day")) {
+        if (
+          !target.isBefore(from, "day") &&
+          !target.isAfter(effectiveTo, "day")
+        ) {
           results.push(target);
         }
         month = month.add(1, "month");
@@ -240,13 +287,24 @@ export function shouldAddChargeToday(
   existingDescriptions: Set<string>,
   today: Dayjs = dayjs(),
 ): boolean {
-  const dates = getAllScheduledDates(config, today.startOf("day"), today.startOf("day"));
+  const dates = getAllScheduledDates(
+    config,
+    today.startOf("day"),
+    today.startOf("day"),
+  );
   if (dates.length === 0) return false;
-  if (config.periodiciteType !== "echeancier" && existingDescriptions.has(config.description)) return false;
+  if (
+    config.periodiciteType !== "echeancier" &&
+    existingDescriptions.has(config.description)
+  )
+    return false;
   return true;
 }
 
-export function getMontantForToday(config: IChargeFixeTemplate, today: Dayjs = dayjs()): number {
+export function getMontantForToday(
+  config: IChargeFixeTemplate,
+  today: Dayjs = dayjs(),
+): number {
   if (config.periodiciteType === "echeancier" && config.echeancier) {
     const todayStr = today.format("YYYY-MM-DD");
     const entry = config.echeancier.find((e) => e.date === todayStr);

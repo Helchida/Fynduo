@@ -57,10 +57,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "styles/theme.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
-import { calculateSavingsCapacity, getBankTransferableTotals } from "utils/savingsCapacity";
 import {
-  filterByFinancialPeriod,
-} from "utils/financialPeriods";
+  calculateSavingsCapacity,
+  getBankTransferableTotals,
+} from "utils/savingsCapacity";
+import { filterByFinancialPeriod } from "utils/financialPeriods";
 
 const formatCurrency = (amount: number) => {
   return (
@@ -108,19 +109,23 @@ const EpargneScreen: React.FC = () => {
   const { revenus, charges, loadData, financialPeriods } = useComptes();
   const isSoloMode = user.activeHouseholdId === user.id;
   const payPeriodActive = isSoloMode;
-  const payPeriods = useMemo(
-    () => financialPeriods,
-    [financialPeriods],
+  const payPeriods = useMemo(() => financialPeriods, [financialPeriods]);
+  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(
+    null,
   );
-  const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!payPeriodActive) return;
-    if (selectedPayPeriodId && payPeriods.some((period) => period.id === selectedPayPeriodId)) return;
+    if (
+      selectedPayPeriodId &&
+      payPeriods.some((period) => period.id === selectedPayPeriodId)
+    )
+      return;
     setSelectedPayPeriodId(payPeriods[payPeriods.length - 1]?.id ?? null);
   }, [payPeriodActive, payPeriods, selectedPayPeriodId]);
 
-  const selectedFinancialPeriod = payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null;
+  const selectedFinancialPeriod =
+    payPeriods.find((period) => period.id === selectedPayPeriodId) ?? null;
   const selectedPayPeriodIndex = selectedFinancialPeriod
     ? payPeriods.findIndex((period) => period.id === selectedFinancialPeriod.id)
     : -1;
@@ -216,7 +221,10 @@ const EpargneScreen: React.FC = () => {
   const statusColor = isPositive ? "#27ae60" : "#e74c3c";
 
   const isMonthFinished = payPeriodActive
-    ? Boolean(selectedFinancialPeriod?.end && dayjs(selectedFinancialPeriod.end).isBefore(dayjs(), "day"))
+    ? Boolean(
+        selectedFinancialPeriod?.end &&
+        dayjs(selectedFinancialPeriod.end).isBefore(dayjs(), "day"),
+      )
     : selectedDate.isBefore(dayjs().add(1, "month").startOf("month"));
   const isLatestPossibleMonth = payPeriodActive
     ? selectedPayPeriodIndex === payPeriods.length - 1
@@ -251,9 +259,18 @@ const EpargneScreen: React.FC = () => {
 
     try {
       if (!selectedFinancialPeriod) {
-        return toast.warning("Aucune période", "Ajoutez une paie de référence avant de placer une épargne dans cette période.");
+        return toast.warning(
+          "Aucune période",
+          "Ajoutez une paie de référence avant de placer une épargne dans cette période.",
+        );
       }
-      await placeEpargne(user.id, tirelireId, montant, selectedFinancialPeriod.start, selectedFinancialPeriod.id);
+      await placeEpargne(
+        user.id,
+        tirelireId,
+        montant,
+        selectedFinancialPeriod.start,
+        selectedFinancialPeriod.id,
+      );
       toast.success(
         "Épargne placée !",
         `${formatCurrency(montant)} ajoutés à ${tirelire?.description}`,
@@ -397,7 +414,10 @@ const EpargneScreen: React.FC = () => {
     }
 
     try {
-      if (tirelireToBreak.parentId !== null && tirelireToBreak.parentId !== undefined) {
+      if (
+        tirelireToBreak.parentId !== null &&
+        tirelireToBreak.parentId !== undefined
+      ) {
         const montantSafe = Math.min(montant, tirelireToBreak.montantInitial);
         if (montantSafe > 0) {
           await breakSubTirelire(tirelireToBreak.id, montantSafe);
@@ -643,7 +663,9 @@ const EpargneScreen: React.FC = () => {
                 ]}
                 onPress={() => {
                   if (payPeriodActive) {
-                    setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex - 1]?.id ?? null);
+                    setSelectedPayPeriodId(
+                      payPeriods[selectedPayPeriodIndex - 1]?.id ?? null,
+                    );
                     return;
                   }
                   const prevMonth = selectedDate.subtract(1, "month");
@@ -651,9 +673,11 @@ const EpargneScreen: React.FC = () => {
                     setSelectedDate(prevMonth);
                   }
                 }}
-                disabled={payPeriodActive
-                  ? selectedPayPeriodIndex <= 0
-                  : selectedDate.format("YYYY-MM") === "2026-01"}
+                disabled={
+                  payPeriodActive
+                    ? selectedPayPeriodIndex <= 0
+                    : selectedDate.format("YYYY-MM") === "2026-01"
+                }
               >
                 <ChevronLeft size={24} color="#2c3e50" />
               </TouchableOpacity>
@@ -665,7 +689,11 @@ const EpargneScreen: React.FC = () => {
                 {isCurrentMonth && (
                   <View style={styles.currentMonthBadge}>
                     <View style={styles.dot} />
-                    <Text style={styles.currentMonthText}>{periodNoun === "mois" ? "Mois en cours" : "Période en cours"}</Text>
+                    <Text style={styles.currentMonthText}>
+                      {periodNoun === "mois"
+                        ? "Mois en cours"
+                        : "Période en cours"}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -677,7 +705,9 @@ const EpargneScreen: React.FC = () => {
                 ]}
                 onPress={() => {
                   if (payPeriodActive) {
-                    setSelectedPayPeriodId(payPeriods[selectedPayPeriodIndex + 1]?.id ?? null);
+                    setSelectedPayPeriodId(
+                      payPeriods[selectedPayPeriodIndex + 1]?.id ?? null,
+                    );
                     return;
                   }
                   if (!isLatestPossibleMonth)
@@ -732,7 +762,9 @@ const EpargneScreen: React.FC = () => {
                   </Text>
                 </View>
                 <View style={{ marginLeft: 20 }}>
-                  <Text style={styles.miniStatLabel}>Épargné {periodDemonstrative} {periodNoun}</Text>
+                  <Text style={styles.miniStatLabel}>
+                    Épargné {periodDemonstrative} {periodNoun}
+                  </Text>
                   <Text style={styles.miniStatValue}>
                     {formatCurrency(totalEpargnesPlaceCeMois)}
                   </Text>
@@ -949,7 +981,8 @@ const EpargneScreen: React.FC = () => {
                 color: "#7f8c8d",
               }}
             >
-              Disponible {periodDemonstrative} {periodNoun} : {formatCurrency(epargneDisponible)}
+              Disponible {periodDemonstrative} {periodNoun} :{" "}
+              {formatCurrency(epargneDisponible)}
             </Text>
 
             <Text style={common.inputLabel}>Montant à placer (€)</Text>

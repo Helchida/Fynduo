@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius, shadows } from "../../../theme.style";
 
 export const styles = StyleSheet.create({
-
   typeSelector: {
     flexDirection: "row",
     alignItems: "center",
@@ -104,7 +103,7 @@ export const styles = StyleSheet.create({
     width: "20%",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: spacing.sm, 
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
     borderWidth: 1,

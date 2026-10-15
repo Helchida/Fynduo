@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius, shadows } from "../../theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Layout ────────────────────────────────────
   container: {
     padding: spacing.xl,
@@ -121,7 +120,11 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
   dettePayer: { fontSize: 16, fontWeight: "700", color: colors.danger },
-  detteRecevoir: { fontSize: 16, fontWeight: "700", color: colors.successLight },
+  detteRecevoir: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.successLight,
+  },
   detteEquilibre: { fontSize: 16, fontWeight: "700", color: colors.primary },
   detteMessageBase: { fontSize: 16, fontWeight: "700" },
 

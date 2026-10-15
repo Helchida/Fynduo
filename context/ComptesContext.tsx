@@ -41,16 +41,14 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentMonthData, setCurrentMonthData] =
     useState<ICompteMensuel | null>(null);
   const [chargesFixes, setChargesFixes] = useState<ICharge[]>([]);
-  const [chargesVariables, setChargesVariables] = useState<ICharge[]>(
-    [],
-  );
-  const [revenus, setRevenus] = useState<IRevenu[]>(
-    [],
-  );
+  const [chargesVariables, setChargesVariables] = useState<ICharge[]>([]);
+  const [revenus, setRevenus] = useState<IRevenu[]>([]);
   const [charges, setCharges] = useState<ICharge[]>([]);
   const [isLoadingComptes, setIsLoadingComptes] = useState(false);
   const [historyMonths, setHistoryMonths] = useState<ICompteMensuel[]>([]);
-  const [financialPeriods, setFinancialPeriods] = useState<FinancialPeriod[]>([]);
+  const [financialPeriods, setFinancialPeriods] = useState<FinancialPeriod[]>(
+    [],
+  );
 
   const calculs = useCalculs(currentMonthData, charges, currentUserUid);
   const { handleAutoAddFixedCharges } = useChargesFixesConfigs();
@@ -109,12 +107,11 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       if (activeHouseholdId === currentUserUid) {
-        const chargesVariablesSolo =
-          await DB.getSoloChargesByType(
-            user.households,
-            currentUserUid,
-            "variable",
-          );
+        const chargesVariablesSolo = await DB.getSoloChargesByType(
+          user.households,
+          currentUserUid,
+          "variable",
+        );
 
         const chargesFixesSolo = await DB.getSoloChargesByType(
           user.households,
@@ -135,13 +132,20 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [activeHouseholdId, currentUserUid, user?.households]);
 
   const referencePayDates = useMemo(
-    () => revenus.filter((revenu) => revenu.isReferencePay).map((revenu) => revenu.dateReception),
+    () =>
+      revenus
+        .filter((revenu) => revenu.isReferencePay)
+        .map((revenu) => revenu.dateReception),
     [revenus],
   );
 
   const currentFinancialPeriod: FinancialPeriod | null = useMemo(() => {
     if (activeHouseholdId !== currentUserUid) return null;
-    return financialPeriods.find((period) => period.isOpen) ?? financialPeriods.at(-1) ?? null;
+    return (
+      financialPeriods.find((period) => period.isOpen) ??
+      financialPeriods.at(-1) ??
+      null
+    );
   }, [activeHouseholdId, currentUserUid, financialPeriods]);
 
   const loadHistory = useCallback(async () => {
@@ -261,10 +265,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const updateRevenu = useCallback(
-    async (
-      revenuId: string,
-      updateData: Partial<IRevenu>,
-    ) => {
+    async (revenuId: string, updateData: Partial<IRevenu>) => {
       if (!activeHouseholdId) return;
       try {
         await DB.updateRevenu(activeHouseholdId, revenuId, updateData);
@@ -326,10 +327,7 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const updateCharge = useCallback(
-    async (
-      chargeId: string,
-      updateData: Partial<ICharge>,
-    ) => {
+    async (chargeId: string, updateData: Partial<ICharge>) => {
       if (!activeHouseholdId) return;
       try {
         await DB.updateCharge(activeHouseholdId, chargeId, updateData);

@@ -43,9 +43,10 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
 
       const revenuMoisAnnee = dayjs(r.dateReception).format("YYYY-MM");
 
-      if (period === "mois") return financialPeriod
-        ? isDateInFinancialPeriod(r.dateReception, financialPeriod)
-        : revenuMoisAnnee === referenceDate;
+      if (period === "mois")
+        return financialPeriod
+          ? isDateInFinancialPeriod(r.dateReception, financialPeriod)
+          : revenuMoisAnnee === referenceDate;
       if (period === "annee") return revenuMoisAnnee.startsWith(referenceDate);
       return true;
     });
@@ -222,9 +223,7 @@ export const RevenusStatsCard: React.FC<RevenusStatsCardProps> = ({
         })}
 
         {statsRevenusParCategorie.length === 0 && (
-          <Text style={common.emptyText}>
-            Aucun revenu sur cette période.
-          </Text>
+          <Text style={common.emptyText}>Aucun revenu sur cette période.</Text>
         )}
       </View>
     </View>

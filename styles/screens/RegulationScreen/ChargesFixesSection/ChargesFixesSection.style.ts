@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius } from "../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Sous-section ──────────────────────────────
   subSection: {
     padding: spacing.sm + 2,

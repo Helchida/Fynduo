@@ -20,7 +20,9 @@ export interface EditChargeFormProps {
   handleToggleEditBeneficiaire: (userId: string) => void;
   currentUserId: string;
   isSubmitting: boolean;
-  handleUpdateCharge: (repartitionParam?: Record<string, number>) => Promise<void>;
+  handleUpdateCharge: (
+    repartitionParam?: Record<string, number>,
+  ) => Promise<void>;
   setIsEditing: (value: boolean) => void;
   editCategorie: string;
   setEditCategorie: (value: string) => void;

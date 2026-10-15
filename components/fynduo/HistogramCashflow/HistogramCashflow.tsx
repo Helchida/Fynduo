@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import { HistogramCashflowProps } from "./HistogramCashflow.type";
 import { styles } from "../../../styles/components/fynduo/HistogramCashflow/HistogramCashflow.style";
 
-const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
+const HistogramCashflow: React.FC<HistogramCashflowProps> = ({
   month,
   year,
   total,
@@ -10,8 +10,7 @@ const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
   maxTotal,
   isSoloMode,
   isStacked,
-}) =>  {
-
+}) => {
   const payPeriodSeparator = " → ";
   const isPayPeriodLabel = month.includes(payPeriodSeparator);
   const [firstLabelLine, secondLabelSuffix] = isPayPeriodLabel
@@ -98,7 +97,7 @@ const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
                     textAlign: "right",
                     minWidth: 65,
                     marginBottom: 4,
-                    letterSpacing: -0.5
+                    letterSpacing: -0.5,
                   }}
                 >
                   {totalRevenus > 0 ? `${totalRevenus.toFixed(2)}€` : ""}
@@ -116,7 +115,9 @@ const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
               </View>
             )}
 
-            <View style={{ alignItems: "flex-start", width: isSoloMode ? 40 : 20 }}>
+            <View
+              style={{ alignItems: "flex-start", width: isSoloMode ? 40 : 20 }}
+            >
               <Text
                 numberOfLines={1}
                 style={{
@@ -126,7 +127,7 @@ const HistogramCashflow : React.FC<HistogramCashflowProps>= ({
                   textAlign: "left",
                   minWidth: 65,
                   marginBottom: 4,
-                  letterSpacing: -0.5
+                  letterSpacing: -0.5,
                 }}
               >
                 {total > 0 ? `${total.toFixed(2)}€` : ""}

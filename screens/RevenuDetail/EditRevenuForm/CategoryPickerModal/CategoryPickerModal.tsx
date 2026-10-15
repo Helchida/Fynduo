@@ -32,13 +32,15 @@ export const CategoryPickerModal = ({
     getSimilarCategoriesRevenus,
   } = useCategories();
 
-  const [isAdding, setIsAdding]     = useState(false);
-  const [newLabel, setNewLabel]     = useState("");
-  const [newIcon, setNewIcon]       = useState("📦");
-  const [editingId, setEditingId]   = useState<string | null>(null);
-  const [error, setError]           = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newIcon, setNewIcon] = useState("📦");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [suggestion, setSuggestion] = useState<(ICategorieRevenu & { score: number }) | null>(null);
+  const [suggestion, setSuggestion] = useState<
+    (ICategorieRevenu & { score: number }) | null
+  >(null);
   const suggestionAnim = useRef(new Animated.Value(0)).current;
 
   const emojiInputRef = useRef<TextInput>(null);
@@ -126,7 +128,6 @@ export const CategoryPickerModal = ({
     <Modal visible={isVisible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-
           <TextInput
             ref={emojiInputRef}
             style={{ position: "absolute", opacity: 0, height: 0, width: 0 }}
@@ -155,11 +156,19 @@ export const CategoryPickerModal = ({
           </View>
 
           {isAdding ? (
-            <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "#eee" }}>
-
+            <View
+              style={{
+                padding: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: "#eee",
+              }}
+            >
               <View style={{ flexDirection: "row", gap: 10, marginBottom: 8 }}>
                 <TouchableOpacity
-                  style={[styles.modalItem, { flex: 0.25, justifyContent: "center" }]}
+                  style={[
+                    styles.modalItem,
+                    { flex: 0.25, justifyContent: "center" },
+                  ]}
                   onPress={() => setEmojiPickerVisible(true)}
                 >
                   <Text style={{ fontSize: 30 }}>{newIcon}</Text>
@@ -180,12 +189,14 @@ export const CategoryPickerModal = ({
                 <Animated.View
                   style={{
                     opacity: suggestionAnim,
-                    transform: [{
-                      translateY: suggestionAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [-8, 0],
-                      }),
-                    }],
+                    transform: [
+                      {
+                        translateY: suggestionAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-8, 0],
+                        }),
+                      },
+                    ],
                     backgroundColor: "#EBF5FB",
                     borderRadius: 8,
                     padding: 10,
@@ -198,11 +209,23 @@ export const CategoryPickerModal = ({
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 12, color: "#5D6D7E", marginBottom: 2 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#5D6D7E",
+                        marginBottom: 2,
+                      }}
+                    >
                       Catégorie similaire existante :
                     </Text>
-                    <Text style={{ fontSize: 14, fontWeight: "600", color: "#1A5276" }}>
-                      {suggestion.icon}  {suggestion.label}
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "600",
+                        color: "#1A5276",
+                      }}
+                    >
+                      {suggestion.icon} {suggestion.label}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -215,7 +238,9 @@ export const CategoryPickerModal = ({
                       marginLeft: 8,
                     }}
                   >
-                    <Text style={{ color: "#fff", fontWeight: "600", fontSize: 12 }}>
+                    <Text
+                      style={{ color: "#fff", fontWeight: "600", fontSize: 12 }}
+                    >
                       Utiliser
                     </Text>
                   </TouchableOpacity>
@@ -223,7 +248,9 @@ export const CategoryPickerModal = ({
               )}
 
               {error && (
-                <Text style={{ color: "#E74C3C", fontSize: 12, marginBottom: 8 }}>
+                <Text
+                  style={{ color: "#E74C3C", fontSize: 12, marginBottom: 8 }}
+                >
                   {error}
                 </Text>
               )}
@@ -240,7 +267,13 @@ export const CategoryPickerModal = ({
                       resetForm();
                     }}
                   >
-                    <Text style={{ color: "#fff", textAlign: "center", fontWeight: "600" }}>
+                    <Text
+                      style={{
+                        color: "#fff",
+                        textAlign: "center",
+                        fontWeight: "600",
+                      }}
+                    >
                       Supprimer
                     </Text>
                   </TouchableOpacity>
@@ -252,7 +285,13 @@ export const CategoryPickerModal = ({
                   ]}
                   onPress={handleSave}
                 >
-                  <Text style={{ color: "#fff", textAlign: "center", fontWeight: "600" }}>
+                  <Text
+                    style={{
+                      color: "#fff",
+                      textAlign: "center",
+                      fontWeight: "600",
+                    }}
+                  >
                     {editingId ? "Mettre à jour" : "Enregistrer"}
                   </Text>
                 </TouchableOpacity>
@@ -281,7 +320,9 @@ export const CategoryPickerModal = ({
                     <Text style={styles.modalItemText}>{cat.label}</Text>
                   </View>
                   {selectedId === cat.id && (
-                    <Text style={{ color: "#3498DB", fontWeight: "bold" }}>✓</Text>
+                    <Text style={{ color: "#3498DB", fontWeight: "bold" }}>
+                      ✓
+                    </Text>
                   )}
                 </TouchableOpacity>
               ))}

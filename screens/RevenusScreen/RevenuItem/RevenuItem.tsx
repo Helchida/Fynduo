@@ -6,10 +6,7 @@ import { useAuth } from "hooks/useAuth";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { RevenuItemProps } from "./RevenuItem.type";
 
-const RevenuItem: React.FC<RevenuItemProps> = ({
-  revenu,
-  onPress,
-}) => {
+const RevenuItem: React.FC<RevenuItemProps> = ({ revenu, onPress }) => {
   const { user } = useAuth();
 
   if (!user) {
@@ -18,8 +15,8 @@ const RevenuItem: React.FC<RevenuItemProps> = ({
 
   const { categoriesRevenus } = useCategories();
 
-  const currentCategoryData = categoriesRevenus.find((cat) =>
-    cat.id === revenu.categorie
+  const currentCategoryData = categoriesRevenus.find(
+    (cat) => cat.id === revenu.categorie,
   );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "💵";
   const montantAffiche = revenu.montant.toFixed(2);

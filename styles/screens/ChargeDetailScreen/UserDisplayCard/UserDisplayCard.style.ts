@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "../../../theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Textes ────────────────────────────────────
   userName: {
     flex: 1,

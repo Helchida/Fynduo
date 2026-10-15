@@ -17,7 +17,13 @@ import * as DB from "../../services/supabase/db";
 import NoAuthenticatedUser from "components/fynduo/NoAuthenticatedUser/NoAuthenticatedUser";
 import { useToast } from "hooks/useToast";
 import { getDisplayNameUserInHousehold } from "utils/getDisplayNameUserInHousehold";
-import { BanknoteArrowDown, Calculator, Home, House, TriangleAlert } from "lucide-react-native";
+import {
+  BanknoteArrowDown,
+  Calculator,
+  Home,
+  House,
+  TriangleAlert,
+} from "lucide-react-native";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 

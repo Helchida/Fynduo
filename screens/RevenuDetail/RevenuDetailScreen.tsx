@@ -102,11 +102,7 @@ const RevenuDetailScreen: React.FC = () => {
       setEditIsReferencePay(initialRevenu.isReferencePay ?? false);
       setEditIsNonTransferable(initialRevenu.isNonTransferable ?? false);
     }
-  }, [
-    initialRevenu,
-    categoriesRevenus,
-    defaultCategory,
-  ]);
+  }, [initialRevenu, categoriesRevenus, defaultCategory]);
 
   const handleUpdateRevenu = useCallback(async () => {
     if (!revenu) return;
@@ -179,7 +175,9 @@ const RevenuDetailScreen: React.FC = () => {
 
   const benefUids = revenu.beneficiaire;
   const nbBeneficiaires = benefUids.length;
-  const currentCategoryData = categoriesRevenus.find((c) => c.id === revenu.categorie);
+  const currentCategoryData = categoriesRevenus.find(
+    (c) => c.id === revenu.categorie,
+  );
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "💵";
 
   return (
@@ -218,7 +216,9 @@ const RevenuDetailScreen: React.FC = () => {
               Revenu du {dateReceptionFormatted}
             </Text>
             {revenu.isReferencePay && user.activeHouseholdId === user.id && (
-              <Text style={{ color: "#8e44ad", fontWeight: "700", marginTop: 6 }}>
+              <Text
+                style={{ color: "#8e44ad", fontWeight: "700", marginTop: 6 }}
+              >
                 Paie de référence
               </Text>
             )}

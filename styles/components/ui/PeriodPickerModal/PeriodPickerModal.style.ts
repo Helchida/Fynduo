@@ -1,10 +1,14 @@
 import { StyleSheet, Dimensions } from "react-native";
-import { colors, spacing, radius, shadows } from "../../../../styles/theme.style";
+import {
+  colors,
+  spacing,
+  radius,
+  shadows,
+} from "../../../../styles/theme.style";
 
 const { height } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
-
   // ── Modal ─────────────────────────────────────
   container: {
     backgroundColor: colors.surface,

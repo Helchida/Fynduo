@@ -118,20 +118,53 @@ export const EditRevenuForm = ({
         />
       </View>
       {isSoloHousehold && (
-        <View style={[common.formContainer, common.payorCard, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+        <View
+          style={[
+            common.formContainer,
+            common.payorCard,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            },
+          ]}
+        >
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text style={common.editLabel}>Paie de référence</Text>
-            <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Utiliser ce revenu pour délimiter les périodes de paie.</Text>
+            <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+              Utiliser ce revenu pour délimiter les périodes de paie.
+            </Text>
           </View>
-          <Switch value={isReferencePay} onValueChange={setIsReferencePay} disabled={isSubmitting} />
+          <Switch
+            value={isReferencePay}
+            onValueChange={setIsReferencePay}
+            disabled={isSubmitting}
+          />
         </View>
       )}
-      <View style={[common.formContainer, common.payorCard, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+      <View
+        style={[
+          common.formContainer,
+          common.payorCard,
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          },
+        ]}
+      >
         <View style={{ flex: 1, paddingRight: 10 }}>
           <Text style={common.editLabel}>Fonds non transférables</Text>
-          <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Utilisables via un moyen de paiement spécifique, ils ne peuvent pas être transférés vers votre compte bancaire.</Text>
+          <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+            Utilisables via un moyen de paiement spécifique, ils ne peuvent pas
+            être transférés vers votre compte bancaire.
+          </Text>
         </View>
-        <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+        <Switch
+          value={isNonTransferable}
+          onValueChange={setIsNonTransferable}
+          disabled={isSubmitting}
+        />
       </View>
       <CategoryPickerModal
         isVisible={isCategoryModalVisible}

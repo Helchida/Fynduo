@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius } from "../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Card avec padding (variante revenus) ──────
   chartCard: {
     backgroundColor: colors.surface,
@@ -67,7 +66,11 @@ export const styles = StyleSheet.create({
   },
   revenuInfo: { flex: 1, justifyContent: "center" },
   revenuLabel: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
-  revenuPayeur: { fontSize: 11, color: colors.textSecondary, marginTop: spacing.xxs },
+  revenuPayeur: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: spacing.xxs,
+  },
   revenuMontantContainer: {
     alignItems: "flex-end",
     justifyContent: "center",

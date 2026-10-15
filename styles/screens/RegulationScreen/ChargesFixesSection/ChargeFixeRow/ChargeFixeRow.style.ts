@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, radius } from "../../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Ligne ─────────────────────────────────────
   chargeRow: {
     flexDirection: "row",

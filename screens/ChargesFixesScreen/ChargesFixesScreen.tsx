@@ -94,17 +94,16 @@ const ChargesFixesScreen: React.FC = () => {
   }, [user, defaultCategory]);
 
   const handleChargeUpdate = useCallback(
-  async (id: string, updates: Partial<IChargeFixeTemplate>) => {
-    try {
-      await updateChargeFixe(id, updates);
-      toast.success("Succès", "Charge mise à jour");
-    } catch (error) {
-      toast.error("Erreur", "Échec de la mise à jour");
-    }
-  },
-  [updateChargeFixe, toast]
-);
-
+    async (id: string, updates: Partial<IChargeFixeTemplate>) => {
+      try {
+        await updateChargeFixe(id, updates);
+        toast.success("Succès", "Charge mise à jour");
+      } catch (error) {
+        toast.error("Erreur", "Échec de la mise à jour");
+      }
+    },
+    [updateChargeFixe, toast],
+  );
 
   const handleAddDepense = useCallback(async () => {
     const isEcheancier = periodiciteValue.periodiciteType === "echeancier";
@@ -317,12 +316,30 @@ const ChargesFixesScreen: React.FC = () => {
                 montantDefault={parseFloat(montant.replace(",", ".")) || 0}
               />
             </View>
-            <View style={[common.selectorButton, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+            <View
+              style={[
+                common.selectorButton,
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                },
+              ]}
+            >
               <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={common.selectorLabel}>Payée avec des fonds non transférables</Text>
-                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>Les occurrences créées resteront dans les budgets et statistiques, sans réduire l’épargne bancaire.</Text>
+                <Text style={common.selectorLabel}>
+                  Payée avec des fonds non transférables
+                </Text>
+                <Text style={{ color: "#7f8c8d", fontSize: 12 }}>
+                  Les occurrences créées resteront dans les budgets et
+                  statistiques, sans réduire l’épargne bancaire.
+                </Text>
               </View>
-              <Switch value={isNonTransferable} onValueChange={setIsNonTransferable} disabled={isSubmitting} />
+              <Switch
+                value={isNonTransferable}
+                onValueChange={setIsNonTransferable}
+                disabled={isSubmitting}
+              />
             </View>
 
             <TouchableOpacity

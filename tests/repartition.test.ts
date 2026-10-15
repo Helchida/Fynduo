@@ -28,7 +28,9 @@ describe("custom expense splits", () => {
     );
 
     expect(scaled).toEqual({ alice: 37.03, bob: 62.97 });
-    expect(calculateRepartition(["alice", "bob"], 100, scaled).error).toBeNull();
+    expect(
+      calculateRepartition(["alice", "bob"], 100, scaled).error,
+    ).toBeNull();
   });
 
   it("leaves an unlocked share available when only one amount was customised", () => {

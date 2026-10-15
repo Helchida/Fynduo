@@ -1,14 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Variables Supabase manquantes dans .env');
+  throw new Error("Variables Supabase manquantes dans .env");
 }
 
 if (__DEV__) {
-  console.log('🔷 Supabase connecté à:', supabaseUrl);
+  console.log("🔷 Supabase connecté à:", supabaseUrl);
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

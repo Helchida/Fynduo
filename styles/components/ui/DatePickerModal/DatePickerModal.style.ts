@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors, spacing, radius } from "../../../../styles/theme.style";
 
 export const styles = StyleSheet.create({
-
   // ── Textes ────────────────────────────────────
   title: {
     fontSize: 18,

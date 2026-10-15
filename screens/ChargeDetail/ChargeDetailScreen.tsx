@@ -89,7 +89,7 @@ const ChargeDetailScreen: React.FC = () => {
     charge?.dateStatistiques ? new Date(charge.dateStatistiques) : new Date(),
   );
   const [editCategorie, setEditCategorie] = useState<string>(
-    charge?.categorie || 'cat_autre',
+    charge?.categorie || "cat_autre",
   );
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const [editIsNonTransferable, setEditIsNonTransferable] = useState(
@@ -112,10 +112,13 @@ const ChargeDetailScreen: React.FC = () => {
     hideDateStatistiquesPicker();
   };
 
-  const getDisplayName = useCallback((uid: string) => {
-    const userItem = householdUsers.find((u) => u.id === uid);
-    return userItem ? userItem.displayName : "Inconnu";
-  }, [householdUsers]);
+  const getDisplayName = useCallback(
+    (uid: string) => {
+      const userItem = householdUsers.find((u) => u.id === uid);
+      return userItem ? userItem.displayName : "Inconnu";
+    },
+    [householdUsers],
+  );
 
   const repartitionMap = useMemo(
     () => parseRepartition(charge?.repartition),
@@ -199,7 +202,8 @@ const ChargeDetailScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const chargeScope: ChargeScope = editBeneficiairesUid.length > 1 ? "partage" : "solo";
+    const chargeScope: ChargeScope =
+      editBeneficiairesUid.length > 1 ? "partage" : "solo";
 
     const finalRepartition = editSplitMode === "egal" ? null : editRepartition;
 
@@ -212,7 +216,7 @@ const ChargeDetailScreen: React.FC = () => {
       moisAnnee: dayjs(editDateStatistiques).format("YYYY-MM"),
       scope: chargeScope,
       categorie: editCategorie,
-      repartition: finalRepartition, 
+      repartition: finalRepartition,
       isNonTransferable: editIsNonTransferable,
     };
 
@@ -235,9 +239,9 @@ const ChargeDetailScreen: React.FC = () => {
     updateCharge,
     editCategorie,
     toast,
-    editSplitMode,        
-    editRepartition,      
-    editRepartitionError, 
+    editSplitMode,
+    editRepartition,
+    editRepartitionError,
     editIsNonTransferable,
   ]);
 
@@ -263,9 +267,12 @@ const ChargeDetailScreen: React.FC = () => {
     });
   };
 
-  const handleChangeEditMontant = useCallback((uid: string, montant: number) => {
-    setEditLockedMontants((prev) => ({ ...prev, [uid]: montant }));
-  }, []);
+  const handleChangeEditMontant = useCallback(
+    (uid: string, montant: number) => {
+      setEditLockedMontants((prev) => ({ ...prev, [uid]: montant }));
+    },
+    [],
+  );
 
   const handleEditTotalAmountChange = useCallback(
     (value: string) => {
@@ -359,9 +366,7 @@ const ChargeDetailScreen: React.FC = () => {
 
   const benefUids = isEditing ? editBeneficiairesUid : charge.beneficiaires;
   const nbBeneficiaires = benefUids.length;
-  const currentCategoryData = categories.find(
-    (c) => c.id === charge.categorie,
-  );
+  const currentCategoryData = categories.find((c) => c.id === charge.categorie);
   const categoryIcon = currentCategoryData ? currentCategoryData.icon : "📦";
 
   const isActiveHouseholdSolo = user.activeHouseholdId === user.id;
@@ -374,7 +379,8 @@ const ChargeDetailScreen: React.FC = () => {
       if (repartitionMap && repartitionMap[user.id] !== undefined) {
         return repartitionMap[user.id].toFixed(2).replace(".", ",");
       }
-      const amount = initialCharge.montantTotal / (initialCharge.beneficiaires?.length || 1);
+      const amount =
+        initialCharge.montantTotal / (initialCharge.beneficiaires?.length || 1);
       return amount.toFixed(2).replace(".", ",");
     }
 

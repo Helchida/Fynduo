@@ -13,7 +13,8 @@ export const useEpargneData = (
   period: FinancialPeriod | null,
 ) => {
   const [tirelires, setTirelires] = useState<ITirelire[]>([]);
-  const [totalEpargnesMouvementCeMois, setTotalEpargnesMouvementCeMois] = useState(0);
+  const [totalEpargnesMouvementCeMois, setTotalEpargnesMouvementCeMois] =
+    useState(0);
   const [totalEpargnesPlaceCeMois, setTotalEpargnesPlaceCeMois] = useState(0);
   const [loading, setLoading] = useState(false);
   const refreshSequence = useRef(0);

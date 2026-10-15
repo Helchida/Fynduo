@@ -29,17 +29,13 @@ export interface IComptesContext extends IResultatsCalcul {
     updateData: Partial<ICharge>,
   ) => Promise<void>;
   deleteCharge: (chargeId: string) => Promise<void>;
-  addChargeFixe: (
-    charge: Omit<ICharge, "id" | "householdId">,
-  ) => Promise<void>;
+  addChargeFixe: (charge: Omit<ICharge, "id" | "householdId">) => Promise<void>;
   updateChargeFixe: (chargeId: string, newAmount: number) => Promise<void>;
   deleteChargeFixe: (chargeId: string) => Promise<void>;
   cloturerMois: (data: IReglementData, moisCloture: string) => Promise<void>;
   loadHistory: () => Promise<void>;
   getMonthDataById: (moisAnnee: string) => ICompteMensuel | undefined;
-  addRevenu: (
-    revenu: Omit<IRevenu, "id" | "householdId">,
-  ) => Promise<void>;
+  addRevenu: (revenu: Omit<IRevenu, "id" | "householdId">) => Promise<void>;
   updateRevenu: (
     revenuId: string,
     updateData: Partial<IRevenu>,

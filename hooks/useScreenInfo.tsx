@@ -8,9 +8,7 @@ export const useScreenInfo = () => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <InfoButton onPress={() => setShowInfoModal(true)} />
-      ),
+      headerRight: () => <InfoButton onPress={() => setShowInfoModal(true)} />,
     });
   }, [navigation]);
 

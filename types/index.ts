@@ -43,7 +43,7 @@ export type CategoryType =
 
 export type ChargeScope = "solo" | "partage";
 export type ChargeType = "fixe" | "variable";
-export type ChargeNature = "depense" | "remboursement"
+export type ChargeNature = "depense" | "remboursement";
 export type PeriodiciteType =
   | "journalier"
   | "hebdomadaire"
@@ -54,12 +54,12 @@ export type PeriodiciteType =
 // 2. Trésorerie (Dépenses occasionnelles : courses, resto, loisirs...)
 
 export interface IEcheancierEntry {
-  date: string;      
+  date: string;
   montant: number;
 }
 
 export interface IJourNommeConfig {
-  position: 1 | 2 | 3 | 4 | -1;  
+  position: 1 | 2 | 3 | 4 | -1;
   dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 export interface ICharge extends FirestoreDocument {
@@ -87,11 +87,11 @@ export interface IChargeFixeTemplate extends FirestoreDocument {
   beneficiaires: string[];
   scope: ChargeScope;
   isNonTransferable?: boolean;
-  
+
   periodiciteType: PeriodiciteType;
-  periodiciteIntervalle: number; 
-  datePremierPrelevement: string | null; 
-  dateFin?: string | null;      
+  periodiciteIntervalle: number;
+  datePremierPrelevement: string | null;
+  dateFin?: string | null;
   echeancier?: IEcheancierEntry[] | null;
   jourNommeConfig?: IJourNommeConfig | null;
 }
@@ -125,7 +125,7 @@ export interface ICategorieRevenu extends FirestoreDocument {
 // Revenu
 export interface IRevenu extends FirestoreDocument {
   householdId: string;
-  categorie: string; 
+  categorie: string;
   description: string;
   montant: number;
   beneficiaire: string;
@@ -228,7 +228,7 @@ export interface PropagationConflict {
   soloHouseholdId: string;
   memberDisplayName: string;
   existingCategory: {
-    id: string; 
+    id: string;
     label: string;
     icon: string;
   };
@@ -293,7 +293,7 @@ export type RootStackParamList = {
   HistoryDetail: { moisAnnee: string };
   ChargeDetail: { chargeId: string; description: string };
   RevenuDetail: { revenuId: string; description: string };
-  Tirelire: { tirelire : ITirelire };
+  Tirelire: { tirelire: ITirelire };
   Notifications: undefined;
 };
 

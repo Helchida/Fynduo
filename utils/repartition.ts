@@ -27,9 +27,10 @@ export function scaleLockedRepartition(
   return Object.fromEntries(
     entries.map(([uid, amount], index) => {
       const isLastLockedAmount = index === entries.length - 1;
-      const cents = locksCoverEntireSplit && isLastLockedAmount
-        ? nextTotalCents - assignedCents
-        : Math.round(amount * scale * 100);
+      const cents =
+        locksCoverEntireSplit && isLastLockedAmount
+          ? nextTotalCents - assignedCents
+          : Math.round(amount * scale * 100);
       assignedCents += cents;
       return [uid, cents / 100];
     }),
@@ -39,7 +40,7 @@ export function scaleLockedRepartition(
 export function calculateRepartition(
   beneficiaireIds: string[],
   montantTotal: number,
-  locked: Record<string, number>, 
+  locked: Record<string, number>,
 ): RepartitionResult {
   const totalCents = Math.round(montantTotal * 100);
 

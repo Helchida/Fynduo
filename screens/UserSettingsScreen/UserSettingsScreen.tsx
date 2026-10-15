@@ -58,7 +58,7 @@ const UserSettingsScreen: React.FC = () => {
     try {
       const credential = EmailAuthProvider.credential(
         auth.currentUser?.email!,
-        currentPassword
+        currentPassword,
       );
       await reauthenticateWithCredential(auth.currentUser!, credential);
       return true;
@@ -89,7 +89,6 @@ const UserSettingsScreen: React.FC = () => {
   };
 
   const handleConfirmAction = async () => {
-
     if (
       activeAction === "RESET" &&
       confirmationText.trim().toUpperCase() !== "REINITIALISER"
@@ -132,7 +131,7 @@ const UserSettingsScreen: React.FC = () => {
           await deleteUser(auth.currentUser!);
           toast.success(
             "Au revoir",
-            "Votre compte et vos données ont été supprimés."
+            "Votre compte et vos données ont été supprimés.",
           );
           logout?.();
           return;
@@ -175,7 +174,6 @@ const UserSettingsScreen: React.FC = () => {
           )}
         </TouchableOpacity>
       </View>
-
 
       <Text style={[styles.sectionTitle, { marginBottom: 10, marginTop: 10 }]}>
         Sécurité
@@ -241,10 +239,10 @@ const UserSettingsScreen: React.FC = () => {
                   marginBottom: 12,
                 }}
               >
-                Cette action supprimera toutes vos données personnelles
-                et vous retirera de vos foyers partagés.
-                Les données des autres membres de ces foyers seront conservées.
-                Votre compte et votre mot de passe ne seront pas supprimés.
+                Cette action supprimera toutes vos données personnelles et vous
+                retirera de vos foyers partagés. Les données des autres membres
+                de ces foyers seront conservées. Votre compte et votre mot de
+                passe ne seront pas supprimés.
               </Text>
 
               <TextInput
@@ -317,21 +315,12 @@ const UserSettingsScreen: React.FC = () => {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <RotateCcw
-            color="#e67e22"
-            size={20}
-            style={{ marginRight: 15 }}
-          />
+          <RotateCcw color="#e67e22" size={20} style={{ marginRight: 15 }} />
 
-          <Text style={styles.actionText}>
-            Réinitialiser mes données
-          </Text>
+          <Text style={styles.actionText}>Réinitialiser mes données</Text>
         </View>
 
-        <ChevronRight
-          color="#bdc3c7"
-          size={20}
-        />
+        <ChevronRight color="#bdc3c7" size={20} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -344,7 +333,7 @@ const UserSettingsScreen: React.FC = () => {
             Supprimer mon compte
           </Text>
         </View>
-        <ChevronRight color="#bdc3c7" size={20}/>
+        <ChevronRight color="#bdc3c7" size={20} />
       </TouchableOpacity>
     </ScrollView>
   );

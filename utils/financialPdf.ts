@@ -22,7 +22,12 @@ export const downloadFinancialTransactionsPdf = ({
     pdf.addPage();
     y = 18;
   };
-  const line = (text: string, x: number, width: number, options: Record<string, unknown> = {}) => {
+  const line = (
+    text: string,
+    x: number,
+    width: number,
+    options: Record<string, unknown> = {},
+  ) => {
     const lines = pdf.splitTextToSize(text, width);
     pdf.text(lines, x, y, options as any);
     return Math.max(5, lines.length * 4.5);
@@ -68,17 +73,25 @@ export const downloadFinancialTransactionsPdf = ({
       const rowHeight = Math.max(
         pdf.splitTextToSize(transaction.description || "—", 74).length * 4.5,
         pdf.splitTextToSize(transaction.category || "—", 50).length * 4.5,
-        sharedDetails ? pdf.splitTextToSize(sharedDetails, 130).length * 4.5 + 5 : 0,
+        sharedDetails
+          ? pdf.splitTextToSize(sharedDetails, 130).length * 4.5 + 5
+          : 0,
         5,
       );
       ensureSpace(rowHeight + 2);
       pdf.setFontSize(8);
       pdf.text(dayjs(transaction.date).format("DD/MM/YYYY"), MARGIN, y);
       line(transaction.description || "—", MARGIN + 25, 74);
-      const categoryLines = pdf.splitTextToSize(transaction.category || "—", 50);
+      const categoryLines = pdf.splitTextToSize(
+        transaction.category || "—",
+        50,
+      );
       pdf.text(categoryLines, MARGIN + 105, y);
       pdf.text(
-        formatEuro(transaction.amount, transaction.kind === "income" ? "+" : "-"),
+        formatEuro(
+          transaction.amount,
+          transaction.kind === "income" ? "+" : "-",
+        ),
         PAGE_WIDTH - MARGIN,
         y,
         { align: "right" },
@@ -99,13 +112,22 @@ export const downloadFinancialTransactionsPdf = ({
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
     pdf.text("Total revenus", MARGIN + 90, y);
-    pdf.text(formatEuro(month.incomes, "+"), PAGE_WIDTH - MARGIN, y, { align: "right" });
+    pdf.text(formatEuro(month.incomes, "+"), PAGE_WIDTH - MARGIN, y, {
+      align: "right",
+    });
     y += 5;
     pdf.text("Total dépenses", MARGIN + 90, y);
-    pdf.text(formatEuro(month.expenses, "-"), PAGE_WIDTH - MARGIN, y, { align: "right" });
+    pdf.text(formatEuro(month.expenses, "-"), PAGE_WIDTH - MARGIN, y, {
+      align: "right",
+    });
     y += 5;
     pdf.text("Solde", MARGIN + 90, y);
-    pdf.text(formatEuro(month.balance, month.balance >= 0 ? "+" : "-"), PAGE_WIDTH - MARGIN, y, { align: "right" });
+    pdf.text(
+      formatEuro(month.balance, month.balance >= 0 ? "+" : "-"),
+      PAGE_WIDTH - MARGIN,
+      y,
+      { align: "right" },
+    );
     y += 11;
   });
 
@@ -122,7 +144,11 @@ export const downloadFinancialTransactionsPdf = ({
   y += 5;
   pdf.text(`Dépenses : ${formatEuro(totals.expenses, "-")}`, MARGIN + 4, y);
   y += 5;
-  pdf.text(`Solde : ${formatEuro(totals.balance, totals.balance >= 0 ? "+" : "-")}`, MARGIN + 4, y);
+  pdf.text(
+    `Solde : ${formatEuro(totals.balance, totals.balance >= 0 ? "+" : "-")}`,
+    MARGIN + 4,
+    y,
+  );
 
   pdf.save(`fynduo-transactions-${dayjs().format("YYYY-MM-DD")}.pdf`);
 };

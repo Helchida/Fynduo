@@ -51,14 +51,22 @@ export const DEFAULT_PERIODICITE_VALUE: PeriodiciteValue = {
 
 const PERIODICITE_META: Record<
   PeriodiciteType,
-  { label: string; icon: React.ElementType, color: string }
+  { label: string; icon: React.ElementType; color: string }
 > = {
   mensuel: { label: "Mensuel", icon: Repeat, color: "#2ecc71" },
   annuel: { label: "Annuel", icon: Calendar, color: "#9b59b6" },
-  hebdomadaire: { label: "Hebdomadaire", icon: CalendarDays, color: "#27a1d1ff" },
+  hebdomadaire: {
+    label: "Hebdomadaire",
+    icon: CalendarDays,
+    color: "#27a1d1ff",
+  },
   journalier: { label: "Journalier", icon: Sun, color: "#f39c12" },
   jour_nomme: { label: "Jour nommé", icon: MapPin, color: "#34495e" },
-  echeancier: { label: "Échéancier libre", icon: ClipboardList, color: "#d14127ff" },
+  echeancier: {
+    label: "Échéancier libre",
+    icon: ClipboardList,
+    color: "#d14127ff",
+  },
 };
 
 const POSITIONS: { value: 1 | 2 | 3 | 4 | -1; label: string }[] = [
@@ -80,8 +88,18 @@ const DAYS_WEEK: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; label: string }[] = [
 ];
 
 const MONTHS_FR = [
-  "Jan", "Fév", "Mar", "Avr", "Mai", "Jun",
-  "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc",
+  "Jan",
+  "Fév",
+  "Mar",
+  "Avr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Aoû",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Déc",
 ];
 
 export function extractPeriodiciteValue(
@@ -106,7 +124,10 @@ export function validatePeriodicite(v: PeriodiciteValue): string | null {
       return null;
     case "hebdomadaire":
     case "journalier":
-      if (!v.datePremierPrelevement || !dayjs(v.datePremierPrelevement).isValid())
+      if (
+        !v.datePremierPrelevement ||
+        !dayjs(v.datePremierPrelevement).isValid()
+      )
         return "Veuillez choisir une date de premier prélèvement";
       return null;
     case "jour_nomme":
@@ -230,9 +251,11 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
   type PickerTarget = "anchor" | "dateFin" | number | null;
   const [visiblePicker, setVisiblePicker] = useState<PickerTarget>(null);
 
-  const [echeancierMontantTexts, setEcheancierMontantTexts] = useState<string[]>(
-    () => (value.echeancier ?? []).map((e) =>
-      e.montant > 0 ? e.montant.toString() : ""
+  const [echeancierMontantTexts, setEcheancierMontantTexts] = useState<
+    string[]
+  >(() =>
+    (value.echeancier ?? []).map((e) =>
+      e.montant > 0 ? e.montant.toString() : "",
     ),
   );
 
@@ -241,14 +264,13 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
     setEcheancierMontantTexts((prev) => {
       if (prev.length === echeancierLen) return prev;
       if (prev.length < echeancierLen) {
-        const added = (value.echeancier ?? []).slice(prev.length).map((e) =>
-          e.montant > 0 ? e.montant.toString() : ""
-        );
+        const added = (value.echeancier ?? [])
+          .slice(prev.length)
+          .map((e) => (e.montant > 0 ? e.montant.toString() : ""));
         return [...prev, ...added];
       }
       return prev.slice(0, echeancierLen);
     });
-
   }, [echeancierLen]);
 
   const set = useCallback(
@@ -476,9 +498,8 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
                     setEcheancierMontantTexts((prev) => {
                       const next = [...prev];
                       const parsed = parseFloat(next[idx] ?? "");
-                      next[idx] = isNaN(parsed) || parsed <= 0
-                        ? ""
-                        : parsed.toString();
+                      next[idx] =
+                        isNaN(parsed) || parsed <= 0 ? "" : parsed.toString();
                       return next;
                     });
                   }}
@@ -526,7 +547,7 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
     }
   };
 
-  const MetaIcon = meta.icon; 
+  const MetaIcon = meta.icon;
 
   return (
     <View>

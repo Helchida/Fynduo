@@ -11,7 +11,12 @@ import { useComptes } from "../../hooks/useComptes";
 import { RootStackNavigationProp } from "@/types";
 import { styles } from "../../styles/screens/HistoryScreen/HistoryScreen.style";
 import { common } from "../../styles/common.style";
-import { ArrowBigDown, ArrowBigRight, Lightbulb, History } from "lucide-react-native";
+import {
+  ArrowBigDown,
+  ArrowBigRight,
+  Lightbulb,
+  History,
+} from "lucide-react-native";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 

@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { ITirelire, StatPeriod } from "@/types";
 import dayjs from "dayjs";
-import { FinancialPeriod, isDateInFinancialPeriod } from "utils/financialPeriods";
+import {
+  FinancialPeriod,
+  isDateInFinancialPeriod,
+} from "utils/financialPeriods";
 
 export interface StatEpargne {
   tirelireId: string;
@@ -36,9 +39,10 @@ export const useEpargneStats = (
 
           const moisMouvement = dayjs(m.date_mouvement).format("YYYY-MM");
 
-          if (period === "mois") return financialPeriod
-            ? isDateInFinancialPeriod(m.date_mouvement, financialPeriod)
-            : moisMouvement === referenceDate;
+          if (period === "mois")
+            return financialPeriod
+              ? isDateInFinancialPeriod(m.date_mouvement, financialPeriod)
+              : moisMouvement === referenceDate;
           if (period === "annee")
             return moisMouvement.startsWith(referenceDate);
           return true;
