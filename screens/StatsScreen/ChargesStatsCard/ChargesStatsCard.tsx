@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from "react";
+
+import { useAuth } from "../../../hooks/useAuth"; // Ajustez le chemin selon l'emplacement de votre fichier
 import {
   View,
   Text,
@@ -37,6 +39,7 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
   chargeType,
   financialPeriod,
 }) => {
+  const { user } = useAuth();
   const [focusedSlice, setFocusedSlice] = useState<number | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -233,15 +236,40 @@ export const ChargesStatsCard: React.FC<ChargesStatsCardProps> = ({
                     <View style={styles.chargesList}>
                       {categoryCharges.map((charge, idx) => {
                         const payeurName = getDisplayName(charge.payeur);
+
+                        // --- NOUVEAU CODE : Gestion de la répartition inégale ou égalitaire ---
+                        const getChargePartAmount = (chg: ICharge) => {
+                          if (!isSoloMode) return Number(chg.montantTotal);
+
+                          let repartitionMap: Record<string, number> | null =
+                            null;
+                          if (chg.repartition) {
+                            try {
+                              repartitionMap =
+                                typeof chg.repartition === "string"
+                                  ? JSON.parse(chg.repartition)
+                                  : chg.repartition;
+                            } catch (e) {
+                              repartitionMap = null;
+                            }
+                          }
+
+                          // Si une part spécifique est définie pour l'utilisateur dans la répartition inégale
+                          if (
+                            repartitionMap &&
+                            user?.id &&
+                            repartitionMap[user.id] !== undefined
+                          ) {
+                            return repartitionMap[user.id];
+                          }
+
+                          // Sinon, répartition égalitaire par défaut
+                          const nbBenef = chg.beneficiaires?.length || 1;
+                          return Number(chg.montantTotal) / nbBenef;
+                        };
+
                         const montantAffiche =
-                          isSoloMode &&
-                          charge.beneficiaires &&
-                          charge.beneficiaires.length > 0
-                            ? (
-                                Number(charge.montantTotal) /
-                                charge.beneficiaires.length
-                              ).toFixed(2)
-                            : Number(charge.montantTotal).toFixed(2);
+                          getChargePartAmount(charge).toFixed(2);
 
                         return (
                           <View

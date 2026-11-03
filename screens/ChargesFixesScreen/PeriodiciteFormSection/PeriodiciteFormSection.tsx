@@ -43,7 +43,7 @@ export interface PeriodiciteFormSectionProps {
 export const DEFAULT_PERIODICITE_VALUE: PeriodiciteValue = {
   periodiciteType: "mensuel",
   periodiciteIntervalle: 1,
-  datePremierPrelevement: null,
+  datePremierPrelevement: dayjs().date(1).format("YYYY-MM-DD"),
   dateFin: null,
   echeancier: null,
   jourNommeConfig: { position: 1, dayOfWeek: 1 },
@@ -628,7 +628,30 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
         onClose={() => setIsTypeModalVisible(false)}
         selectedId={value.periodiciteType}
         onSelect={(type) => {
-          set({ periodiciteType: type, periodiciteIntervalle: 1 });
+          let defaultDate = value.datePremierPrelevement;
+
+          switch (type) {
+            case "mensuel":
+              defaultDate = dayjs().date(1).format("YYYY-MM-DD");
+              break;
+            case "annuel":
+              defaultDate = dayToAnchorDate(1, 0);
+              break;
+            case "hebdomadaire":
+              defaultDate = dayjs().format("YYYY-MM-DD");
+              break;
+            case "journalier":
+              defaultDate = dayjs().format("YYYY-MM-DD");
+              break;
+            default:
+              break;
+          }
+
+          set({
+            periodiciteType: type,
+            periodiciteIntervalle: 1,
+            datePremierPrelevement: defaultDate,
+          });
         }}
       />
     </View>
