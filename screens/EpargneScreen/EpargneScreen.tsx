@@ -762,9 +762,7 @@ const EpargneScreen: React.FC = () => {
                   </Text>
                 </View>
                 <View style={{ marginLeft: 20 }}>
-                  <Text style={styles.miniStatLabel}>
-                    Épargné {periodDemonstrative} {periodNoun}
-                  </Text>
+                  <Text style={styles.miniStatLabel}>Épargné</Text>
                   <Text style={styles.miniStatValue}>
                     {formatCurrency(totalEpargnesPlaceCeMois)}
                   </Text>
