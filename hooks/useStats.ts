@@ -6,6 +6,49 @@ import {
   isDateInFinancialPeriod,
 } from "utils/financialPeriods";
 
+const getChargeFinalAmountForUser = (
+  charge: ICharge,
+  currentUserUid: string | undefined,
+  isSoloMode: boolean,
+): number => {
+  const montantTotal = Number(charge.montantTotal) || 0;
+
+  if (!isSoloMode) {
+    return montantTotal;
+  }
+
+  if (charge.beneficiaires && charge.beneficiaires.length > 0) {
+    const estBeneficiaire = charge.beneficiaires.includes(currentUserUid || "");
+    if (!estBeneficiaire) {
+      return 0;
+    }
+
+    let repartitionMap: Record<string, number> | null = null;
+    if (charge.repartition) {
+      try {
+        repartitionMap =
+          typeof charge.repartition === "string"
+            ? JSON.parse(charge.repartition)
+            : charge.repartition;
+      } catch (e) {
+        repartitionMap = null;
+      }
+    }
+
+    if (
+      repartitionMap &&
+      currentUserUid &&
+      repartitionMap[currentUserUid] !== undefined
+    ) {
+      return repartitionMap[currentUserUid];
+    }
+
+    return montantTotal / charge.beneficiaires.length;
+  }
+
+  return montantTotal;
+};
+
 export const useStats = (
   charges: ICharge[],
   categories: ICategorie[],
@@ -36,25 +79,11 @@ export const useStats = (
     const aggregation = filtered.reduce(
       (acc, charge) => {
         const catId = charge.categorie || "cat_autre";
-        const montantTotal = Number(charge.montantTotal) || 0;
-
-        let montantFinal = montantTotal;
-
-        if (
-          isSoloMode &&
-          charge.beneficiaires &&
-          charge.beneficiaires.length > 0
-        ) {
-          const estBeneficiaire = charge.beneficiaires.includes(
-            currentUserUid || "",
-          );
-
-          if (estBeneficiaire) {
-            montantFinal = montantTotal / charge.beneficiaires.length;
-          } else {
-            montantFinal = 0;
-          }
-        }
+        const montantFinal = getChargeFinalAmountForUser(
+          charge,
+          currentUserUid,
+          isSoloMode,
+        );
 
         acc[catId] = (acc[catId] || 0) + montantFinal;
         return acc;
@@ -105,25 +134,11 @@ export const useStats = (
     const aggregation = filtered.reduce(
       (acc, charge) => {
         const catId = charge.categorie || "cat_autre";
-        const montantTotal = Number(charge.montantTotal) || 0;
-
-        let montantFinal = montantTotal;
-
-        if (
-          isSoloMode &&
-          charge.beneficiaires &&
-          charge.beneficiaires.length > 0
-        ) {
-          const estBeneficiaire = charge.beneficiaires.includes(
-            currentUserUid || "",
-          );
-
-          if (estBeneficiaire) {
-            montantFinal = montantTotal / charge.beneficiaires.length;
-          } else {
-            montantFinal = 0;
-          }
-        }
+        const montantFinal = getChargeFinalAmountForUser(
+          charge,
+          currentUserUid,
+          isSoloMode,
+        );
 
         acc[catId] = (acc[catId] || 0) + montantFinal;
         return acc;
@@ -173,25 +188,11 @@ export const useStats = (
     const aggregation = filtered.reduce(
       (acc, charge) => {
         const catId = charge.categorie || "cat_autre";
-        const montantTotal = Number(charge.montantTotal) || 0;
-
-        let montantFinal = montantTotal;
-
-        if (
-          isSoloMode &&
-          charge.beneficiaires &&
-          charge.beneficiaires.length > 0
-        ) {
-          const estBeneficiaire = charge.beneficiaires.includes(
-            currentUserUid || "",
-          );
-
-          if (estBeneficiaire) {
-            montantFinal = montantTotal / charge.beneficiaires.length;
-          } else {
-            montantFinal = 0;
-          }
-        }
+        const montantFinal = getChargeFinalAmountForUser(
+          charge,
+          currentUserUid,
+          isSoloMode,
+        );
 
         acc[catId] = (acc[catId] || 0) + montantFinal;
         return acc;

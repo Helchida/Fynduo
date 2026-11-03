@@ -630,21 +630,17 @@ export const PeriodiciteFormSection: React.FC<PeriodiciteFormSectionProps> = ({
         onSelect={(type) => {
           let defaultDate = value.datePremierPrelevement;
 
-          // Appliquer vos règles selon le type choisi si on bascule dessus
           switch (type) {
             case "mensuel":
-              // Le 1er du mois en cours
               defaultDate = dayjs().date(1).format("YYYY-MM-DD");
               break;
             case "annuel":
-              // Le 1er janvier (ou mois actuel si vous préférez, ici le 1er janvier par défaut)
               defaultDate = dayToAnchorDate(1, 0);
               break;
             case "hebdomadaire":
               defaultDate = dayjs().format("YYYY-MM-DD");
               break;
             case "journalier":
-              // La date du jour
               defaultDate = dayjs().format("YYYY-MM-DD");
               break;
             default:
