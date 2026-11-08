@@ -281,12 +281,16 @@ export const ComptesProvider: React.FC<{ children: React.ReactNode }> = ({
             return r;
           }),
         );
+        // A reference-pay edit can rebuild persisted financial periods. Refresh
+        // the canonical context once so the home screen and derived balances do
+        // not continue to calculate from the previous period boundaries.
+        await loadData();
       } catch (error) {
         console.error("Erreur updateRevenu:", error);
         throw error;
       }
     },
-    [activeHouseholdId],
+    [activeHouseholdId, loadData],
   );
 
   const deleteRevenu = useCallback(

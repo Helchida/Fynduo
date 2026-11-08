@@ -268,6 +268,10 @@ export interface IMouvement {
   montant: number;
   date_mouvement: string;
   isHistorical?: boolean;
+  financialPeriod?: {
+    startDate: string;
+    endDate: string | null;
+  } | null;
 }
 
 export type StatPeriod = "mois" | "annee" | "tout";

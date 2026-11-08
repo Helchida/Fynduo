@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ITirelire, StatPeriod } from "@/types";
+import { IMouvement, ITirelire, StatPeriod } from "@/types";
 import { formatCalendarDate } from "utils/calendarDate";
 import {
   FinancialPeriod,
@@ -12,11 +12,10 @@ export interface StatEpargne {
   totalDepose: number;
   totalRetire: number;
   net: number;
-  mouvements: {
-    id: string;
-    montant: number;
-    date_mouvement: string;
-  }[];
+  mouvements: Pick<
+    IMouvement,
+    "id" | "montant" | "date_mouvement" | "financialPeriod"
+  >[];
 }
 
 export const useEpargneStats = (
@@ -28,11 +27,7 @@ export const useEpargneStats = (
   const statsParTirelire = useMemo((): StatEpargne[] => {
     return tirelires
       .map((tirelire) => {
-        const mouvements = (tirelire.mouvements || []) as {
-          id: string;
-          montant: number;
-          date_mouvement: string;
-        }[];
+        const mouvements = tirelire.mouvements || [];
 
         const filtered = mouvements.filter((m) => {
           if (period === "tout") return true;
