@@ -58,6 +58,10 @@ import { colors } from "styles/theme.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
 import {
+  formatCalendarDate,
+  getSavingsMovementDisplayDate,
+} from "utils/calendarDate";
+import {
   calculateSavingsCapacity,
   getBankTransferableTotals,
 } from "utils/savingsCapacity";
@@ -1172,8 +1176,12 @@ const EpargneScreen: React.FC = () => {
                     <View>
                       <Text style={[common.dispatchItemName, { fontSize: 14 }]}>
                         {(() => {
-                          const dateStr = dayjs(mouv.date_mouvement).format(
-                            "MMMM YYYY",
+                          const dateStr = formatCalendarDate(
+                            getSavingsMovementDisplayDate(
+                              mouv.date_mouvement,
+                              mouv.financialPeriod,
+                            ),
+                            "DD MMMM YYYY",
                           );
                           return (
                             dateStr.charAt(0).toUpperCase() + dateStr.slice(1)

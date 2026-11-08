@@ -1872,7 +1872,7 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
       .select(
         `
         *,
-        epargne_mouvements (*, financial_periods (is_historical))
+        epargne_mouvements (*, financial_periods (is_historical, start_date, end_date))
       `,
       )
       .eq("user_id", userId)
@@ -1886,6 +1886,12 @@ export async function getTirelires(userId: string): Promise<ITirelire[]> {
         (movement: any) => ({
           ...movement,
           isHistorical: Boolean(movement.financial_periods?.is_historical),
+          financialPeriod: movement.financial_periods
+            ? {
+                startDate: movement.financial_periods.start_date,
+                endDate: movement.financial_periods.end_date,
+              }
+            : null,
         }),
       );
       const sommeMouvements =
