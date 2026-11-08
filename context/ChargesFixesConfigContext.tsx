@@ -147,8 +147,13 @@ export const ChargesFixesConfigProvider: React.FC<{
       setChargesFixesConfigs((prev) =>
         prev.map((c) => (c.id === chargeId ? { ...c, ...updates } : c)),
       );
+      // Use the same persisted-config pass as creation. This is necessary when
+      // an edit moves a first debit date onto today: the database now contains
+      // a charge eligible for generation, even though no account reload has
+      // occurred yet.
+      await handleAutoAddFixedCharges();
     },
-    [activeHouseholdId],
+    [activeHouseholdId, handleAutoAddFixedCharges],
   );
 
   const addChargeFixeConfig = useCallback(
