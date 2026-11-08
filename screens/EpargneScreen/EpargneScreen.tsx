@@ -57,6 +57,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { colors } from "styles/theme.style";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { useScreenInfo } from "hooks/useScreenInfo";
+import { formatCalendarMonth } from "utils/calendarDate";
 import {
   calculateSavingsCapacity,
   getBankTransferableTotals,
@@ -1172,8 +1173,8 @@ const EpargneScreen: React.FC = () => {
                     <View>
                       <Text style={[common.dispatchItemName, { fontSize: 14 }]}>
                         {(() => {
-                          const dateStr = dayjs(mouv.date_mouvement).format(
-                            "MMMM YYYY",
+                          const dateStr = formatCalendarMonth(
+                            mouv.date_mouvement,
                           );
                           return (
                             dateStr.charAt(0).toUpperCase() + dateStr.slice(1)

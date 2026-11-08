@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { ITirelire, StatPeriod } from "@/types";
-import dayjs from "dayjs";
+import { formatCalendarDate } from "utils/calendarDate";
 import {
   FinancialPeriod,
   isDateInFinancialPeriod,
@@ -37,7 +37,10 @@ export const useEpargneStats = (
         const filtered = mouvements.filter((m) => {
           if (period === "tout") return true;
 
-          const moisMouvement = dayjs(m.date_mouvement).format("YYYY-MM");
+          const moisMouvement = formatCalendarDate(
+            m.date_mouvement,
+            "YYYY-MM",
+          );
 
           if (period === "mois")
             return financialPeriod

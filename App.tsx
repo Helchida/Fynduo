@@ -70,6 +70,12 @@ const App: React.FC = () => {
           -webkit-text-size-adjust: 100%;
         }
 
+        #root {
+          height: var(--fynduo-viewport-height, 100dvh);
+          min-height: 100%;
+          overflow: hidden;
+        }
+
         input, textarea, select {
           font-size: 16px !important;
         }
@@ -79,6 +85,17 @@ const App: React.FC = () => {
         }
       `;
       document.head.append(style);
+      const updateViewportHeight = () => {
+        const height = window.visualViewport?.height ?? window.innerHeight;
+        document.documentElement.style.setProperty(
+          "--fynduo-viewport-height",
+          `${height}px`,
+        );
+      };
+      updateViewportHeight();
+      window.addEventListener("resize", updateViewportHeight);
+      window.addEventListener("orientationchange", updateViewportHeight);
+      window.visualViewport?.addEventListener("resize", updateViewportHeight);
       navigator.serviceWorker?.register("/sw.js").catch((error) => console.warn("service_worker_registration_failed", error));
       const preventZoom = (e: TouchEvent) => {
         if (e.touches.length > 1) {
@@ -103,6 +120,11 @@ const App: React.FC = () => {
       return () => {
         document.removeEventListener("touchstart", preventZoom);
         document.removeEventListener("touchend", preventDoubleTap);
+        window.removeEventListener("resize", updateViewportHeight);
+        window.removeEventListener("orientationchange", updateViewportHeight);
+        window.visualViewport?.removeEventListener("resize", updateViewportHeight);
+        style.remove();
+        meta.remove();
       };
     }
   }, []);

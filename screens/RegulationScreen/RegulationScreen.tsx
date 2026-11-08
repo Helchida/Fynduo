@@ -70,18 +70,15 @@ const RegulationScreen: React.FC = () => {
   const { showInfoModal, setShowInfoModal } = useScreenInfo();
 
   const moisEnCoursDeCloture = currentMonthData?.moisAnnee;
-  if (!moisEnCoursDeCloture) {
-    return;
-  }
   console.log("Mois en cours de clôture:", moisEnCoursDeCloture);
   console.log("Charges:", charges);
   const chargesPourBalanceAffichee = useMemo(() => {
     return charges.filter((c) => {
       if (c.type === "variable") {
-        return c.moisAnnee <= moisEnCoursDeCloture;
+        return !!moisEnCoursDeCloture && c.moisAnnee <= moisEnCoursDeCloture;
       }
       if (c.type === "fixe") {
-        return c.moisAnnee < moisEnCoursDeCloture;
+        return !!moisEnCoursDeCloture && c.moisAnnee < moisEnCoursDeCloture;
       }
 
       return false;
@@ -106,7 +103,7 @@ const RegulationScreen: React.FC = () => {
 
   const chargesPourBalanceRegularisation = useMemo(() => {
     return charges.filter((c) => {
-      return c.moisAnnee <= moisEnCoursDeCloture;
+      return !!moisEnCoursDeCloture && c.moisAnnee <= moisEnCoursDeCloture;
     });
   }, [charges, moisEnCoursDeCloture]);
 
@@ -402,7 +399,7 @@ const RegulationScreen: React.FC = () => {
       };
 
       await cloturerMois(dataToSubmit, moisEnCoursDeCloture);
-      navigation.navigate("SummaryRegulation");
+      navigation.replace("SummaryRegulation");
     } catch (error) {
       toast.error("Erreur", "La clôture a échoué. " + (error as Error).message);
     }

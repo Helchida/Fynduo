@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import dayjs from "dayjs";
+import { formatCalendarDate } from "utils/calendarDate";
 import "dayjs/locale/fr";
 import { EpargneStatsCardProps } from "./EpargnesStatsCard.type";
 import { styles } from "../../../styles/screens/StatsScreen/EpargnesStatsCard/EpargnesStatsCard.style";
@@ -290,7 +291,7 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                                   </Text>
                                 </View>
                                 <Text style={styles.mouvementDate}>
-                                  {dayjs(mouvement.date_mouvement).format(
+                                  {formatCalendarDate(mouvement.date_mouvement,
                                     period === "annee" ? "MMM YYYY" : "DD/MM",
                                   )}
                                 </Text>
@@ -492,7 +493,7 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                                   </Text>
                                 </View>
                                 <Text style={styles.mouvementDate}>
-                                  {dayjs(mouvement.date_mouvement).format(
+                                  {formatCalendarDate(mouvement.date_mouvement,
                                     period === "annee" ? "MMM YYYY" : "DD/MM",
                                   )}
                                 </Text>
