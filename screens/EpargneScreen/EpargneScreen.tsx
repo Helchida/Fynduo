@@ -154,8 +154,6 @@ const EpargneScreen: React.FC = () => {
   }, [user?.id, selectedFinancialPeriod?.id, refresh]);
 
   const refreshAfterSavingsMutation = useCallback(async () => {
-    // First refresh the shared source of truth (revenues, charges and periods),
-    // then reload the savings ledger totals for the selected persisted period.
     await loadData();
     await refresh();
   }, [loadData, refresh]);
@@ -168,9 +166,6 @@ const EpargneScreen: React.FC = () => {
     );
 
     const monthRevenus = filterByFinancialPeriod(
-      // A tirelire withdrawal is recorded as a revenue row for traceability,
-      // but it is not new income. Its impact is already represented by the
-      // negative savings movement used in the capacity calculation.
       revenus.filter((revenu) => revenu.categorie !== "cat_retrait_epargne"),
       (revenu) => revenu.dateReception,
       selectedFinancialPeriod,
