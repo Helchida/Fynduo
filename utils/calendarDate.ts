@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import "dayjs/locale/fr";
+
+dayjs.locale("fr");
 
 /**
  * Formats the calendar date recorded by the database without letting a UTC
