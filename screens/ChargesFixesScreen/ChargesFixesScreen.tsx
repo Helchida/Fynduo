@@ -97,12 +97,15 @@ const ChargesFixesScreen: React.FC = () => {
     async (id: string, updates: Partial<IChargeFixeTemplate>) => {
       try {
         await updateChargeFixe(id, updates);
+        // The generator writes the due charge directly to Supabase. Reload the
+        // accounts once so it is visible immediately in the expenses list.
+        await loadData();
         toast.success("Succès", "Charge mise à jour");
       } catch (error) {
         toast.error("Erreur", "Échec de la mise à jour");
       }
     },
-    [updateChargeFixe, toast],
+    [updateChargeFixe, loadData, toast],
   );
 
   const handleAddDepense = useCallback(async () => {
