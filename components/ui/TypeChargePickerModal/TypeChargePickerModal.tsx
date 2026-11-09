@@ -3,27 +3,42 @@ import { Modal, View, Text, TouchableOpacity } from "react-native";
 import { styles } from "../../../styles/components/ui/TypeChargePickerModal/TypeChargePickerModal.style";
 import { common } from "../../../styles/common.style";
 import { TypeChargePickerModalProps } from "./TypeChargePickerModal.type";
-import { Repeat, Zap } from "lucide-react-native";
+import { Repeat, Zap, Landmark } from "lucide-react-native";
 
 export const TypeChargePickerModal = ({
   isVisible,
   onClose,
   selectedId,
   onSelect,
-}: TypeChargePickerModalProps) => {
+  isActiveHouseholdSolo = true,
+}: TypeChargePickerModalProps & { isActiveHouseholdSolo?: boolean }) => {
   const types = [
     {
       id: "fixe",
-      label: "Fixe",
+      label: "Charge Fixe",
       icon: <Repeat size={20} color="#3498DB" />,
       description: "Dépenses récurrentes (Loyer, EDF...)",
+      activeColor: "#3498DB",
     },
     {
       id: "variable",
-      label: "Variable",
-      icon: <Zap size={20} color="#F1C40F" />,
+      label: "Charge Variable",
+      icon: <Zap size={20} color="#2ECC71" />,
       description: "Dépenses ponctuelles (Courses, Loisirs...)",
+      activeColor: "#2ECC71",
     },
+
+    ...(isActiveHouseholdSolo
+      ? [
+          {
+            id: "epargne",
+            label: "Épargne",
+            icon: <Landmark size={20} color="#F39C12" />,
+            description: "Placement épargnes",
+            activeColor: "#F39C12",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -35,51 +50,56 @@ export const TypeChargePickerModal = ({
           </View>
 
           <View style={{ paddingVertical: 10 }}>
-            {types.map((type) => (
-              <TouchableOpacity
-                key={type.id}
-                style={[
-                  common.modalItem,
-                  selectedId === type.id && common.modalItemSelected,
-                ]}
-                onPress={() => {
-                  onSelect(type.id as "fixe" | "variable");
-                  onClose();
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    flex: 1,
+            {types.map((type) => {
+              const isSelected = selectedId === type.id;
+              return (
+                <TouchableOpacity
+                  key={type.id}
+                  style={[
+                    common.modalItem,
+                    isSelected && common.modalItemSelected,
+                  ]}
+                  onPress={() => {
+                    onSelect(type.id as "fixe" | "variable" | "epargne");
+                    onClose();
                   }}
                 >
-                  <View style={{ marginRight: 12 }}>{type.icon}</View>
-                  <View>
-                    <Text
-                      style={[
-                        common.modalItemText,
-                        selectedId === type.id && {
-                          fontWeight: "bold",
-                          color: "#3498DB",
-                        },
-                      ]}
-                    >
-                      Charge {type.label}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: "#95a5a6" }}>
-                      {type.description}
-                    </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flex: 1,
+                    }}
+                  >
+                    <View style={{ marginRight: 12 }}>{type.icon}</View>
+                    <View>
+                      <Text
+                        style={[
+                          common.modalItemText,
+                          isSelected && {
+                            fontWeight: "bold",
+                            color: type.activeColor,
+                          },
+                        ]}
+                      >
+                        {type.label}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: "#95a5a6" }}>
+                        {type.description}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                {selectedId === type.id && (
-                  <Text style={{ color: "#3498DB", fontWeight: "bold" }}>
-                    ✓
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ))}
+                  {isSelected && (
+                    <Text
+                      style={{ color: type.activeColor, fontWeight: "bold" }}
+                    >
+                      ✓
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <TouchableOpacity style={common.modalCloseButton} onPress={onClose}>

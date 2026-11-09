@@ -154,8 +154,6 @@ const EpargneScreen: React.FC = () => {
   }, [user?.id, selectedFinancialPeriod?.id, refresh]);
 
   const refreshAfterSavingsMutation = useCallback(async () => {
-    // First refresh the shared source of truth (revenues, charges and periods),
-    // then reload the savings ledger totals for the selected persisted period.
     await loadData();
     await refresh();
   }, [loadData, refresh]);
@@ -168,9 +166,6 @@ const EpargneScreen: React.FC = () => {
     );
 
     const monthRevenus = filterByFinancialPeriod(
-      // A tirelire withdrawal is recorded as a revenue row for traceability,
-      // but it is not new income. Its impact is already represented by the
-      // negative savings movement used in the capacity calculation.
       revenus.filter((revenu) => revenu.categorie !== "cat_retrait_epargne"),
       (revenu) => revenu.dateReception,
       selectedFinancialPeriod,
@@ -268,11 +263,15 @@ const EpargneScreen: React.FC = () => {
           "Ajoutez une paie de référence avant de placer une épargne dans cette période.",
         );
       }
+
+      const movementDateToSave = isCurrentMonth
+        ? dayjs().format("YYYY-MM-DD")
+        : selectedFinancialPeriod.end || selectedFinancialPeriod.start;
       await placeEpargne(
         user.id,
         tirelireId,
         montant,
-        selectedFinancialPeriod.start,
+        movementDateToSave,
         selectedFinancialPeriod.id,
       );
       toast.success(
@@ -1177,10 +1176,7 @@ const EpargneScreen: React.FC = () => {
                       <Text style={[common.dispatchItemName, { fontSize: 14 }]}>
                         {(() => {
                           const dateStr = formatCalendarDate(
-                            getSavingsMovementDisplayDate(
-                              mouv.date_mouvement,
-                              mouv.financialPeriod,
-                            ),
+                            getSavingsMovementDisplayDate(mouv.date_mouvement),
                             "DD MMMM YYYY",
                           );
                           return (
