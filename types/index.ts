@@ -42,7 +42,7 @@ export type CategoryType =
   | "Autre";
 
 export type ChargeScope = "solo" | "partage";
-export type ChargeType = "fixe" | "variable";
+export type ChargeType = "fixe" | "variable" | "epargne";
 export type ChargeNature = "depense" | "remboursement";
 export type PeriodiciteType =
   | "journalier"

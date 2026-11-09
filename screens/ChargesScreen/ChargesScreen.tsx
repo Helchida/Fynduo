@@ -24,6 +24,7 @@ import { similarity, FUZZY_THRESHOLD_DESCRIPTION } from "utils/fuzzyMatch";
 import { CategoryPickerModal } from "../ChargeDetail/EditChargeForm/CategoryPickerModal/CategoryPickerModal";
 import { PayeurPickerModal } from "../ChargeDetail/EditChargeForm/PayeurPickerModal/PayeurPickerModal";
 import { BeneficiariesSelector } from "../ChargeDetail/EditChargeForm/BeneficiariesSelector/BeneficiariesSelector";
+import SavingsMovementItem from "./SavingsMovementItem/SavingsMovementItem";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import {
   CalendarSearch,
@@ -46,12 +47,14 @@ import { TypeChargePickerModal } from "components/ui/TypeChargePickerModal/TypeC
 import { useScreenInfo } from "hooks/useScreenInfo";
 import { InfoModal } from "components/ui/InfoModal/InfoModal";
 import { calculateRepartition } from "../../utils/repartition";
+import { useEpargneData } from "../../hooks/useEpargneData";
+import { getSavingsMovementDisplayDate } from "../../utils/calendarDate";
 
 dayjs.locale("fr");
 
 interface GroupedCharges {
   date: string;
-  charges: ICharge[];
+  charges: any[];
 }
 
 const ChargesScreen: React.FC = () => {
@@ -66,9 +69,16 @@ const ChargesScreen: React.FC = () => {
     return <NoAuthenticatedUser />;
   }
 
+  const isActiveHouseholdSolo = user
+    ? user.activeHouseholdId === user.id
+    : true;
+
   const { householdUsers, getDisplayName } = useHouseholdUsers();
   const { categories, getCategoryLabel, defaultCategory } = useCategories();
   const balances = useMultiUserBalance(charges, householdUsers);
+  const { allSavingsMovements, refresh: refreshEpargne } = useEpargneData(
+    user.id,
+  );
 
   const [description, setDescription] = useState("");
   const [montant, setMontant] = useState("");
@@ -121,6 +131,12 @@ const ChargesScreen: React.FC = () => {
   );
 
   const amountNum = parseFloat(montant.replace(",", ".")) || 0;
+
+  useEffect(() => {
+    if (user?.id) {
+      refreshEpargne();
+    }
+  }, [user?.id, refreshEpargne]);
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -178,49 +194,69 @@ const ChargesScreen: React.FC = () => {
     return calculSimplifiedTransfers(balances);
   }, [balances]);
 
+  const displayedSavingsMovements = isActiveHouseholdSolo
+    ? allSavingsMovements
+    : [];
+
   const groupedCharges = useMemo(() => {
-    let filtered = charges.slice();
+    let filteredCharges: any[] = charges.slice();
+    let filteredSavings: any[] = displayedSavingsMovements.slice();
 
     if (filterPayeur) {
-      filtered = filtered.filter((c) => c.payeur === filterPayeur);
+      filteredCharges = filteredCharges.filter(
+        (c) => c.payeur === filterPayeur,
+      );
     }
 
     if (filterTypeCharge) {
-      filtered = filtered.filter((c) => c.type === filterTypeCharge);
+      filteredCharges = filteredCharges.filter(
+        (c) => c.type === filterTypeCharge,
+      );
     }
 
     if (filterMois) {
-      filtered = filtered.filter(
+      filteredCharges = filteredCharges.filter(
         (c) => dayjs(c.dateStatistiques).format("YYYY-MM") === filterMois,
+      );
+      filteredSavings = filteredSavings.filter(
+        (s) => s.moisAnnee === filterMois,
       );
     }
 
     if (filterAnnee) {
-      filtered = filtered.filter(
+      filteredCharges = filteredCharges.filter(
         (c) => dayjs(c.dateStatistiques).format("YYYY") === filterAnnee,
+      );
+      filteredSavings = filteredSavings.filter((s) =>
+        s.dateStatistiques.startsWith(filterAnnee),
       );
     }
 
     if (filterCategory) {
-      filtered = filtered.filter((c) => c.categorie === filterCategory);
+      filteredCharges = filteredCharges.filter(
+        (c) => c.categorie === filterCategory,
+      );
+      filteredSavings = [];
     }
 
-    const sortedCharges = filtered.sort(
+    const combined: any[] = [...filteredCharges, ...filteredSavings];
+
+    const sortedItems = combined.sort(
       (a, b) =>
         dayjs(b.dateStatistiques).valueOf() -
         dayjs(a.dateStatistiques).valueOf(),
     );
 
-    const groupedData = sortedCharges.reduce(
-      (acc, charge) => {
-        const dateKey = dayjs(charge.dateStatistiques).format("YYYY-MM-DD");
+    const groupedData = sortedItems.reduce(
+      (acc, item) => {
+        const dateKey = dayjs(item.dateStatistiques).format("YYYY-MM-DD");
         if (!acc[dateKey]) {
           acc[dateKey] = [];
         }
-        acc[dateKey].push(charge);
+        acc[dateKey].push(item);
         return acc;
       },
-      {} as Record<string, ICharge[]>,
+      {} as Record<string, any[]>,
     );
 
     const groupedArray: GroupedCharges[] = [];
@@ -238,6 +274,7 @@ const ChargesScreen: React.FC = () => {
     return groupedArray;
   }, [
     charges,
+    allSavingsMovements,
     filterPayeur,
     filterTypeCharge,
     filterMois,
@@ -811,7 +848,9 @@ const ChargesScreen: React.FC = () => {
                 {filterTypeCharge
                   ? filterTypeCharge === "fixe"
                     ? "Fixe"
-                    : "Variable"
+                    : filterTypeCharge === "variable"
+                      ? "Variable"
+                      : "Épargne"
                   : "Type"}
               </Text>
             </View>
@@ -845,14 +884,18 @@ const ChargesScreen: React.FC = () => {
           groupedCharges.map((group) => (
             <View key={group.date}>
               <Text style={styles.dateSeparator}>{group.date}</Text>
-              {group.charges.map((charge) => (
-                <ChargeItem
-                  key={charge.id}
-                  charge={charge}
-                  householdUsers={householdUsers}
-                  onPress={handleOpenDetail}
-                />
-              ))}
+              {group.charges.map((item) =>
+                item.isEpargne ? (
+                  <SavingsMovementItem key={item.id} movement={item} />
+                ) : (
+                  <ChargeItem
+                    key={item.id}
+                    charge={item}
+                    householdUsers={householdUsers}
+                    onPress={handleOpenDetail}
+                  />
+                ),
+              )}
             </View>
           ))
         )}
@@ -896,6 +939,7 @@ const ChargesScreen: React.FC = () => {
           setFilterTypeCharge(id);
           setIsFilterTypeChargeModalVisible(false);
         }}
+        isActiveHouseholdSolo={isActiveHouseholdSolo}
       />
 
       <CategoryPickerModal

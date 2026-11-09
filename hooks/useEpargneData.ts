@@ -1,5 +1,5 @@
 import { ITirelire } from "@/types";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useMemo } from "react";
 import {
   getTirelires,
   getTotalMouvEpargneForPeriod,
@@ -10,7 +10,7 @@ import { FinancialPeriod } from "utils/financialPeriods";
 
 export const useEpargneData = (
   userId: string | undefined,
-  period: FinancialPeriod | null,
+  period?: FinancialPeriod | null,
 ) => {
   const [tirelires, setTirelires] = useState<ITirelire[]>([]);
   const [totalEpargnesMouvementCeMois, setTotalEpargnesMouvementCeMois] =
@@ -32,11 +32,14 @@ export const useEpargneData = (
     try {
       const [list, total, totalPlace] = await Promise.all([
         getTirelires(userId),
-        getTotalMouvEpargneForPeriod(userId, period),
-        getTotalPlaceEpargneForPeriod(userId, period),
+        period
+          ? getTotalMouvEpargneForPeriod(userId, period)
+          : Promise.resolve(0),
+        period
+          ? getTotalPlaceEpargneForPeriod(userId, period)
+          : Promise.resolve(0),
       ]);
-      // An older request can finish after a withdrawal mutation. Do not let it
-      // overwrite the more recent period totals with its stale snapshot.
+
       if (requestId !== refreshSequence.current) return;
       setTirelires(list);
       setTotalEpargnesMouvementCeMois(total);
@@ -58,8 +61,39 @@ export const useEpargneData = (
     return tirelires.reduce((sum, t) => sum + t.objectif, 0);
   }, [tirelires]);
 
+  // Récupération et formatage de TOUS les mouvements d'épargne (toutes tirelires confondues)
+  const allSavingsMovements = useMemo(() => {
+    const movements: any[] = [];
+    tirelires.forEach((t) => {
+      if (t.mouvements && Array.isArray(t.mouvements)) {
+        t.mouvements.forEach((m) => {
+          const montantNum = Number(m.montant);
+
+          // On ne garde que les placements (montants supérieurs à 0)
+          if (montantNum > 0) {
+            movements.push({
+              id: `epargne-${m.id}`,
+              description: `Épargne : ${t.description}`,
+              montantTotal: Number(m.montant),
+              dateStatistiques: m.date_mouvement
+                ? m.date_mouvement.slice(0, 10)
+                : "",
+              moisAnnee: m.date_mouvement ? m.date_mouvement.slice(0, 7) : "",
+              type: "epargne",
+              nature: "epargne",
+              isEpargne: true,
+              tirelireId: t.id,
+            });
+          }
+        });
+      }
+    });
+    return movements;
+  }, [tirelires]);
+
   return {
     tirelires,
+    allSavingsMovements,
     totalEpargnesMouvementCeMois,
     totalEpargnesPlaceCeMois,
     loading,
