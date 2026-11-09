@@ -297,7 +297,6 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                                   {formatCalendarDate(
                                     getSavingsMovementDisplayDate(
                                       mouvement.date_mouvement,
-                                      mouvement.financialPeriod,
                                     ),
                                     period === "annee" ? "MMM YYYY" : "DD/MM",
                                   )}
@@ -503,7 +502,6 @@ export const EpargneStatsCard: React.FC<EpargneStatsCardProps> = ({
                                   {formatCalendarDate(
                                     getSavingsMovementDisplayDate(
                                       mouvement.date_mouvement,
-                                      mouvement.financialPeriod,
                                     ),
                                     period === "annee" ? "MMM YYYY" : "DD/MM",
                                   )}

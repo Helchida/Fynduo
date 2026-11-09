@@ -263,11 +263,15 @@ const EpargneScreen: React.FC = () => {
           "Ajoutez une paie de référence avant de placer une épargne dans cette période.",
         );
       }
+
+      const movementDateToSave = isCurrentMonth
+        ? dayjs().format("YYYY-MM-DD")
+        : selectedFinancialPeriod.end || selectedFinancialPeriod.start;
       await placeEpargne(
         user.id,
         tirelireId,
         montant,
-        selectedFinancialPeriod.start,
+        movementDateToSave,
         selectedFinancialPeriod.id,
       );
       toast.success(
@@ -1172,10 +1176,7 @@ const EpargneScreen: React.FC = () => {
                       <Text style={[common.dispatchItemName, { fontSize: 14 }]}>
                         {(() => {
                           const dateStr = formatCalendarDate(
-                            getSavingsMovementDisplayDate(
-                              mouv.date_mouvement,
-                              mouv.financialPeriod,
-                            ),
+                            getSavingsMovementDisplayDate(mouv.date_mouvement),
                             "DD MMMM YYYY",
                           );
                           return (
