@@ -380,7 +380,7 @@ const BudgetsScreen: React.FC = () => {
                           </Text>
                         </Text>
                         <Text style={styles.amountLabel}>
-                          Montant initial{" "}
+                          Objectif{" "}
                           <Text style={styles.amountValue}>
                             {formatEuro(snapshot.initialAmount)}
                           </Text>
@@ -510,7 +510,7 @@ const BudgetsScreen: React.FC = () => {
               onChangeText={(name) => setDraft((value) => ({ ...value, name }))}
               placeholder="ex : Courses"
             />
-            <Text style={styles.label}>Montant initial (€)</Text>
+            <Text style={styles.label}>Objectif (€)</Text>
             <TextInput
               style={styles.input}
               keyboardType="decimal-pad"
