@@ -320,6 +320,18 @@ export const common = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral200,
   },
+  dispatchItemDisabled: {
+    padding: spacing.md + 3,
+    backgroundColor: colors.neutral100,
+    borderRadius: radius.lg,
+    marginBottom: spacing.sm + 2,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.neutral300,
+    opacity: 0.6,
+  },
   dispatchItemName: {
     fontWeight: "700",
     color: colors.textPrimary,
