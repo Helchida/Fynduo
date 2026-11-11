@@ -105,6 +105,9 @@ const EpargneScreen: React.FC = () => {
   const [cagnottesOfTirelireToBreak, setCagnottesOfTirelireToBreak] = useState<
     ITirelire[]
   >([]);
+  const [tirelireToBreak, setTirelireToBreak] = useState<ITirelire | null>(
+    null,
+  );
   const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
   const [selectedTirelireForHistory, setSelectedTirelireForHistory] =
     useState<ITirelire | null>(null);
@@ -117,6 +120,16 @@ const EpargneScreen: React.FC = () => {
   const [selectedPayPeriodId, setSelectedPayPeriodId] = useState<string | null>(
     null,
   );
+
+  const getUnallocated = (tirelire: ITirelire) => {
+    const montantTotalReel = tirelire.montantActuel;
+    let montantRange = 0;
+    cagnottesOfTirelireToBreak.forEach((c) => {
+      montantRange += c.montantActuel;
+    });
+
+    return montantTotalReel - montantRange;
+  };
 
   useEffect(() => {
     if (!payPeriodActive) return;
@@ -1081,7 +1094,12 @@ const EpargneScreen: React.FC = () => {
                   {tirelires.map((t) => (
                     <TouchableOpacity
                       key={t.id}
-                      style={common.dispatchItem}
+                      style={
+                        t.montantActuel <= 0
+                          ? common.dispatchItemDisabled
+                          : common.dispatchItem
+                      }
+                      disabled={t.montantActuel <= 0}
                       onPress={async () => {
                         const cagnottes = await getCagnottes(t.id);
                         if (cagnottes.length > 0) {
@@ -1089,6 +1107,7 @@ const EpargneScreen: React.FC = () => {
                           setCagnottesOfTirelireToBreak(
                             await getCagnottes(t.id),
                           );
+                          setTirelireToBreak(t);
                         } else {
                           handleConfirmBreak(t);
                         }
@@ -1108,10 +1127,46 @@ const EpargneScreen: React.FC = () => {
               <>
                 <Text style={common.inputLabel}>De quelle cagnotte ?</Text>
                 <ScrollView style={{ maxHeight: 200 }}>
+                  {tirelireToBreak != null && (
+                    <TouchableOpacity
+                      style={
+                        (montantSaisi as unknown as number) >
+                        getUnallocated(tirelireToBreak)
+                          ? [
+                              common.dispatchItemDisabled,
+                              common.dispatchItemAuto,
+                            ]
+                          : [common.dispatchItem, common.dispatchItemAuto]
+                      }
+                      onPress={() => handleConfirmBreak(tirelireToBreak)}
+                      disabled={
+                        (montantSaisi as unknown as number) >
+                        getUnallocated(tirelireToBreak)
+                      }
+                    >
+                      <Text
+                        style={[
+                          common.dispatchItemName,
+                          common.dispatchItemAutoName,
+                        ]}
+                      >
+                        Argent non réparti
+                      </Text>
+                      <Text style={common.dispatchItemReste}>
+                        Contient{" "}
+                        {formatCurrency(getUnallocated(tirelireToBreak))}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                   {cagnottesOfTirelireToBreak.map((c) => (
                     <TouchableOpacity
                       key={c.id}
-                      style={common.dispatchItem}
+                      style={
+                        c.montantActuel <= 0
+                          ? common.dispatchItemDisabled
+                          : common.dispatchItem
+                      }
+                      disabled={c.montantActuel <= 0}
                       onPress={() => handleConfirmBreak(c)}
                     >
                       <Text style={common.dispatchItemName}>
