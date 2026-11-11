@@ -178,7 +178,15 @@ export const CategoryPickerModal = ({
   return (
     <Modal visible={isVisible} transparent animationType="slide">
       <View style={common.modalOverlay}>
-        <View style={common.modalContent}>
+        <View
+          style={[
+            common.modalContent,
+            {
+              height: "80%",
+              maxHeight: "80%",
+            },
+          ]}
+        >
           <TextInput
             ref={emojiInputRef}
             style={{ position: "absolute", opacity: 0, height: 0, width: 0 }}
@@ -353,7 +361,7 @@ export const CategoryPickerModal = ({
           )}
 
           {isAdding && step === "resolving" && (
-            <View style={{ padding: 16 }}>
+            <View style={{ flex: 1, minHeight: 0, padding: 16 }}>
               <Text
                 style={{ fontWeight: "700", fontSize: 15, marginBottom: 4 }}
               >
@@ -366,7 +374,11 @@ export const CategoryPickerModal = ({
                 souhaitez-vous faire ?
               </Text>
 
-              <ScrollView style={{ maxHeight: 380 }}>
+              <ScrollView
+                style={{ flex: 1, minHeight: 0 }}
+                contentContainerStyle={{ paddingBottom: 8 }}
+                showsVerticalScrollIndicator
+              >
                 {conflicts.map((conflict) => (
                   <View
                     key={conflict.soloHouseholdId}
