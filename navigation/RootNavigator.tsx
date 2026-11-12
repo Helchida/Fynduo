@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, ComponentType } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../hooks/useAuth";
 import { RootStackParamList } from "@/types";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, Text } from "react-native";
+import linking from "./linking";
+import { styles } from "../styles/screens/ChargesScreen/ChargesScreen.style";
 
 import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import LoyerScreen from "../screens/LoyerScreen/LoyerScreen";
@@ -30,6 +32,7 @@ import NotificationsScreen from "screens/NotificationsScreen/NotificationsScreen
 import BudgetsScreen from "screens/BudgetsScreen/BudgetsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+type HouseholdAccess = "solo" | "shared" | "both";
 
 const AppStack = () => (
   <Stack.Navigator
@@ -81,78 +84,78 @@ const AppStack = () => (
     />
     <Stack.Screen
       name="Loyer"
-      component={LoyerScreen}
+      component={LoyerScreenGuarded}
       options={{ title: "Loyer et APL" }}
     />
     <Stack.Screen
       name="ChargesFixes"
-      component={ChargesFixesScreen}
+      component={ChargesFixesScreenGuarded}
       options={{ title: "Charges Fixes" }}
     />
     <Stack.Screen
       name="Charges"
-      component={ChargesScreen}
+      component={ChargesScreenGuarded}
       options={{ title: "Charges" }}
     />
     <Stack.Screen
       name="ChargeDetail"
-      component={ChargeDetailScreen}
+      component={ChargeDetailScreenGuarded}
       options={({ route }) => ({
         title: `Détail de ${route.params.description}`,
       })}
     />
     <Stack.Screen
       name="RevenuDetail"
-      component={RevenuDetailScreen}
+      component={RevenuDetailScreenGuarded}
       options={({ route }) => ({
         title: `Détail de ${route.params.description}`,
       })}
     />
     <Stack.Screen
       name="Regulation"
-      component={Regulation}
+      component={RegulationScreenGuarded}
       options={{ title: "Faire les Comptes" }}
     />
     <Stack.Screen
       name="SummaryRegulation"
-      component={SummaryRegulationScreen}
+      component={SummaryRegulationScreenGuarded}
       options={{ title: "Résumé du règlement" }}
     />
     <Stack.Screen
       name="History"
-      component={HistoryScreen}
+      component={HistoryScreenGuarded}
       options={{ title: "Historique des Comptes" }}
     />
     <Stack.Screen
       name="HistoryDetail"
-      component={HistoryDetailScreen}
+      component={HistoryDetailScreenGuarded}
       options={({ route }) => ({
         title: `Détail de ${route.params.moisAnnee}`,
       })}
     />
     <Stack.Screen
       name="Stats"
-      component={StatsScreen}
+      component={StatsScreenGuarded}
       options={{ title: "Statistiques" }}
     />
     <Stack.Screen
       name="Revenus"
-      component={RevenusScreen}
+      component={RevenusScreenGuarded}
       options={{ title: "Revenus" }}
     />
     <Stack.Screen
       name="Epargne"
-      component={EpargneScreen}
+      component={EpargneScreenGuarded}
       options={{ title: "Epargne" }}
     />
     <Stack.Screen
       name="Budgets"
-      component={BudgetsScreen}
+      component={BudgetsScreenGuarded}
       options={{ title: "Budgets" }}
     />
     <Stack.Screen
       name="Tirelire"
-      component={TirelireScreen}
+      component={TirelireScreenGuarded}
       options={({ route }) => ({
         title: `Détail de ${route.params.tirelire.description}`,
       })}
@@ -177,11 +180,88 @@ const VerificationStack = () => (
   </Stack.Navigator>
 );
 
+const withHouseholdAccess = (
+  Screen: ComponentType<any>,
+  access: HouseholdAccess,
+) => {
+  const GuardedScreen = (props: any) => {
+    const { user, isLoading } = useAuth();
+
+    const isSolo = user ? user.activeHouseholdId === user.id : false;
+
+    const isAllowed =
+      access === "both" ||
+      (access === "solo" && isSolo) ||
+      (access === "shared" && !isSolo && !!user);
+
+    useEffect(() => {
+      if (!isLoading && user && !isAllowed) {
+        props.navigation.reset({
+          index: 0,
+          routes: [{ name: "Home" as keyof RootStackParamList }],
+        });
+      }
+    }, [isLoading, user, isAllowed, props.navigation]);
+
+    if (isLoading || !isAllowed) {
+      return null;
+    }
+
+    return <Screen {...props} />;
+  };
+
+  GuardedScreen.displayName = `withHouseholdAccess(${
+    Screen.displayName || Screen.name || "Screen"
+  })`;
+
+  return GuardedScreen;
+};
+
+const ChargesScreenGuarded = withHouseholdAccess(ChargesScreen, "both");
+const ChargesFixesScreenGuarded = withHouseholdAccess(
+  ChargesFixesScreen,
+  "both",
+);
+
+const LoyerScreenGuarded = withHouseholdAccess(LoyerScreen, "shared");
+const RevenusScreenGuarded = withHouseholdAccess(RevenusScreen, "solo");
+const EpargneScreenGuarded = withHouseholdAccess(EpargneScreen, "solo");
+const BudgetsScreenGuarded = withHouseholdAccess(BudgetsScreen, "solo");
+
+const StatsScreenGuarded = withHouseholdAccess(StatsScreen, "both");
+const RegulationScreenGuarded = withHouseholdAccess(Regulation, "shared");
+const SummaryRegulationScreenGuarded = withHouseholdAccess(
+  SummaryRegulationScreen,
+  "shared",
+);
+
+const HistoryScreenGuarded = withHouseholdAccess(HistoryScreen, "shared");
+const HistoryDetailScreenGuarded = withHouseholdAccess(
+  HistoryDetailScreen,
+  "shared",
+);
+
+const ChargeDetailScreenGuarded = withHouseholdAccess(
+  ChargeDetailScreen,
+  "both",
+);
+
+const RevenuDetailScreenGuarded = withHouseholdAccess(
+  RevenuDetailScreen,
+  "solo",
+);
+
+const TirelireScreenGuarded = withHouseholdAccess(TirelireScreen, "solo");
+
 const RootNavigator = () => {
-  const { user, isAwaitingVerification } = useAuth();
+  const { user, isAwaitingVerification, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <Text style={styles.loading}>Chargement...</Text>;
+  }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       {user ? (
         <AppStack />
       ) : isAwaitingVerification ? (

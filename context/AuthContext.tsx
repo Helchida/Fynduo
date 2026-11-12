@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (!firebaseUser) {
         setUser(null);
         setHouseholdUsers([]);
+        setIsAwaitingVerification(false);
         if (userChannel) supabase.removeChannel(userChannel);
         if (householdChannel) supabase.removeChannel(householdChannel);
         setIsLoading(false);
@@ -60,6 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const canAccess = firebaseUser.emailVerified || __DEV__;
 
       if (canAccess) {
+        setIsAwaitingVerification(false);
         try {
           const { data: userData, error: userError } = await supabase
             .from("users")
